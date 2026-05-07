@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "UpPNOoSs-9UG-IVx9PfWK"
+uri = "file://assets/parts-oils.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "6YLgXWlqkuKfcLRUQrBYK"
+uri = "file://assets/parts-tyres.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "3O3iL3IqGcwUc0EZPrnsy"
+uri = "file://assets/parts-universal.png"
+type = "image"
+title = "generated_image"

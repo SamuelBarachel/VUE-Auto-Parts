@@ -262,18 +262,18 @@ nav a:hover::after {
 
 .hero-content {
   color: #fff;
-  max-width: 640px;
-  padding: clamp(28px, 4vw, 52px) clamp(18px, 3.4vw, 48px) clamp(28px, 3.5vw, 44px);
+  max-width: 620px;
+  padding: clamp(22px, 3vw, 38px) clamp(18px, 3.4vw, 48px) clamp(22px, 2.8vw, 34px);
   position: relative;
   z-index: 2;
 }
 
 .eyebrow {
   color: var(--gold);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 900;
   letter-spacing: 0;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   text-transform: uppercase;
 }
 
@@ -369,22 +369,18 @@ h1 {
 }
 
 .section {
-  padding: clamp(22px, 2.8vw, 40px) clamp(16px, 3.2vw, 48px);
-  scroll-margin-top: 80px;
+  padding: clamp(16px, 2vw, 28px) clamp(16px, 3.2vw, 48px);
+  scroll-margin-top: 72px;
 }
 
 .section-heading {
-  align-items: end;
-  display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 0.5fr);
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .section-heading.narrow {
   display: block;
   max-width: 720px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 h2 {
@@ -412,8 +408,8 @@ h2 {
 }
 
 .model-card {
-  min-height: 180px;
-  padding: 18px;
+  min-height: 150px;
+  padding: 16px;
   position: relative;
 }
 
@@ -726,9 +722,9 @@ h2 {
 
 .stock-layout {
   display: grid;
-  gap: 16px;
-  grid-template-columns: 0.68fr 1.32fr;
-  margin-top: 16px;
+  gap: 14px;
+  grid-template-columns: 0.62fr 1.38fr;
+  margin-top: 10px;
 }
 
 .stock-panel {
@@ -776,7 +772,7 @@ h2 {
 
 .category-img-wrap {
   width: 100%;
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 16 / 6;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -794,7 +790,7 @@ h2 {
 }
 
 .category-body {
-  padding: 14px 16px 16px;
+  padding: 10px 14px 14px;
   flex: 1;
 }
 
