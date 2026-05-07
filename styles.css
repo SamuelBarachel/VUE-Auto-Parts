@@ -874,6 +874,16 @@ dd {
 }
 
 @media (max-width: 640px) {
+  .site-header {
+    gap: 10px 16px;
+    padding-top: 8px;
+  }
+
+  nav {
+    margin-top: -2px;
+    padding-bottom: 0;
+  }
+
   .brand {
     min-width: 0;
     max-width: calc(100% - 112px);
