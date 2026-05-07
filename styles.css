@@ -113,7 +113,6 @@ nav a {
 }
 
 .hero {
-  min-height: calc(100svh - 77px);
   overflow: hidden;
   position: relative;
 }
@@ -140,7 +139,7 @@ nav a {
 .hero-content {
   color: #fff;
   max-width: 790px;
-  padding: clamp(70px, 11vw, 150px) clamp(20px, 5vw, 76px) 92px;
+  padding: clamp(58px, 9vw, 118px) clamp(20px, 5vw, 76px) clamp(56px, 7vw, 76px);
   position: relative;
   z-index: 2;
 }
@@ -185,7 +184,7 @@ h1 {
 }
 
 .hero-actions {
-  margin-top: 34px;
+  margin-top: 26px;
 }
 
 .button {
@@ -211,8 +210,8 @@ h1 {
 
 .hero-metrics {
   border-top: 1px solid rgba(255, 255, 255, 0.18);
-  margin-top: 48px;
-  padding-top: 22px;
+  margin-top: 34px;
+  padding-top: 18px;
 }
 
 .hero-metrics span {
@@ -241,12 +240,12 @@ h1 {
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.88rem;
   font-weight: 800;
-  min-height: 72px;
-  padding: 24px;
+  min-height: 58px;
+  padding: 18px 24px;
 }
 
 .section {
-  padding: clamp(72px, 10vw, 132px) clamp(20px, 5vw, 76px);
+  padding: clamp(54px, 7vw, 96px) clamp(20px, 5vw, 76px);
   scroll-margin-top: 116px;
 }
 
@@ -289,7 +288,7 @@ h2 {
 }
 
 .model-card {
-  min-height: 315px;
+  min-height: 270px;
   padding: 26px;
   position: relative;
 }
@@ -632,6 +631,7 @@ dd {
   }
 
   nav {
+    justify-content: center;
     order: 3;
     overflow-x: auto;
     padding-bottom: 2px;
@@ -695,7 +695,7 @@ dd {
   }
 
   .hero-content {
-    padding-bottom: 76px;
+    padding-bottom: 56px;
   }
 
   .hero-metrics span {
@@ -752,7 +752,7 @@ dd {
   }
 
   .section {
-    padding-block: 68px;
+    padding-block: 52px;
   }
 
   .process-list div {
