@@ -742,6 +742,10 @@ h2 {
 .contact-card {
   background: #fff;
   color: var(--ink);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  align-items: start;
   padding: 26px;
 }
 
@@ -749,9 +753,15 @@ h2 {
   aspect-ratio: 1;
   border-radius: 8px;
   display: block;
-  margin-bottom: 22px;
+  grid-column: 2;
+  grid-row: 1;
   object-fit: cover;
-  width: 108px;
+  width: 78px;
+}
+
+.contact-card dl {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 dl {
@@ -854,6 +864,16 @@ dd {
     justify-content: center;
     padding: 0 12px;
     white-space: nowrap;
+  }
+
+  .contact-card {
+    grid-template-columns: minmax(0, 1fr) 62px;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .contact-card img {
+    width: 62px;
   }
 
   .hero-content {
