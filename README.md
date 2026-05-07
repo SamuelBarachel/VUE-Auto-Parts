@@ -6,14 +6,33 @@ The public inventory search reads only the `Master-Inventory-&-Location` Google 
 
 ## Local preview
 
-Open `index.html` in a browser, or run a tiny local server:
+Run the same Node server Render uses:
 
 ```bash
-python3 -m http.server 8080
+npm start
 ```
 
 Then visit `http://localhost:8080`.
 
-## GitHub Pages
+## Render deployment
 
-The `.github/workflows/pages.yml` workflow deploys the static site from the repository root whenever changes are pushed to `main`.
+The AI helper needs a server so the Groq API key stays private. Deploy this repository on Render as a **Web Service**, not as a Static Site.
+
+Use these Render settings:
+
+```text
+Runtime: Node
+Branch: main
+Root Directory: leave blank
+Build Command: npm install
+Start Command: npm start
+```
+
+Add these environment variables:
+
+```text
+GROQ_API_KEY=<your Groq key>
+GROG_MODEL=<your Groq model>
+```
+
+The server also accepts `GROQ_MODEL` if you prefer the corrected spelling.

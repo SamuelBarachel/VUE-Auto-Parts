@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: vue-auto-parts
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: "npm start"
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROG_MODEL
+        value: llama-3.1-8b-instant

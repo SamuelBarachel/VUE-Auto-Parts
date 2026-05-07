@@ -1,6 +1,12 @@
 const INVENTORY_URL =
   "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Master-Inventory-%26-Location";
 
+window.VUEInventoryTools = {
+  getRows: () => inventoryState.rows,
+  displayPrice,
+  availabilityLabel,
+};
+
 const FALLBACK_INVENTORY = [
   {
     "Part ID": "HON-OIL-001",
@@ -330,6 +336,7 @@ async function loadInventory() {
 
   renderModelOptions(inventoryState.rows);
   applyFilters();
+  window.dispatchEvent(new CustomEvent("vue-inventory-ready"));
 }
 
 searchInput.addEventListener("input", applyFilters);

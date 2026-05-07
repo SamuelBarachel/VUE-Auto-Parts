@@ -100,7 +100,8 @@ nav {
 }
 
 nav a,
-.header-action {
+.header-action,
+.ai-trigger {
   font-size: 0.88rem;
   font-weight: 800;
   text-decoration: none;
@@ -138,6 +139,81 @@ nav a:hover::after {
   border-radius: 999px;
   color: #fff;
   padding: 12px 18px;
+}
+
+.ai-trigger {
+  background: var(--gold);
+  border: 0;
+  border-radius: 999px;
+  color: #12100a;
+  cursor: pointer;
+  display: none;
+  height: 40px;
+  min-width: 44px;
+  padding: 0 12px;
+}
+
+.ai-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  max-width: 420px;
+  padding: 14px;
+  position: fixed;
+  right: 14px;
+  top: 92px;
+  width: calc(100% - 28px);
+  z-index: 35;
+}
+
+.ai-panel form {
+  display: grid;
+  gap: 8px;
+}
+
+.ai-panel label {
+  color: var(--green-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ai-panel form div {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ai-panel input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.ai-panel button {
+  background: var(--green);
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+.ai-panel p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 10px 0 0;
 }
 
 .hero {
@@ -875,7 +951,7 @@ dd {
 
 @media (max-width: 640px) {
   .site-header {
-    gap: 10px 16px;
+    gap: 10px 10px;
     padding-top: 8px;
   }
 
@@ -886,7 +962,7 @@ dd {
 
   .brand {
     min-width: 0;
-    max-width: calc(100% - 112px);
+    max-width: calc(100% - 164px);
   }
 
   .brand img {
@@ -903,6 +979,18 @@ dd {
     justify-content: center;
     padding: 0 12px;
     white-space: nowrap;
+  }
+
+  .ai-trigger {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  .ai-panel {
+    right: 10px;
+    top: 82px;
+    width: calc(100% - 20px);
   }
 
   .contact-card {

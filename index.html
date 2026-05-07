@@ -23,6 +23,10 @@
         </span>
       </a>
 
+      <button class="ai-trigger" id="aiTrigger" type="button" aria-expanded="false" aria-controls="aiPanel">
+        AI
+      </button>
+
       <nav aria-label="Primary navigation">
         <a href="#models">Models</a>
         <a href="#stock">Parts</a>
@@ -32,6 +36,17 @@
 
       <a class="header-action" href="https://wa.me/16038662272">WhatsApp</a>
     </header>
+
+    <section class="ai-panel" id="aiPanel" hidden aria-label="VUE Auto Parts AI helper">
+      <form id="aiForm">
+        <label for="aiQuestion">Ask VUE AI</label>
+        <div>
+          <input id="aiQuestion" name="question" type="text" placeholder="Ask about parts, prices, models">
+          <button type="submit">Ask</button>
+        </div>
+      </form>
+      <p id="aiAnswer">Short answers only. Based on current shop information.</p>
+    </section>
 
     <main id="top">
       <section class="hero">
@@ -272,5 +287,6 @@
     </a>
     <script src="site.js?v=1"></script>
     <script src="inventory.js?v=6"></script>
+    <script src="ai.js?v=1"></script>
   </body>
 </html>
