@@ -170,7 +170,7 @@ function basketRows() {
 
 function buildHoldMessage(items, total) {
   const lines = [
-    "Hello VU Auto Parts, I would like to place these parts on a 2-hour hold:",
+    "Hello VUE Auto Parts, I would like to place these parts on a 2-hour hold:",
     "",
     ...items.map(({ row, quantity }) => {
       const unit = priceAmount(row);

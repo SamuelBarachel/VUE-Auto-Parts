@@ -12,9 +12,9 @@ export default function App() {
   return (
     <main style={styles.page}>
       <section style={styles.hero}>
-        <img src="/vueauto-logo.jpeg" alt="VU Auto Parts logo" style={styles.logo} />
+        <img src="/vueauto-logo.jpeg" alt="VUE Auto Parts logo" style={styles.logo} />
         <p style={styles.eyebrow}>Zimbabwean auto parts shop</p>
-        <h1 style={styles.title}>VU Auto Parts</h1>
+        <h1 style={styles.title}>VUE Auto Parts</h1>
         <p style={styles.copy}>
           Retail and distribution for dependable ex-Japanese vehicle parts, tyres,
           engine oils, and everyday repair essentials, with emphasis on Honda Fit,

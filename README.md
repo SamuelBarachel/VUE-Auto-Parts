@@ -1,6 +1,6 @@
-# VU Auto Parts
+# VUE Auto Parts
 
-Static website for VU Auto Parts, a Zimbabwean auto parts retail and distribution shop focused on Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, tyres, engine oils, and universal parts.
+Static website for VUE Auto Parts, a Zimbabwean auto parts retail and distribution shop focused on Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, tyres, engine oils, and universal parts.
 
 The public inventory search reads only the `Master-Inventory-&-Location` Google Sheets tab through a CSV feed. Other internal tabs are not used by the website.
 
