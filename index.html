@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="VU Auto Parts is a Zimbabwean auto parts supplier focused on Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, tyres, engine oils, and universal parts."
+      content="VU Auto Parts is a Zimbabwean auto parts shop focused on Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, tyres, engine oils, and universal parts."
     >
     <title>VU Auto Parts | Precision Supply Zimbabwe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
       <nav aria-label="Primary navigation">
         <a href="#models">Models</a>
         <a href="#stock">Parts</a>
-        <a href="#sourcing">Sourcing</a>
+        <a href="#inventory">Inventory</a>
         <a href="#contact">Contact</a>
       </nav>
 
@@ -38,11 +38,12 @@
         <div class="hero-media" aria-hidden="true"></div>
         <div class="hero-overlay"></div>
         <div class="hero-content">
-          <p class="eyebrow">Zimbabwean auto parts sourcing partner</p>
-          <h1>Japanese vehicle parts, supplied with serious business treatment.</h1>
+          <p class="eyebrow">Zimbabwean auto parts shop</p>
+          <h1>Reliable parts for the cars Zimbabwe keeps moving.</h1>
           <p class="hero-copy">
-            VU Auto Parts helps customers, workshops, fleets, and sourcing partners access dependable
-            parts for high-demand Zimbabwean vehicles with clear communication and supplier-ready formality.
+            VU Auto Parts serves drivers, mechanics, fleets, and workshops with dependable
+            replacement parts for common ex-Japanese vehicles, backed by clear fitment support
+            and disciplined stock control.
           </p>
 
           <div class="hero-actions" aria-label="Primary actions">
@@ -52,15 +53,15 @@
 
           <div class="hero-metrics" aria-label="Key business focus areas">
             <span><strong>5</strong> priority vehicle lines</span>
-            <span><strong>24h</strong> quotation response target</span>
-            <span><strong>ZWE</strong> based supplier desk</span>
+            <span><strong>24h</strong> quote response target</span>
+            <span><strong>ZWE</strong> auto parts shop</span>
           </div>
         </div>
       </section>
 
       <section class="trust-strip" aria-label="Business promises">
         <span>Clear quotations</span>
-        <span>Wholesaler-ready enquiries</span>
+        <span>Fitment-focused service</span>
         <span>Local Zimbabwe market knowledge</span>
         <span>Parts matched by model and use case</span>
       </section>
@@ -96,16 +97,16 @@
 
       <section class="section stock" id="stock">
         <div class="section-heading narrow">
-          <p class="eyebrow">Stock and sourcing categories</p>
-          <h2>From fast-moving maintenance items to sourced replacement parts.</h2>
+          <p class="eyebrow">Stock and quote categories</p>
+          <h2>Fast-moving service parts, tyres, oils, and everyday repair essentials.</h2>
         </div>
 
         <div class="stock-layout">
           <div class="stock-panel">
             <h3>High-priority supply lanes</h3>
             <p>
-              The business is positioned for serious enquiries from wholesalers, distributors, workshops,
-              and direct customers who need a clear point of contact in Zimbabwe.
+              VU Auto Parts is built for walk-in customers, private car owners, mechanics,
+              commuter operators, small fleets, and workshops who need practical parts that fit.
             </p>
             <a class="text-link" href="#contact">Send an enquiry</a>
           </div>
@@ -114,7 +115,7 @@
             <article>
               <span class="category-icon">01</span>
               <h3>Tyres</h3>
-              <p>Everyday, commercial, and model-matched tyre sourcing for Zimbabwean road conditions.</p>
+              <p>Everyday, commercial, and model-matched tyres including Honda Fit, Corolla, Probox, and Wish sizes.</p>
             </article>
             <article>
               <span class="category-icon">02</span>
@@ -129,37 +130,88 @@
             <article>
               <span class="category-icon">04</span>
               <h3>Sourced parts</h3>
-              <p>Quotations for model-specific items through regional and international supplier channels.</p>
+              <p>Model-specific stock and special-order items where demand is already visible.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section sourcing" id="sourcing">
-        <div class="sourcing-copy">
-          <p class="eyebrow">Formal supplier communication</p>
-          <h2>Designed to help VU Auto Parts be taken seriously by wholesalers.</h2>
+      <section class="section inventory" id="inventory">
+        <div class="inventory-heading">
+          <div>
+            <p class="eyebrow">Live shop inventory</p>
+            <h2>Search parts by model, part name, specification, or shelf location.</h2>
+          </div>
           <p>
-            A professional digital presence gives partners confidence before the first invoice.
-            This site presents the business as organized, contactable, and focused on repeatable supply
-            instead of one-off informal buying.
+            This public website reads only the Google Sheets tab named
+            <strong>Master-Inventory-&amp;-Location</strong>. Other business tabs are not used here.
+          </p>
+        </div>
+
+        <div class="inventory-toolbar" aria-label="Inventory search controls">
+          <label class="search-box">
+            <span>Search inventory</span>
+            <input id="inventorySearch" type="search" placeholder="Try Honda Fit, oil filter, GD1, Shelf A1">
+          </label>
+          <label class="filter-box">
+            <span>Vehicle model</span>
+            <select id="modelFilter">
+              <option value="">All models</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="inventory-status" id="inventoryStatus">Loading live inventory...</div>
+
+        <div class="inventory-table-wrap" aria-live="polite">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Part ID</th>
+                <th>Vehicle Model</th>
+                <th>Part Name</th>
+                <th>Specification</th>
+                <th>Location</th>
+                <th>Unit Price (USD Base)</th>
+                <th>Calculated Price (ZiG)</th>
+                <th>Calculated Price (ZAR)</th>
+                <th>Stock on Hand</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryBody"></tbody>
+          </table>
+        </div>
+
+        <div class="inventory-empty" id="inventoryEmpty" hidden>
+          No matching parts found. Try a vehicle model, part name, specification, or shelf location.
+        </div>
+      </section>
+
+      <section class="section sourcing" id="service">
+        <div class="sourcing-copy">
+          <p class="eyebrow">How the shop serves customers</p>
+          <h2>Built around trusted fitment, quick service, and repeat customers.</h2>
+          <p>
+            The business plan positions VU Auto Parts as a modern parts house for Zimbabwe:
+            a shop with premium counter service, technical guidance, and inventory discipline
+            for high-demand ex-Japanese vehicles.
           </p>
         </div>
         <div class="process-list">
           <div>
             <span>1</span>
             <h3>Confirm model</h3>
-            <p>Vehicle model, year, part name, quantity, and photos where possible.</p>
+            <p>Vehicle model, year, engine code, part name, quantity, and photos where possible.</p>
           </div>
           <div>
             <span>2</span>
             <h3>Quote clearly</h3>
-            <p>Pricing, availability, alternatives, and expected lead time are communicated upfront.</p>
+            <p>Pricing, availability, quality tier, alternatives, and expected lead time are communicated upfront.</p>
           </div>
           <div>
             <span>3</span>
-            <h3>Supply with record</h3>
-            <p>Orders are handled with a formal trail for customers and supplier partners.</p>
+            <h3>Serve with record</h3>
+            <p>Sales and requests are handled with a clear record for customers, mechanics, and fleet buyers.</p>
           </div>
         </div>
       </section>
@@ -198,5 +250,6 @@
       <span>Precision Supply Zimbabwe</span>
       <span>&copy; 2026</span>
     </footer>
+    <script src="inventory.js"></script>
   </body>
 </html>

@@ -1,18 +1,24 @@
 import React from "react";
 
 const focusModels = ["Honda Fit", "Toyota Corolla", "Toyota Wish", "Toyota Probox"];
-const categories = ["Tyres", "Engine oils", "Universal parts", "Sourced replacement parts"];
+const categories = [
+  "Oil, air, fuel, and cabin filters",
+  "Brake pads, shoes, and discs",
+  "Tyres and jacks",
+  "Engine oils, coolant, and DOT 4 brake fluid",
+];
 
 export default function App() {
   return (
     <main style={styles.page}>
       <section style={styles.hero}>
         <img src="/vueauto-logo.jpeg" alt="VU Auto Parts logo" style={styles.logo} />
-        <p style={styles.eyebrow}>Zimbabwean auto parts sourcing partner</p>
+        <p style={styles.eyebrow}>Zimbabwean auto parts shop</p>
         <h1 style={styles.title}>VU Auto Parts</h1>
         <p style={styles.copy}>
-          Precision supply for Japanese vehicle parts, tyres, engine oils, and universal
-          parts, with emphasis on Honda Fit, Toyota Corolla, Toyota Wish, and Toyota Probox.
+          Retail and distribution for dependable ex-Japanese vehicle parts, tyres,
+          engine oils, and everyday repair essentials, with emphasis on Honda Fit,
+          Toyota Corolla, Toyota Wish, and Toyota Probox.
         </p>
         <a href="https://wa.me/16038662272" style={styles.button}>
           Request a quote
@@ -39,6 +45,15 @@ export default function App() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section style={styles.section}>
+        <h2 style={styles.heading}>Inventory search</h2>
+        <p style={styles.sectionCopy}>
+          The deployed static site reads the public Master-Inventory-&-Location tab
+          from Google Sheets so customers can search by model, part, specification,
+          and shelf location.
+        </p>
       </section>
     </main>
   );
@@ -115,5 +130,11 @@ const styles = {
     fontWeight: 900,
     minHeight: 140,
     padding: 24,
+  },
+  sectionCopy: {
+    color: "#5d6862",
+    fontSize: "1.05rem",
+    lineHeight: 1.7,
+    maxWidth: 760,
   },
 };
