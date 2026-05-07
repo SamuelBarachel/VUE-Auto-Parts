@@ -14,7 +14,7 @@ export default function App() {
           Precision supply for Japanese vehicle parts, tyres, engine oils, and universal
           parts, with emphasis on Honda Fit, Toyota Corolla, Toyota Wish, and Toyota Probox.
         </p>
-        <a href="https://wa.me/16038170479" style={styles.button}>
+        <a href="https://wa.me/16038662272" style={styles.button}>
           Request a quote
         </a>
       </section>
