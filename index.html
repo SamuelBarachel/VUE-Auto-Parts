@@ -144,7 +144,8 @@
           </div>
           <p>
             Search the shop inventory for current customer-facing prices and simple availability.
-            For exact fitment, send the part details on WhatsApp before purchasing.
+            Add available parts to a hold basket and send one WhatsApp message to reserve them
+            for 2 hours before purchasing.
           </p>
         </div>
 
@@ -172,6 +173,7 @@
                 <th>Specification</th>
                 <th>Price</th>
                 <th>Availability</th>
+                <th>Hold</th>
               </tr>
             </thead>
             <tbody id="inventoryBody"></tbody>
@@ -181,6 +183,29 @@
         <div class="inventory-empty" id="inventoryEmpty" hidden>
           No matching parts found. Try a vehicle model, part name, or specification.
         </div>
+
+        <aside class="hold-basket" aria-label="Two hour hold basket">
+          <div>
+            <p class="eyebrow">2-hour hold basket</p>
+            <h3>Reserve selected parts before you come in.</h3>
+            <p>
+              Add parts here, choose the amount you need, then send one WhatsApp message.
+              Holds are valid for 2 hours.
+            </p>
+          </div>
+
+          <div class="basket-empty" id="basketEmpty">No parts selected yet.</div>
+          <div class="basket-items" id="basketItems"></div>
+
+          <div class="basket-total" id="basketTotal" hidden>
+            <span>Total purchase price</span>
+            <strong>$0.00</strong>
+          </div>
+
+          <a class="button primary hold-whatsapp disabled" id="holdWhatsApp" href="#" aria-disabled="true">
+            Send 2-hour hold request
+          </a>
+        </aside>
       </section>
 
       <section class="section sourcing" id="service">
@@ -246,6 +271,6 @@
       <span>Precision Supply Zimbabwe</span>
       <span>&copy; 2026</span>
     </footer>
-    <script src="inventory.js?v=2"></script>
+    <script src="inventory.js?v=5"></script>
   </body>
 </html>
