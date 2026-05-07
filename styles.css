@@ -438,28 +438,20 @@ h2 {
   font-weight: 650;
 }
 
-.inventory-table td:nth-child(6),
-.inventory-table td:nth-child(7),
-.inventory-table td:nth-child(8),
-.inventory-table td:nth-child(9) {
+.inventory-table td:nth-child(4),
+.inventory-table td:nth-child(5) {
   text-align: right;
   white-space: nowrap;
 }
 
-.inventory-table td:nth-child(6),
-.inventory-table td:nth-child(7),
-.inventory-table td:nth-child(8) {
+.inventory-table .price-cell {
   background: #ecfbf3;
-}
-
-.inventory-table td:nth-child(9) {
-  background: #edf5ff;
   font-weight: 900;
 }
 
-.inventory-table .stock-low {
-  background: #f8dedd;
-  color: #9d241e;
+.inventory-table td:nth-child(5) {
+  background: #edf5ff;
+  font-weight: 900;
 }
 
 .inventory-table .stock-out {
@@ -745,10 +737,8 @@ dd {
     text-transform: uppercase;
   }
 
-  .inventory-table td:nth-child(6),
-  .inventory-table td:nth-child(7),
-  .inventory-table td:nth-child(8),
-  .inventory-table td:nth-child(9) {
+  .inventory-table td:nth-child(4),
+  .inventory-table td:nth-child(5) {
     text-align: left;
   }
 

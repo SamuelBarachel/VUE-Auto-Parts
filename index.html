@@ -140,18 +140,18 @@
         <div class="inventory-heading">
           <div>
             <p class="eyebrow">Live shop inventory</p>
-            <h2>Search parts by model, part name, specification, or shelf location.</h2>
+            <h2>Search parts by model, part name, or specification.</h2>
           </div>
           <p>
-            This public website reads only the Google Sheets tab named
-            <strong>Master-Inventory-&amp;-Location</strong>. Other business tabs are not used here.
+            Search the shop inventory for current customer-facing prices and simple availability.
+            For exact fitment, send the part details on WhatsApp before purchasing.
           </p>
         </div>
 
         <div class="inventory-toolbar" aria-label="Inventory search controls">
           <label class="search-box">
             <span>Search inventory</span>
-            <input id="inventorySearch" type="search" placeholder="Try Honda Fit, oil filter, GD1, Shelf A1">
+            <input id="inventorySearch" type="search" placeholder="Try Honda Fit, oil filter, or GD1">
           </label>
           <label class="filter-box">
             <span>Vehicle model</span>
@@ -167,15 +167,11 @@
           <table class="inventory-table">
             <thead>
               <tr>
-                <th>Part ID</th>
                 <th>Vehicle Model</th>
                 <th>Part Name</th>
                 <th>Specification</th>
-                <th>Location</th>
-                <th>Unit Price (USD Base)</th>
-                <th>Calculated Price (ZiG)</th>
-                <th>Calculated Price (ZAR)</th>
-                <th>Stock on Hand</th>
+                <th>Price</th>
+                <th>Availability</th>
               </tr>
             </thead>
             <tbody id="inventoryBody"></tbody>
@@ -183,7 +179,7 @@
         </div>
 
         <div class="inventory-empty" id="inventoryEmpty" hidden>
-          No matching parts found. Try a vehicle model, part name, specification, or shelf location.
+          No matching parts found. Try a vehicle model, part name, or specification.
         </div>
       </section>
 
@@ -250,6 +246,6 @@
       <span>Precision Supply Zimbabwe</span>
       <span>&copy; 2026</span>
     </footer>
-    <script src="inventory.js"></script>
+    <script src="inventory.js?v=2"></script>
   </body>
 </html>

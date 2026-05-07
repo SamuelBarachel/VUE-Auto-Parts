@@ -7,7 +7,6 @@ const FALLBACK_INVENTORY = [
     "Vehicle Model": "Honda Fit",
     "Part Name": "Oil Filter",
     Specification: "GD1/GE6",
-    Location: "Shelf A1",
     "Unit Price (USD Base)": "$15.00",
     "Calculated Price (ZiG)": "ZiG202.50",
     "Calculated Price (ZAR)": "ZAR288.00",
@@ -21,6 +20,14 @@ const inventoryState = {
 };
 
 const columns = [
+  "Vehicle Model",
+  "Part Name",
+  "Specification",
+  "Price",
+  "Availability",
+];
+
+const sourceColumns = [
   "Part ID",
   "Vehicle Model",
   "Part Name",
@@ -113,8 +120,22 @@ function stockClass(stockValue) {
   const stock = Number.parseInt(stockValue, 10);
   if (Number.isNaN(stock)) return "";
   if (stock <= 0) return "stock-out";
-  if (stock <= 4) return "stock-low";
   return "stock-good";
+}
+
+function availabilityLabel(stockValue) {
+  const stock = Number.parseInt(stockValue, 10);
+  if (Number.isNaN(stock)) return "Ask in store";
+  return stock > 0 ? "Available" : "Ask in store";
+}
+
+function displayPrice(row) {
+  return (
+    row["Unit Price (USD Base)"] ||
+    row["Calculated Price (ZiG)"] ||
+    row["Calculated Price (ZAR)"] ||
+    "Ask for price"
+  );
 }
 
 function renderRows(rows) {
@@ -124,9 +145,14 @@ function renderRows(rows) {
     columns.forEach((column) => {
       const td = document.createElement("td");
       td.dataset.label = column;
-      td.textContent = row[column] || "-";
-      if (column === "Stock on Hand") {
-        td.className = stockClass(row[column]);
+      if (column === "Price") {
+        td.textContent = displayPrice(row);
+        td.className = "price-cell";
+      } else if (column === "Availability") {
+        td.textContent = availabilityLabel(row["Stock on Hand"]);
+        td.className = stockClass(row["Stock on Hand"]);
+      } else {
+        td.textContent = row[column] || "-";
       }
       tr.append(td);
     });
@@ -142,12 +168,13 @@ function applyFilters() {
 
   inventoryState.filteredRows = inventoryState.rows.filter((row) => {
     const matchesModel = !selectedModel || row["Vehicle Model"] === selectedModel;
-    const searchable = columns.map((column) => row[column] || "").join(" ").toLowerCase();
+    const searchable = sourceColumns.map((column) => row[column] || "").join(" ").toLowerCase();
     return matchesModel && (!query || searchable.includes(query));
   });
 
   renderRows(inventoryState.filteredRows);
-  statusEl.textContent = `${inventoryState.filteredRows.length} of ${inventoryState.rows.length} parts shown from Master-Inventory-&-Location.`;
+  const label = inventoryState.filteredRows.length === 1 ? "part" : "parts";
+  statusEl.textContent = `${inventoryState.filteredRows.length} matching ${label} shown.`;
 }
 
 async function loadInventory() {
@@ -164,11 +191,11 @@ async function loadInventory() {
     }
 
     inventoryState.rows = rows;
-    statusEl.textContent = "Live inventory loaded from Master-Inventory-&-Location.";
+    statusEl.textContent = "Live inventory loaded.";
   } catch (error) {
     inventoryState.rows = FALLBACK_INVENTORY;
     statusEl.textContent =
-      "Showing saved inventory preview. Live Google Sheet data will appear here when public access is available.";
+      "Showing saved inventory preview. Live shop inventory will appear here when available.";
   }
 
   renderModelOptions(inventoryState.rows);
