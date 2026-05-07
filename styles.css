@@ -47,10 +47,10 @@ a {
   background: rgba(251, 250, 245, 0.86);
   border-bottom: 1px solid var(--line);
   display: flex;
-  gap: 28px;
+  gap: 22px;
   justify-content: space-between;
   left: 0;
-  padding: 14px clamp(18px, 4vw, 56px);
+  padding: 10px clamp(18px, 3.4vw, 48px);
   position: sticky;
   right: 0;
   top: 0;
@@ -69,7 +69,7 @@ a {
   aspect-ratio: 1;
   border: 1px solid rgba(15, 79, 54, 0.2);
   border-radius: 50%;
-  height: 48px;
+  height: 44px;
   object-fit: cover;
 }
 
@@ -81,7 +81,7 @@ a {
 
 .brand strong {
   color: var(--green-dark);
-  font-size: 1rem;
+  font-size: 0.96rem;
   font-weight: 900;
 }
 
@@ -96,7 +96,7 @@ a {
 nav {
   align-items: center;
   display: flex;
-  gap: clamp(16px, 2vw, 30px);
+  gap: clamp(14px, 1.6vw, 24px);
 }
 
 nav a,
@@ -262,8 +262,8 @@ nav a:hover::after {
 
 .hero-content {
   color: #fff;
-  max-width: 790px;
-  padding: clamp(58px, 9vw, 118px) clamp(20px, 5vw, 76px) clamp(56px, 7vw, 76px);
+  max-width: 660px;
+  padding: clamp(34px, 4.6vw, 62px) clamp(20px, 3.6vw, 52px) clamp(34px, 4vw, 50px);
   position: relative;
   z-index: 2;
 }
@@ -285,18 +285,18 @@ p {
 }
 
 h1 {
-  font-size: clamp(3rem, 8vw, 7.6rem);
+  font-size: clamp(2.55rem, 4.7vw, 4.9rem);
   letter-spacing: 0;
-  line-height: 0.9;
-  margin-bottom: 28px;
-  max-width: 980px;
+  line-height: 0.95;
+  margin-bottom: 16px;
+  max-width: 680px;
 }
 
 .hero-copy {
   color: rgba(255, 255, 255, 0.84);
-  font-size: clamp(1rem, 1.45vw, 1.28rem);
-  line-height: 1.7;
-  max-width: 650px;
+  font-size: clamp(0.96rem, 1vw, 1.06rem);
+  line-height: 1.55;
+  max-width: 560px;
 }
 
 .hero-actions,
@@ -308,7 +308,7 @@ h1 {
 }
 
 .hero-actions {
-  margin-top: 26px;
+  margin-top: 18px;
 }
 
 .button {
@@ -317,8 +317,8 @@ h1 {
   display: inline-flex;
   font-weight: 900;
   justify-content: center;
-  min-height: 50px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 18px;
   text-decoration: none;
 }
 
@@ -334,8 +334,8 @@ h1 {
 
 .hero-metrics {
   border-top: 1px solid rgba(255, 255, 255, 0.18);
-  margin-top: 34px;
-  padding-top: 18px;
+  margin-top: 20px;
+  padding-top: 12px;
 }
 
 .hero-metrics span {
@@ -347,7 +347,7 @@ h1 {
 .hero-metrics strong {
   color: #fff;
   display: block;
-  font-size: 1.45rem;
+  font-size: 1.28rem;
   margin-bottom: 2px;
 }
 
@@ -364,21 +364,21 @@ h1 {
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.88rem;
   font-weight: 800;
-  min-height: 58px;
-  padding: 18px 24px;
+  min-height: 46px;
+  padding: 13px 18px;
 }
 
 .section {
-  padding: clamp(54px, 7vw, 96px) clamp(20px, 5vw, 76px);
-  scroll-margin-top: 116px;
+  padding: clamp(34px, 4vw, 58px) clamp(20px, 3.6vw, 52px);
+  scroll-margin-top: 92px;
 }
 
 .section-heading {
   align-items: end;
   display: grid;
-  gap: 30px;
+  gap: 22px;
   grid-template-columns: minmax(0, 0.9fr) minmax(280px, 0.5fr);
-  margin-bottom: 42px;
+  margin-bottom: 24px;
 }
 
 .section-heading.narrow {
@@ -388,15 +388,15 @@ h1 {
 
 h2 {
   color: var(--green-dark);
-  font-size: clamp(2rem, 5vw, 4.8rem);
+  font-size: clamp(1.7rem, 2.7vw, 2.95rem);
   letter-spacing: 0;
-  line-height: 0.98;
+  line-height: 1.04;
   margin-bottom: 0;
 }
 
 .model-grid {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   grid-template-columns: 1.2fr repeat(3, 1fr);
 }
 
@@ -412,17 +412,17 @@ h2 {
 }
 
 .model-card {
-  min-height: 270px;
-  padding: 26px;
+  min-height: 200px;
+  padding: 20px;
   position: relative;
 }
 
 .model-card::after {
   background: linear-gradient(135deg, var(--green), var(--gold));
-  bottom: 24px;
+  bottom: 18px;
   content: "";
   height: 5px;
-  left: 26px;
+  left: 20px;
   position: absolute;
   width: 54px;
 }
@@ -440,7 +440,7 @@ h2 {
 .process-list p,
 .contact p {
   color: var(--muted);
-  line-height: 1.65;
+  line-height: 1.55;
 }
 
 .model-card.feature span,
@@ -449,10 +449,10 @@ h2 {
 }
 
 .model-card h3 {
-  font-size: clamp(2.1rem, 4vw, 4.7rem);
+  font-size: clamp(1.75rem, 2.45vw, 2.8rem);
   letter-spacing: 0;
-  line-height: 0.9;
-  margin: 10px 0 20px;
+  line-height: 0.96;
+  margin: 6px 0 14px;
 }
 
 .inventory {
@@ -462,14 +462,14 @@ h2 {
 .inventory-heading {
   align-items: end;
   display: grid;
-  gap: 30px;
+  gap: 22px;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 0.48fr);
-  margin-bottom: 34px;
+  margin-bottom: 24px;
 }
 
 .inventory-heading p:last-child {
   color: var(--muted);
-  line-height: 1.65;
+  line-height: 1.55;
   margin: 0;
 }
 
@@ -503,9 +503,9 @@ h2 {
   color: var(--ink);
   font: inherit;
   font-weight: 700;
-  min-height: 52px;
+  min-height: 46px;
   outline: none;
-  padding: 0 16px;
+  padding: 0 14px;
   width: 100%;
 }
 
@@ -540,7 +540,7 @@ h2 {
 .inventory-table th,
 .inventory-table td {
   border-bottom: 1px solid rgba(16, 20, 19, 0.08);
-  padding: 15px 16px;
+  padding: 12px 14px;
   text-align: left;
   vertical-align: middle;
 }
@@ -607,14 +607,14 @@ h2 {
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(240px, 0.55fr) minmax(280px, 1fr);
-  margin-top: 20px;
-  padding: clamp(22px, 4vw, 34px);
+  margin-top: 16px;
+  padding: clamp(20px, 3vw, 28px);
 }
 
 .hold-basket h3 {
-  font-size: clamp(1.55rem, 3vw, 2.7rem);
-  line-height: 1;
-  margin-bottom: 14px;
+  font-size: clamp(1.45rem, 2.3vw, 2.2rem);
+  line-height: 1.05;
+  margin-bottom: 10px;
 }
 
 .hold-basket p:not(.eyebrow) {
@@ -642,7 +642,7 @@ h2 {
   display: grid;
   gap: 12px;
   grid-template-columns: 1fr 96px 92px auto;
-  padding: 14px;
+  padding: 12px;
 }
 
 .basket-item strong,
@@ -728,18 +728,18 @@ h2 {
   display: grid;
   gap: 20px;
   grid-template-columns: 0.72fr 1.28fr;
-  margin-top: 42px;
+  margin-top: 24px;
 }
 
 .stock-panel {
   background: var(--green-dark);
   color: #fff;
-  padding: clamp(28px, 4vw, 44px);
+  padding: clamp(20px, 2.6vw, 30px);
 }
 
 .stock-panel h3 {
-  font-size: clamp(1.8rem, 3vw, 3rem);
-  line-height: 1;
+  font-size: clamp(1.45rem, 2vw, 2.15rem);
+  line-height: 1.05;
 }
 
 .stock-panel p {
@@ -756,13 +756,13 @@ h2 {
 
 .category-grid {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   grid-template-columns: repeat(2, 1fr);
 }
 
 .category-grid article {
-  min-height: 230px;
-  padding: 26px;
+  min-height: 170px;
+  padding: 20px;
 }
 
 .category-icon {
@@ -770,25 +770,25 @@ h2 {
   display: block;
   font-size: 0.78rem;
   font-weight: 900;
-  margin-bottom: 34px;
+  margin-bottom: 18px;
 }
 
 .category-grid h3,
 .process-list h3 {
   color: var(--green-dark);
-  font-size: 1.45rem;
+  font-size: 1.28rem;
 }
 
 .sourcing {
   align-items: start;
   display: grid;
-  gap: clamp(28px, 6vw, 86px);
+  gap: clamp(24px, 4vw, 56px);
   grid-template-columns: 0.95fr 1.05fr;
 }
 
 .sourcing-copy p {
-  font-size: 1.04rem;
-  margin-top: 28px;
+  font-size: 1rem;
+  margin-top: 18px;
   max-width: 640px;
 }
 
@@ -799,9 +799,9 @@ h2 {
 
 .process-list div {
   display: grid;
-  gap: 18px;
-  grid-template-columns: 48px 0.36fr 1fr;
-  padding: 18px;
+  gap: 14px;
+  grid-template-columns: 44px minmax(120px, 0.32fr) 1fr;
+  padding: 16px;
 }
 
 .process-list span {
@@ -810,9 +810,9 @@ h2 {
   border-radius: 50%;
   display: inline-flex;
   font-weight: 900;
-  height: 42px;
+  height: 38px;
   justify-content: center;
-  width: 42px;
+  width: 38px;
 }
 
 .contact {
@@ -820,7 +820,7 @@ h2 {
   background: var(--green-dark);
   color: #fff;
   display: grid;
-  gap: clamp(30px, 7vw, 96px);
+  gap: clamp(24px, 4vw, 56px);
   grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.48fr);
 }
 
@@ -830,10 +830,10 @@ h2 {
 
 .contact p {
   color: rgba(255, 255, 255, 0.74);
-  font-size: 1.05rem;
-  line-height: 1.7;
-  margin-top: 28px;
-  max-width: 680px;
+  font-size: 1rem;
+  line-height: 1.55;
+  margin-top: 18px;
+  max-width: 620px;
 }
 
 .contact-card {
@@ -843,7 +843,7 @@ h2 {
   gap: 18px;
   grid-template-columns: minmax(0, 1fr) 92px;
   align-items: end;
-  padding: 26px;
+  padding: 22px;
 }
 
 .contact-card img {
@@ -898,7 +898,7 @@ dd {
   flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
-  padding: 24px clamp(20px, 5vw, 76px);
+  padding: 18px clamp(20px, 4vw, 58px);
 }
 
 .whatsapp-footnote {
@@ -957,7 +957,7 @@ dd {
   }
 
   .model-card {
-    min-height: 250px;
+    min-height: 205px;
   }
 
   .process-list div {
@@ -1023,7 +1023,7 @@ dd {
   }
 
   .hero-content {
-    padding-bottom: 56px;
+    padding-bottom: 38px;
   }
 
   .hero-metrics span {
@@ -1090,7 +1090,7 @@ dd {
   }
 
   .section {
-    padding-block: 52px;
+    padding-block: 38px;
   }
 
   .intro {
