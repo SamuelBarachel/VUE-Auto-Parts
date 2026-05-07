@@ -207,47 +207,42 @@
         </div>
 
         <aside class="hold-basket" aria-label="Two hour hold basket">
-          <div>
-            <p class="eyebrow">2-hour hold basket</p>
-            <h3>Reserve before you come in.</h3>
-            <p>Add parts, set quantity, send one WhatsApp. Hold lasts 2 hours.</p>
+          <div class="basket-header">
+            <div class="basket-header-left">
+              <p class="eyebrow">2-hour hold basket</p>
+              <div class="basket-empty" id="basketEmpty">No parts added yet.</div>
+              <div class="basket-items" id="basketItems"></div>
+            </div>
+            <div class="basket-header-right">
+              <div class="basket-total" id="basketTotal" hidden>
+                <span>Total</span>
+                <strong>$0.00</strong>
+              </div>
+              <a class="button primary hold-whatsapp disabled" id="holdWhatsApp" href="#" aria-disabled="true">
+                Send hold request
+              </a>
+            </div>
           </div>
-
-          <div class="basket-empty" id="basketEmpty">No parts added yet.</div>
-          <div class="basket-items" id="basketItems"></div>
-
-          <div class="basket-total" id="basketTotal" hidden>
-            <span>Total</span>
-            <strong>$0.00</strong>
-          </div>
-
-          <a class="button primary hold-whatsapp disabled" id="holdWhatsApp" href="#" aria-disabled="true">
-            Send hold request
-          </a>
         </aside>
       </section>
 
       <section class="section sourcing" id="service">
-        <div class="sourcing-copy">
-          <p class="eyebrow">How it works</p>
-          <h2>Fast. Clear. On record.</h2>
-          <p>Modern counter service with technical support for Zimbabwe's most common vehicles.</p>
-        </div>
+        <p class="eyebrow">How it works</p>
         <div class="process-list">
           <div>
             <span>1</span>
-            <h3>Confirm your model</h3>
-            <p>Model, year, engine code, part name &amp; photos help us get it right first time.</p>
+            <h3>Confirm model</h3>
+            <p>Model, year, engine code &amp; part name. Photos help.</p>
           </div>
           <div>
             <span>2</span>
-            <h3>Get a clear quote</h3>
-            <p>Price, availability, quality tier &amp; lead time — upfront, no surprises.</p>
+            <h3>Get a quote</h3>
+            <p>Price, availability &amp; lead time — upfront.</p>
           </div>
           <div>
             <span>3</span>
-            <h3>We serve &amp; record</h3>
-            <p>Every sale is logged. Good for you, your mechanic, and your fleet.</p>
+            <h3>We serve &amp; log</h3>
+            <p>Every sale recorded. Good for you &amp; your mechanic.</p>
           </div>
         </div>
       </section>
