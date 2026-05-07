@@ -675,6 +675,7 @@ dd {
 @media (max-width: 640px) {
   .brand {
     min-width: 0;
+    max-width: calc(100% - 62px);
   }
 
   .brand img {
@@ -682,7 +683,22 @@ dd {
   }
 
   .header-action {
-    padding-inline: 14px;
+    align-items: center;
+    align-self: center;
+    border-radius: 50%;
+    display: inline-flex;
+    font-size: 0;
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+    width: 44px;
+  }
+
+  .header-action::before {
+    content: "WA";
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0;
   }
 
   .hero-content {
