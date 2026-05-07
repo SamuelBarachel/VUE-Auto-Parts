@@ -760,8 +760,21 @@ h2 {
 }
 
 .contact-card dl {
+  display: contents;
+}
+
+.contact-card dl > div:first-child {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
   grid-column: 1;
   grid-row: 1;
+  justify-content: center;
+  min-height: 78px;
+}
+
+.contact-card dl > div:not(:first-child) {
+  grid-column: 1 / -1;
 }
 
 dl {
@@ -874,6 +887,10 @@ dd {
 
   .contact-card img {
     width: 62px;
+  }
+
+  .contact-card dl > div:first-child {
+    min-height: 62px;
   }
 
   .hero-content {
