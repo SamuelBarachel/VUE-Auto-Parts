@@ -744,8 +744,8 @@ h2 {
   color: var(--ink);
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(0, 1fr) 78px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  align-items: end;
   padding: 26px;
 }
 
@@ -754,9 +754,10 @@ h2 {
   border-radius: 8px;
   display: block;
   grid-column: 2;
-  grid-row: 1;
+  grid-row: 1 / span 2;
+  align-self: end;
   object-fit: cover;
-  width: 78px;
+  width: 92px;
 }
 
 .contact-card dl {
@@ -764,17 +765,12 @@ h2 {
 }
 
 .contact-card dl > div:first-child {
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
   grid-column: 1;
   grid-row: 1;
-  justify-content: center;
-  min-height: 78px;
 }
 
 .contact-card dl > div:not(:first-child) {
-  grid-column: 1 / -1;
+  grid-column: 1;
 }
 
 dl {
@@ -880,17 +876,13 @@ dd {
   }
 
   .contact-card {
-    grid-template-columns: minmax(0, 1fr) 62px;
+    grid-template-columns: minmax(0, 1fr) 82px;
     gap: 14px;
     padding: 20px;
   }
 
   .contact-card img {
-    width: 62px;
-  }
-
-  .contact-card dl > div:first-child {
-    min-height: 62px;
+    width: 82px;
   }
 
   .hero-content {
