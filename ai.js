@@ -1,9 +1,14 @@
 const aiTrigger = document.querySelector("#aiTrigger");
 const aiPanel = document.querySelector("#aiPanel");
 const aiClose = document.querySelector("#aiClose");
+const aiBack = document.querySelector("#aiBack");
 const aiForm = document.querySelector("#aiForm");
 const aiQuestion = document.querySelector("#aiQuestion");
 const aiMessages = document.querySelector("#aiMessages");
+
+function isMobile() {
+  return window.innerWidth <= 640;
+}
 
 let conversationHistory = [];
 let greeted = false;
@@ -116,13 +121,17 @@ function toggleAiPanel(forceOpen) {
   aiTrigger.setAttribute("aria-expanded", String(isOpen));
 
   if (isOpen) {
+    if (isMobile()) document.body.style.overflow = "hidden";
     showGreeting();
     setTimeout(() => aiQuestion.focus(), 50);
+  } else {
+    document.body.style.overflow = "";
   }
 }
 
 aiTrigger.addEventListener("click", () => toggleAiPanel());
 aiClose && aiClose.addEventListener("click", () => toggleAiPanel(false));
+aiBack && aiBack.addEventListener("click", () => toggleAiPanel(false));
 
 aiForm.addEventListener("submit", (e) => {
   e.preventDefault();
