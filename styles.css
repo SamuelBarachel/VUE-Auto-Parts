@@ -891,6 +891,29 @@ h2 {
   text-decoration: none;
 }
 
+.stock-cars {
+  margin-top: 14px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stock-cars img {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.stock-cars-caption {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin: 6px 0 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 /* Photo cards for parts categories */
 .category-grid {
   display: grid;
