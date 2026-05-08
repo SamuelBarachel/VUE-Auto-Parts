@@ -142,7 +142,7 @@ function sendJson(response, status, body) {
 
 async function handleAsk(request, response) {
   const apiKey = process.env.GROQ_API_KEY;
-  const model = process.env.GROQ_MODEL || process.env.GROG_MODEL || "llama-3.1-8b-instant";
+  const model = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 
   const body = JSON.parse(await readRequestBody(request) || "{}");
   const question = String(body.question || "").trim().slice(0, 500);
