@@ -7,6 +7,42 @@ const ROOT = __dirname;
 const INVENTORY_URL =
   "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Master-Inventory-%26-Location";
 
+const SYSTEM_PROMPT = `You are the VUE Auto Parts assistant. Real shop. Real people. Chipinge, Zimbabwe.
+
+PERSONALITY:
+- Sound human. Warm, direct, no fluff.
+- Short sentences only. Max 2-3 per reply.
+- Never ask for names or personal info.
+- No robotic if/then answers. Talk like a person.
+
+BUSINESS:
+- VUE Auto Parts. Chipinge, Manicaland, Zimbabwe.
+- We specialise in: Honda Fit, Toyota Corolla, Toyota Probox, Nissan Caravan.
+- Universal stock always available: engine oils (Castrol 10W40, 20W50), wiper blades, coolants, brake pads & fluid, oil/air/fuel filters, fan belts, tyres, bulbs, batteries.
+- We are data-driven. We study Zimbabwe road accident patterns to stock the parts that actually keep people safe.
+- Clear pricing. 24h quote turnaround. Walk in or WhatsApp.
+- WhatsApp: +16038662272. Email: info@vueautoparts.com.
+
+REWARDS PROGRAMME:
+- Refer 5 customers who buy → earn $5 cash or discount.
+- Refer 15+ customers who buy → earn $10 cash or discount.
+- No sign-up needed. Just send people our way. Terms apply.
+- Tell them to mention your name when they come in.
+
+CHOICES RULE:
+- If the conversation is unclear, vague, or missing direction — offer exactly 3 specific choices + "Other".
+- Choices must be short (5 words max each).
+- Always include "Other" as the last choice.
+
+INVENTORY RULE:
+- Use the provided live inventory to answer part queries.
+- Give price and availability directly. No dancing around it.
+- If not in inventory, say we can source it and direct to WhatsApp.
+
+RESPONSE FORMAT — return ONLY raw JSON. No markdown. No code blocks. No extra text:
+If you want to offer choices: {"answer": "your message", "choices": ["Option 1", "Option 2", "Option 3", "Other"]}
+If no choices needed: {"answer": "your message"}`;
+
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -78,7 +114,7 @@ function publicInventoryRow(row) {
   };
 }
 
-function fallbackAnswer(question, inventory) {
+function fallbackResponse(question, inventory) {
   const lowered = question.toLowerCase();
   const words = lowered.split(/\s+/).filter((word) => word.length > 2);
   const match = inventory.find((item) => {
@@ -87,12 +123,29 @@ function fallbackAnswer(question, inventory) {
   });
 
   if (match) {
-    return `${match.model} ${match.part}: ${match.price}. ${match.availability}.`;
+    return {
+      answer: `${match.model} — ${match.part}: ${match.price}. ${match.availability}.`,
+    };
   }
 
-  if (lowered.includes("location") || lowered.includes("address")) return "Chipinge, Manicaland.";
-  if (lowered.includes("contact") || lowered.includes("email")) return "Email info@vueautoparts.com.";
-  return "Please use Parts Finder or WhatsApp us.";
+  if (lowered.includes("reward") || lowered.includes("refer") || lowered.includes("earn")) {
+    return {
+      answer: "Refer 5 buyers → earn $5. Refer 15+ buyers → earn $10. No sign-up. Just send people our way.",
+    };
+  }
+
+  if (lowered.includes("location") || lowered.includes("address") || lowered.includes("where")) {
+    return { answer: "We're in Chipinge, Manicaland, Zimbabwe. Walk in or WhatsApp us." };
+  }
+
+  if (lowered.includes("contact") || lowered.includes("email") || lowered.includes("whatsapp")) {
+    return { answer: "WhatsApp: +16038662272. Email: info@vueautoparts.com." };
+  }
+
+  return {
+    answer: "Not sure what you need? Let me point you in the right direction.",
+    choices: ["Find a specific part", "Check what's in stock", "Learn about rewards", "Other"],
+  };
 }
 
 async function getInventory() {
@@ -121,16 +174,39 @@ async function handleAsk(request, response) {
 
   const body = JSON.parse(await readRequestBody(request) || "{}");
   const question = String(body.question || "").trim().slice(0, 500);
+  const history = Array.isArray(body.history) ? body.history.slice(-8) : [];
 
-  if (!question) return sendJson(response, 400, { answer: "Ask a short parts question." });
+  if (!question) return sendJson(response, 400, { answer: "What part are you looking for?" });
 
   const inventory = await getInventory();
 
   if (!apiKey) {
-    return sendJson(response, 200, {
-      answer: fallbackAnswer(question, inventory),
-    });
+    return sendJson(response, 200, fallbackResponse(question, inventory));
   }
+
+  const inventorySummary = inventory.slice(0, 60).map(
+    (item) => `${item.model} | ${item.part} | ${item.specification} | ${item.price} | ${item.availability}`
+  ).join("\n");
+
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...history,
+    {
+      role: "user",
+      content: JSON.stringify({
+        question,
+        inventory: inventorySummary,
+        shopFacts: {
+          business: "VUE Auto Parts",
+          location: "Chipinge, Manicaland, Zimbabwe",
+          whatsapp: "+16038662272",
+          email: "info@vueautoparts.com",
+          focusModels: ["Honda Fit", "Toyota Corolla", "Toyota Probox", "Nissan Caravan"],
+          universalParts: "engine oils, wiper blades, coolants, brake systems, filters, belts, tyres, bulbs, batteries",
+        },
+      }),
+    },
+  ];
 
   const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -140,39 +216,29 @@ async function handleAsk(request, response) {
     },
     body: JSON.stringify({
       model,
-      temperature: 0.1,
-      max_tokens: 70,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are VUE Auto Parts AI. Answer in one very short, precise sentence. Use only the provided inventory and shop facts. Do not reveal stock quantities. Say Available or Ask in store only.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            shopFacts: {
-              business: "VUE Auto Parts",
-              location: "Chipinge, Manicaland",
-              email: "info@vueautoparts.com",
-              whatsapp: "+16038662272",
-              focusModels: ["Honda Fit", "Toyota Corolla", "Toyota Wish", "Toyota Probox"],
-            },
-            inventory,
-            question,
-          }),
-        },
-      ],
+      temperature: 0.35,
+      max_tokens: 160,
+      messages,
     }),
   });
 
   if (!groqResponse.ok) {
-    return sendJson(response, 200, { answer: fallbackAnswer(question, inventory) });
+    return sendJson(response, 200, fallbackResponse(question, inventory));
   }
 
   const data = await groqResponse.json();
-  const answer = data.choices?.[0]?.message?.content?.trim() || "Please use Parts Finder.";
-  return sendJson(response, 200, { answer });
+  const raw = data.choices?.[0]?.message?.content?.trim() || "";
+
+  try {
+    const jsonStart = raw.indexOf("{");
+    const jsonEnd = raw.lastIndexOf("}");
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+      if (parsed.answer) return sendJson(response, 200, parsed);
+    }
+  } catch (_) {}
+
+  return sendJson(response, 200, { answer: raw || fallbackResponse(question, inventory).answer });
 }
 
 async function serveStatic(request, response) {
@@ -206,7 +272,7 @@ const server = http.createServer(async (request, response) => {
     }
     return await serveStatic(request, response);
   } catch (error) {
-    return sendJson(response, 500, { answer: "AI is unavailable. Try Parts Finder." });
+    return sendJson(response, 500, { answer: "Something went wrong. Try Parts Finder or WhatsApp us." });
   }
 });
 

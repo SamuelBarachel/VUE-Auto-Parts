@@ -68,15 +68,21 @@
       <p class="earn-tc">Terms &amp; conditions apply.</p>
     </section>
 
-    <section class="ai-panel" id="aiPanel" hidden aria-label="VUE Auto Parts AI helper">
-      <form id="aiForm">
-        <label for="aiQuestion">Ask VUE AI</label>
-        <div>
-          <input id="aiQuestion" name="question" type="text" placeholder="Part name, model, price…">
-          <button type="submit">Ask</button>
+    <section class="ai-panel" id="aiPanel" hidden aria-label="VUE Auto Parts AI assistant">
+      <div class="ai-header">
+        <div class="ai-header-info">
+          <span class="ai-online-dot"></span>
+          <strong>VUE Assistant</strong>
         </div>
+        <button class="ai-close" id="aiClose" type="button" aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="ai-messages" id="aiMessages"></div>
+      <form id="aiForm" class="ai-form">
+        <input id="aiQuestion" name="question" type="text" placeholder="Ask anything…" autocomplete="off">
+        <button type="submit" aria-label="Send">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
       </form>
-      <p id="aiAnswer">Quick answers from live shop data.</p>
     </section>
 
     <main id="top">
@@ -297,7 +303,7 @@
     </a>
     <script src="site.js?v=1"></script>
     <script src="inventory.js?v=6"></script>
-    <script src="ai.js?v=1"></script>
+    <script src="ai.js?v=2"></script>
     <script src="earn.js?v=1"></script>
   </body>
 </html>
