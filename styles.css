@@ -1696,6 +1696,26 @@ h2 {
 
 .stf-btn:hover { background: var(--green); opacity: 1; }
 
+.stf-esign-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 14px 0 4px;
+  font-size: 0.82rem;
+  color: #166534;
+  line-height: 1.5;
+}
+
+.stf-esign-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 /* ── Rewards notice box ── */
 .rwd-notice {
   align-items: flex-start;

@@ -677,6 +677,7 @@ async function handleStaffReport(request, response) {
 
   const firstName = String(body.firstName || "").trim();
   const lastName  = String(body.lastName  || "").trim();
+  const staffId   = String(body.id        || "").trim();
   const role      = String(body.role      || "").trim();
   const action    = String(body.action    || "").trim();
   const details   = body.details || {};
@@ -727,13 +728,23 @@ async function handleStaffReport(request, response) {
           ${extraRows}
         </table>
       </div>
-      <div style="background:#fff;padding:20px 24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+      <div style="background:#fff;padding:20px 24px;border:1px solid #eee;border-top:none">
         <p style="color:#444;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap">${message}</p>
+      </div>
+      <div style="background:#f0fdf4;padding:16px 24px;border:1px solid #bbf7d0;border-top:none;border-radius:0 0 8px 8px">
+        <p style="margin:0 0 6px;font-size:11px;font-weight:800;letter-spacing:0.07em;color:#166534;text-transform:uppercase">Electronic Signature</p>
+        <table style="border-collapse:collapse;width:100%;font-size:13px">
+          <tr><td style="padding:3px 0;color:#166534;width:110px;font-weight:600">Signed by</td><td style="padding:3px 0;font-weight:700;color:#14532d">${firstName} ${lastName}</td></tr>
+          <tr><td style="padding:3px 0;color:#166534;font-weight:600">National ID</td><td style="padding:3px 0;font-weight:700;color:#14532d">${staffId || "—"}</td></tr>
+          <tr><td style="padding:3px 0;color:#166534;font-weight:600">Role</td><td style="padding:3px 0;font-weight:700;color:#14532d">${role}</td></tr>
+          <tr><td style="padding:3px 0;color:#166534;font-weight:600">Timestamp</td><td style="padding:3px 0;font-weight:700;color:#14532d">${now}</td></tr>
+        </table>
+        <p style="margin:10px 0 0;font-size:11px;color:#166534;line-height:1.5">This submission was electronically signed by the staff member named above. The electronic signature is legally equivalent to a handwritten signature under the Electronic Transactions Act.</p>
       </div>
     </div>
   `;
 
-  const text = `Staff ${actionLabel}\n\nName: ${firstName} ${lastName}\nRole: ${role}\nDate: ${now}\n\n${message}`;
+  const text = `Staff ${actionLabel}\n\nName: ${firstName} ${lastName}\nRole: ${role}\nDate: ${now}\n\n${message}\n\n---\nELECTRONIC SIGNATURE\nSigned by: ${firstName} ${lastName}\nNational ID: ${staffId || "—"}\nRole: ${role}\nTimestamp: ${now}\nThis electronic signature is legally equivalent to a handwritten signature.`;
   const subject = `[Staff] ${actionLabel} — ${firstName} ${lastName} (${role})`;
 
   try {

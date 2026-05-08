@@ -212,6 +212,7 @@
         body: JSON.stringify({
           firstName: verifiedStaff.firstName,
           lastName:  verifiedStaff.lastName,
+          id:        verifiedStaff.id,
           role:      verifiedStaff.role,
           action:    selectedAction,
           details,
