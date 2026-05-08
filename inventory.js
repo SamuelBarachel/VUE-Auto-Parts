@@ -1,5 +1,5 @@
 const INVENTORY_URL =
-  "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Master-Inventory-%26-Location";
+  "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Inventory";
 
 window.VUEInventoryTools = {
   getRows: () => inventoryState.rows,
@@ -9,7 +9,6 @@ window.VUEInventoryTools = {
 
 const FALLBACK_INVENTORY = [
   {
-    "Part ID": "HON-OIL-001",
     "Vehicle Model": "Honda Fit",
     "Part Name": "Oil Filter",
     Specification: "GD1/GE6",
@@ -36,7 +35,6 @@ const columns = [
 ];
 
 const sourceColumns = [
-  "Part ID",
   "Vehicle Model",
   "Part Name",
   "Specification",
@@ -110,7 +108,9 @@ function csvToInventory(csvText) {
     .map((row) => {
       const item = {};
       validHeaderIndexes.forEach(({ header, index }) => {
-        item[header] = (row[index] || "").trim();
+        if (header !== "Part ID") {
+          item[header] = (row[index] || "").trim();
+        }
       });
       return item;
     })
@@ -151,7 +151,7 @@ function displayPrice(row) {
 }
 
 function rowKey(row) {
-  return row["Part ID"] || `${row["Vehicle Model"]}-${row["Part Name"]}-${row["Specification"]}`;
+  return `${row["Vehicle Model"]}-${row["Part Name"]}-${row["Specification"]}`;
 }
 
 function isAvailable(row) {
