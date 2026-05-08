@@ -403,8 +403,15 @@
                 <span class="stf-action-icon stf-icon-rwd" aria-hidden="true">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 </span>
-                <strong>Rewards Card</strong>
-                <span>For a customer</span>
+                <strong>New Rewards Card</strong>
+                <span>Register for a customer</span>
+              </button>
+              <button class="stf-action-card stf-card-full" data-action="manage-rewards" type="button">
+                <span class="stf-action-icon stf-icon-manage" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </span>
+                <strong>Manage Rewards</strong>
+                <span>Look up, update, revoke or renew a card</span>
               </button>
             </div>
 
@@ -466,11 +473,23 @@
               </div>
             </div>
 
-            <!-- Conditional: Rewards Card — customer name -->
+            <!-- Conditional: Rewards Card — customer name + phone -->
             <div class="stf-context" id="stfCtx_rewards-card" hidden>
               <div class="enq-field">
                 <label for="stfRwdCustomer">Customer's full name</label>
                 <input type="text" id="stfRwdCustomer" class="stf-input" maxlength="60" placeholder="e.g. Tendai Moyo" autocomplete="off">
+              </div>
+              <div class="enq-field" style="margin-top:10px">
+                <label for="stfRwdPhone">Customer's phone number <span class="enq-opt">(internal ID — not printed)</span></label>
+                <input type="tel" id="stfRwdPhone" class="stf-input" maxlength="20" placeholder="e.g. +263771234567" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Conditional: Manage Rewards — search -->
+            <div class="stf-context" id="stfCtx_manage-rewards" hidden>
+              <div class="enq-field">
+                <label for="stfManageSearch">Search by customer name, card number, or phone</label>
+                <input type="text" id="stfManageSearch" class="stf-input" maxlength="80" placeholder="e.g. Tendai or VRC-2026-…" autocomplete="off">
               </div>
             </div>
 
@@ -521,7 +540,7 @@
           <!-- Panel 5: Card Preview -->
           <div class="enq-panel" id="stfPanel5" hidden>
             <h3 class="enq-title" id="stfCardTitle">Card Preview</h3>
-            <p class="enq-subtitle">Resize to compare — Print / Save PDF for the full-size print-ready version.</p>
+            <p class="enq-subtitle">Resize to compare — Print / Save PDF opens the full-size print-ready version including the card back.</p>
             <div class="stf-card-size-row">
               <span class="stf-card-size-label">Preview size:</span>
               <button class="stf-size-btn active" data-scale="1" type="button">Full</button>
@@ -536,6 +555,17 @@
             <div class="enq-foot" style="margin-top:16px">
               <button class="enq-btn-ghost" id="stfCardBack" type="button">← Back</button>
               <button class="enq-btn-primary stf-btn" id="stfPrintBtn" type="button">🖨 Print / Save PDF</button>
+            </div>
+          </div>
+
+          <!-- Panel 6: Manage Rewards -->
+          <div class="enq-panel" id="stfPanel6" hidden>
+            <h3 class="enq-title">Manage Rewards</h3>
+            <p class="enq-subtitle"><span id="stfRwdResultCount">0</span> card(s) found — add referrals, record purchases, pay out rewards, revoke, or renew.</p>
+            <div id="stfRwdResults" class="stf-rwd-results"></div>
+            <div class="enq-err" id="stfRwdManageErr" aria-live="polite" style="margin-top:10px"></div>
+            <div style="margin-top:18px">
+              <button class="enq-btn-ghost" id="stfRwdManageBack" type="button">← New Search</button>
             </div>
           </div>
 

@@ -1,6 +1,7 @@
-const http = require("node:http");
-const fs = require("node:fs/promises");
-const path = require("node:path");
+const http   = require("node:http");
+const fs     = require("node:fs/promises");
+const fsSync = require("node:fs");
+const path   = require("node:path");
 
 const PORT = process.env.PORT || 5000;
 const ROOT = __dirname;
@@ -8,6 +9,7 @@ const INVENTORY_URL =
   "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Inventory";
 const STAFF_URL =
   "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Staff";
+const REWARDS_DB_PATH = path.join(ROOT, "rewards-db.json");
 
 const WHATSAPP_FALLBACK = {
   answer:
@@ -132,6 +134,26 @@ Return ONLY a raw JSON object — no markdown, no backticks, no extra text.
 
 function normalizeId(id) {
   return id.replace(/-/g, "").toLowerCase();
+}
+
+function loadRewardsDb() {
+  try {
+    if (fsSync.existsSync(REWARDS_DB_PATH)) {
+      return JSON.parse(fsSync.readFileSync(REWARDS_DB_PATH, "utf8"));
+    }
+  } catch {}
+  return { cards: [] };
+}
+
+function saveRewardsDb(db) {
+  fsSync.writeFileSync(REWARDS_DB_PATH, JSON.stringify(db, null, 2), "utf8");
+}
+
+function calcReward(referrals, purchases) {
+  const score = Math.max(referrals || 0, purchases || 0);
+  if (score >= 15) return 7;
+  if (score >= 5)  return 3;
+  return 0;
 }
 
 async function readRequestBody(request) {
@@ -772,6 +794,140 @@ async function handleStaffReport(request, response) {
   }
 }
 
+async function handleRewardsCreate(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  const { serial, customerName, phone, staffName, staffRole } = body;
+  if (!customerName || !phone || !serial) {
+    return sendJson(response, 400, { ok: false, error: "Name, phone, and serial are required." });
+  }
+  const db = loadRewardsDb();
+  if (db.cards.find(c => c.serial === serial)) {
+    return sendJson(response, 400, { ok: false, error: "Card serial already registered." });
+  }
+  const card = {
+    serial:        String(serial).trim(),
+    name:          String(customerName).trim(),
+    phone:         String(phone).trim(),
+    issuedBy:      String(staffName  || "").trim(),
+    issuedByRole:  String(staffRole  || "").trim(),
+    issuedDate:    new Date().toISOString(),
+    status:        "active",
+    referrals:     0,
+    purchases:     0,
+    revokedBy:     null,
+    revokeReason:  null,
+    revokedDate:   null,
+    renewedDate:   null,
+    paidDate:      null,
+    paidAmount:    null,
+  };
+  db.cards.push(card);
+  saveRewardsDb(db);
+  return sendJson(response, 200, { ok: true, card });
+}
+
+async function handleRewardsLookup(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  const query = String(body.query || "").trim().toLowerCase();
+  if (!query) return sendJson(response, 400, { ok: false, error: "Search query is required." });
+  const db = loadRewardsDb();
+  const results = db.cards
+    .filter(c =>
+      c.serial.toLowerCase().includes(query) ||
+      c.name.toLowerCase().includes(query) ||
+      (c.phone && c.phone.replace(/\D/g, "").includes(query.replace(/\D/g, "")))
+    )
+    .map(c => ({ ...c, rewardOwed: calcReward(c.referrals, c.purchases) }));
+  return sendJson(response, 200, { ok: true, cards: results });
+}
+
+async function handleRewardsAdd(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  const { serial, type, count } = body;
+  if (!serial || !type) return sendJson(response, 400, { ok: false, error: "Serial and type required." });
+  const db  = loadRewardsDb();
+  const idx = db.cards.findIndex(c => c.serial === serial);
+  if (idx === -1) return sendJson(response, 404, { ok: false, error: "Card not found." });
+  if (db.cards[idx].status !== "active") return sendJson(response, 400, { ok: false, error: "Card is not active." });
+  const n = Math.max(1, Math.min(10, parseInt(count) || 1));
+  if (type === "referral") db.cards[idx].referrals = (db.cards[idx].referrals || 0) + n;
+  if (type === "purchase") db.cards[idx].purchases = (db.cards[idx].purchases || 0) + n;
+  saveRewardsDb(db);
+  const card = { ...db.cards[idx], rewardOwed: calcReward(db.cards[idx].referrals, db.cards[idx].purchases) };
+  return sendJson(response, 200, { ok: true, card });
+}
+
+async function handleRewardsRevoke(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  const { serial, revokedBy, reason } = body;
+  if (!serial) return sendJson(response, 400, { ok: false, error: "Serial required." });
+  const db  = loadRewardsDb();
+  const idx = db.cards.findIndex(c => c.serial === serial);
+  if (idx === -1) return sendJson(response, 404, { ok: false, error: "Card not found." });
+  db.cards[idx].status      = "revoked";
+  db.cards[idx].revokedBy   = String(revokedBy || "").trim();
+  db.cards[idx].revokeReason= String(reason    || "Policy violation").trim();
+  db.cards[idx].revokedDate = new Date().toISOString();
+  saveRewardsDb(db);
+  return sendJson(response, 200, { ok: true });
+}
+
+async function handleRewardsRenew(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  const { serial, renewedBy } = body;
+  if (!serial) return sendJson(response, 400, { ok: false, error: "Serial required." });
+  const db  = loadRewardsDb();
+  const idx = db.cards.findIndex(c => c.serial === serial);
+  if (idx === -1) return sendJson(response, 404, { ok: false, error: "Card not found." });
+  if (db.cards[idx].status === "active") return sendJson(response, 400, { ok: false, error: "Card is already active." });
+  const wasPaid = db.cards[idx].status === "paid";
+  db.cards[idx].status      = "active";
+  db.cards[idx].renewedDate = new Date().toISOString();
+  db.cards[idx].revokedBy   = null;
+  db.cards[idx].revokeReason= null;
+  db.cards[idx].revokedDate = null;
+  if (wasPaid) {
+    db.cards[idx].referrals  = 0;
+    db.cards[idx].purchases  = 0;
+    db.cards[idx].paidDate   = null;
+    db.cards[idx].paidAmount = null;
+  }
+  saveRewardsDb(db);
+  const card = { ...db.cards[idx], rewardOwed: calcReward(db.cards[idx].referrals, db.cards[idx].purchases) };
+  return sendJson(response, 200, { ok: true, card });
+}
+
+async function handleRewardsPay(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  const { serial, paidBy } = body;
+  if (!serial) return sendJson(response, 400, { ok: false, error: "Serial required." });
+  const db  = loadRewardsDb();
+  const idx = db.cards.findIndex(c => c.serial === serial);
+  if (idx === -1) return sendJson(response, 404, { ok: false, error: "Card not found." });
+  const amount = calcReward(db.cards[idx].referrals, db.cards[idx].purchases);
+  if (amount === 0) return sendJson(response, 400, { ok: false, error: "No reward owed on this card." });
+  db.cards[idx].status      = "paid";
+  db.cards[idx].paidDate    = new Date().toISOString();
+  db.cards[idx].paidAmount  = amount;
+  db.cards[idx].revokedBy   = String(paidBy || "").trim();
+  db.cards[idx].revokedDate = new Date().toISOString();
+  db.cards[idx].revokeReason= "Reward paid out — card auto-revoked.";
+  saveRewardsDb(db);
+  return sendJson(response, 200, { ok: true, amount });
+}
+
 const server = http.createServer(async (request, response) => {
   try {
     if (request.method === "POST" && request.url === "/api/ask") {
@@ -797,6 +953,24 @@ const server = http.createServer(async (request, response) => {
     }
     if (request.method === "POST" && request.url === "/api/staff-report") {
       return await handleStaffReport(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/rewards-create") {
+      return await handleRewardsCreate(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/rewards-lookup") {
+      return await handleRewardsLookup(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/rewards-add") {
+      return await handleRewardsAdd(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/rewards-revoke") {
+      return await handleRewardsRevoke(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/rewards-renew") {
+      return await handleRewardsRenew(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/rewards-pay") {
+      return await handleRewardsPay(request, response);
     }
     return await serveStatic(request, response);
   } catch (error) {

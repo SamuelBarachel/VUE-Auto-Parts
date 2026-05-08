@@ -2017,12 +2017,217 @@ h2 {
   font-weight: 600;
 }
 
+/* ── Rewards Card Back ── */
+.vue-rwd-back {
+  background: #faf9f4;
+  border: 2px solid #d6ad3f;
+  color: #101413;
+  display: flex;
+  flex-direction: column;
+}
+.vue-rwd-back-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 11px 17px 9px;
+  position: relative;
+  z-index: 2;
+}
+.vue-rwd-back-head {
+  align-items: baseline;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.vue-rwd-back-brand {
+  color: #062f22;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+}
+.vue-rwd-back-sub {
+  color: #5d6862;
+  font-size: 6.5px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.vue-rwd-back-rule {
+  background: linear-gradient(90deg, #d6ad3f, rgba(214,173,63,0.2));
+  border: none;
+  height: 1.5px;
+  margin: 0 0 8px;
+}
+.vue-rwd-back-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.vue-rwd-back-tier {
+  align-items: center;
+  background: #f3f2ec;
+  border-radius: 5px;
+  display: flex;
+  gap: 6px;
+  padding: 4px 7px;
+}
+.vue-rwd-back-stars {
+  color: #c49b1a;
+  font-size: 7px;
+  flex-shrink: 0;
+  font-weight: 900;
+  letter-spacing: 1px;
+  min-width: 36px;
+}
+.vue-rwd-back-tier-desc {
+  color: #3d4a44;
+  flex: 1;
+  font-size: 7px;
+  font-weight: 600;
+}
+.vue-rwd-back-tier-val {
+  color: #062f22;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+.vue-rwd-back-terms {
+  color: #5d6862;
+  font-size: 6px;
+  font-weight: 500;
+  line-height: 1.6;
+  margin: 0 0 auto;
+}
+.vue-rwd-back-serial {
+  color: rgba(16,20,19,0.28);
+  font-family: 'Courier New', monospace;
+  font-size: 6.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-top: 7px;
+}
+
 @media print {
   .vue-card {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 }
+
+/* ── Manage Rewards action card (full-width) ── */
+.stf-card-full {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  gap: 14px;
+  text-align: left;
+  padding: 13px 16px;
+}
+.stf-card-full .stf-action-icon {
+  flex-shrink: 0;
+}
+.stf-card-full strong,
+.stf-card-full span {
+  display: block;
+}
+
+.stf-icon-manage { background: #e6f0fb; color: #1a6bc4; }
+.stf-icon-manage:where(.stf-action-card.selected *) { background: rgba(255,255,255,0.18); color: #fff; }
+
+/* ── Manage Rewards Panel 6 ── */
+.stf-rwd-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 370px;
+  overflow-y: auto;
+  padding: 2px 0;
+}
+.stf-rwd-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+  padding: 16px 0;
+  text-align: center;
+}
+.stf-rwd-item {
+  background: #f7f7f4;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px 10px;
+}
+.stf-rwd-item-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.stf-rwd-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stf-rwd-item-name {
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.stf-rwd-item-serial {
+  color: var(--muted);
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+}
+.stf-rwd-item-date {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.stf-rwd-status-badge {
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  text-transform: uppercase;
+}
+.stf-rwd-status-active   { background: #d1fae5; color: #065f46; }
+.stf-rwd-status-revoked  { background: #fee2e2; color: #991b1b; }
+.stf-rwd-status-paid     { background: #fef3c7; color: #92400e; }
+.stf-rwd-item-stats {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--muted);
+}
+.stf-rwd-item-stats strong { color: var(--ink); }
+.stf-rwd-owed-active { color: #b45309 !important; font-weight: 700; }
+.stf-rwd-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.stf-rwd-btn {
+  background: #eeedea;
+  border: 1.5px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  transition: background 130ms, border-color 130ms, color 130ms;
+}
+.stf-rwd-btn:hover  { background: #e0ded9; }
+.stf-rwd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.stf-rwd-btn-pay    { background: #fef3c7; border-color: #fcd34d; color: #78350f; }
+.stf-rwd-btn-pay:hover  { background: #fde68a; }
+.stf-rwd-btn-revoke { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+.stf-rwd-btn-revoke:hover { background: #fecaca; }
+.stf-rwd-btn-renew  { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.stf-rwd-btn-renew:hover { background: #a7f3d0; }
 
 .stf-btn {
   background: var(--green-dark);

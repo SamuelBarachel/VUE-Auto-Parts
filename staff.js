@@ -9,6 +9,7 @@
   const panel3        = document.getElementById("stfPanel3");
   const panel4        = document.getElementById("stfPanel4");
   const panel5        = document.getElementById("stfPanel5");
+  const panel6        = document.getElementById("stfPanel6");
   const verifyBtn     = document.getElementById("stfVerifyBtn");
   const draftBtn      = document.getElementById("stfDraftBtn");
   const backBtn2      = document.getElementById("stfBack2");
@@ -28,6 +29,10 @@
   const cardTitle     = document.getElementById("stfCardTitle");
   const printBtn      = document.getElementById("stfPrintBtn");
   const cardBack      = document.getElementById("stfCardBack");
+  const rwdResults    = document.getElementById("stfRwdResults");
+  const rwdResultCt   = document.getElementById("stfRwdResultCount");
+  const rwdManageErr  = document.getElementById("stfRwdManageErr");
+  const rwdManageBack = document.getElementById("stfRwdManageBack");
 
   const steps = [
     document.getElementById("stfStep1"),
@@ -42,7 +47,7 @@
   let verifiedStaff     = null;
   let currentCardSerial = null;
 
-  const CARD_ACTIONS = ["biz-card", "rewards-card"];
+  const CARD_ACTIONS = ["biz-card", "rewards-card", "manage-rewards"];
 
   function setStep(n) {
     steps.forEach((s, i) => s.classList.toggle("active", i < n));
@@ -54,6 +59,7 @@
     panel3.hidden = n !== 3;
     panel4.hidden = n !== 4;
     if (panel5) panel5.hidden = n !== 5;
+    if (panel6) panel6.hidden = n !== 6;
     setStep(n <= 4 ? n : 3);
   }
 
@@ -80,8 +86,10 @@
       const el = document.getElementById(id);
       if (el) el.value = "";
     });
-    const rwdInput = document.getElementById("stfRwdCustomer");
-    if (rwdInput) rwdInput.value = "";
+    ["stfRwdCustomer","stfRwdPhone","stfManageSearch"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
     err1.textContent = "";
     err2.textContent = "";
     err3.textContent = "";
@@ -97,7 +105,9 @@
     document.getElementById("stfNotesWrap").hidden = true;
     draftBtn.disabled = true;
     draftBtn.textContent = "Draft my message →";
-    if (cardPreview) cardPreview.innerHTML = "";
+    if (cardPreview)  cardPreview.innerHTML = "";
+    if (rwdResults)   rwdResults.innerHTML  = "";
+    if (rwdManageErr) rwdManageErr.textContent = "";
     document.querySelectorAll(".stf-size-btn").forEach(b => {
       b.classList.toggle("active", b.dataset.scale === "1");
     });
@@ -112,7 +122,8 @@
 
   backBtn2.addEventListener("click", () => { err2.textContent = ""; showPanel(1); });
   backBtn3.addEventListener("click", () => { err3.textContent = ""; showPanel(2); });
-  if (cardBack) cardBack.addEventListener("click", () => { currentCardSerial = null; showPanel(2); });
+  if (cardBack)      cardBack.addEventListener("click",      () => { currentCardSerial = null; showPanel(2); });
+  if (rwdManageBack) rwdManageBack.addEventListener("click", () => showPanel(2));
 
   actionCards.forEach(card => {
     card.addEventListener("click", () => {
@@ -125,11 +136,14 @@
 
       const isCard = CARD_ACTIONS.includes(selectedAction);
       document.getElementById("stfNotesWrap").hidden = isCard;
-      draftBtn.textContent = isCard ? "Preview Card →" : "Draft my message →";
+
+      if (selectedAction === "manage-rewards")  draftBtn.textContent = "Search →";
+      else if (selectedAction === "biz-card")   draftBtn.textContent = "Preview Card →";
+      else if (selectedAction === "rewards-card") draftBtn.textContent = "Register & Preview →";
+      else { draftBtn.textContent = "Draft my message →"; document.getElementById("stfNotesWrap").hidden = false; }
 
       const ctx = document.getElementById("stfCtx_" + selectedAction);
       if (ctx) ctx.hidden = false;
-      if (!isCard) document.getElementById("stfNotesWrap").hidden = false;
       draftBtn.disabled = false;
     });
   });
@@ -139,17 +153,14 @@
     const lastName  = document.getElementById("stfLastName").value.trim();
     const id        = document.getElementById("stfId").value.trim();
     const role      = document.getElementById("stfRole").value.trim();
-
     if (!firstName) { err1.textContent = "Please enter your first name.";  return; }
     if (!lastName)  { err1.textContent = "Please enter your last name.";   return; }
     if (!id)        { err1.textContent = "Please enter your ID.";          return; }
     if (!role)      { err1.textContent = "Please enter your role.";        return; }
     err1.textContent = "";
-
     verifyBtn.disabled = true;
     verifyBtn.textContent = "Verifying…";
     verifyLoad.hidden = false;
-
     try {
       const res  = await fetch("/api/staff-verify", {
         method: "POST",
@@ -157,7 +168,6 @@
         body: JSON.stringify({ firstName, lastName, id, role }),
       });
       const data = await res.json().catch(() => ({}));
-
       if (data.ok) {
         verifiedStaff = data.staff;
         confirmedName.textContent = data.staff.firstName + " " + data.staff.lastName;
@@ -178,13 +188,28 @@
   draftBtn.addEventListener("click", async () => {
     if (!selectedAction) { err2.textContent = "Please choose an action."; return; }
 
-    if (CARD_ACTIONS.includes(selectedAction)) {
-      if (selectedAction === "rewards-card") {
-        const nm = document.getElementById("stfRwdCustomer")?.value.trim() || "";
-        if (!nm) { err2.textContent = "Please enter the customer's name."; return; }
-      }
+    if (selectedAction === "manage-rewards") {
+      await doSearchRewards();
+      return;
+    }
+
+    if (selectedAction === "rewards-card") {
+      const name  = (document.getElementById("stfRwdCustomer")?.value || "").trim();
+      const phone = (document.getElementById("stfRwdPhone")?.value   || "").trim();
+      if (!name)  { err2.textContent = "Please enter the customer's name.";         return; }
+      if (!phone) { err2.textContent = "Please enter the customer's phone number."; return; }
       err2.textContent = "";
-      renderCardPreview();
+      draftBtn.disabled = true;
+      draftBtn.textContent = "Registering…";
+      try { await registerAndPreviewRewardsCard(name, phone); }
+      finally { draftBtn.disabled = false; draftBtn.textContent = "Register & Preview →"; }
+      return;
+    }
+
+    if (selectedAction === "biz-card") {
+      err2.textContent = "";
+      currentCardSerial = null;
+      renderBizCardPreview();
       showPanel(5);
       return;
     }
@@ -197,7 +222,6 @@
     loading.hidden = false;
     draftTA.hidden = true;
     sendBtn.disabled = true;
-
     try {
       const res  = await fetch("/api/staff-draft", {
         method: "POST",
@@ -230,9 +254,7 @@
     err3.textContent = "";
     sendBtn.disabled = true;
     sendBtn.textContent = "Sending…";
-
     const details = collectDetails();
-
     try {
       const res  = await fetch("/api/staff-report", {
         method: "POST",
@@ -248,7 +270,6 @@
         }),
       });
       const data = await res.json().catch(() => ({}));
-
       if (res.ok && data.ok) {
         showPanel(4);
       } else {
@@ -266,25 +287,34 @@
   if (printBtn) {
     printBtn.addEventListener("click", () => {
       if (!cardPreview || !cardPreview.innerHTML) return;
-      const win = window.open("", "_blank", "width=620,height=460,menubar=no,toolbar=no,scrollbars=no");
+      const isRwd  = selectedAction === "rewards-card";
+      const base   = window.location.origin;
+      const win    = window.open("", "_blank", "width=620,height=520,menubar=no,toolbar=no,scrollbars=no");
       if (!win) { alert("Allow pop-ups for this site to print cards."); return; }
-      const base = window.location.origin;
+      const backHtml = isRwd ? buildRwdBackHtml() : "";
+      const pgSize   = isRwd ? "85.6mm 120mm" : "85.6mm 54mm";
       win.document.write(`<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <title>VUE Card — Print</title>
 <link rel="stylesheet" href="${base}/styles.css">
 <style>
-* { box-sizing: border-box; }
-body { margin: 0; padding: 36px; background: #d0cfc7; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-@media print {
-  @page { size: 85.6mm 54mm; margin: 0; }
-  html, body { width: 85.6mm; height: 54mm; padding: 0; background: white; min-height: 0; display: block; }
-  .vue-card { width: 85.6mm !important; height: 54mm !important; border-radius: 3mm !important; box-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+*{box-sizing:border-box}
+body{margin:0;padding:32px 20px;background:#d0cfc7;display:flex;flex-direction:column;align-items:center;gap:14px}
+.vue-card-print-label{font-family:sans-serif;font-size:10px;font-weight:700;color:#888;letter-spacing:2px;text-transform:uppercase}
+@media print{
+  @page{size:${pgSize};margin:0}
+  html,body{background:white;padding:0;gap:0;min-height:0}
+  .vue-card-print-label{display:none}
+  .vue-card{width:85.6mm!important;height:54mm!important;border-radius:3mm!important;box-shadow:none!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .vue-card+.vue-card{margin-top:3mm}
 }
 <\/style>
-</head><body>${cardPreview.innerHTML}
-<script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 500); });<\/script>
+</head><body>
+${isRwd ? '<div class="vue-card-print-label">FRONT</div>' : ""}
+${cardPreview.innerHTML}
+${isRwd ? `<div class="vue-card-print-label">BACK</div>${backHtml}` : ""}
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},500);});<\/script>
 </body></html>`);
       win.document.close();
     });
@@ -299,6 +329,154 @@ body { margin: 0; padding: 36px; background: #d0cfc7; display: flex; align-items
       if (cardStage)  cardStage.style.minHeight  = (215 * scale + 56) + "px";
     });
   });
+
+  // ── Manage Rewards ─────────────────────────────────────────────
+
+  async function doSearchRewards() {
+    const query = (document.getElementById("stfManageSearch")?.value || "").trim();
+    if (!query) { err2.textContent = "Enter a name or card number."; return; }
+    err2.textContent = "";
+    draftBtn.disabled = true;
+    draftBtn.textContent = "Searching…";
+    try {
+      const res  = await fetch("/api/rewards-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.ok) { renderManagePanel(data.cards, query); showPanel(6); }
+      else err2.textContent = data.error || "Search failed.";
+    } catch {
+      err2.textContent = "Connection error.";
+    } finally {
+      draftBtn.disabled = false;
+      draftBtn.textContent = "Search →";
+    }
+  }
+
+  function renderManagePanel(cards, query) {
+    if (rwdResultCt)  rwdResultCt.textContent  = cards.length;
+    if (rwdManageErr) rwdManageErr.textContent  = "";
+    if (!rwdResults) return;
+
+    if (cards.length === 0) {
+      rwdResults.innerHTML = `<p class="stf-rwd-empty">No cards found for "<strong>${query}</strong>".</p>`;
+      return;
+    }
+
+    rwdResults.innerHTML = cards.map(card => {
+      const reward   = card.rewardOwed || 0;
+      const isActive = card.status === "active";
+      const issued   = (() => { try { return new Date(card.issuedDate).toLocaleDateString("en-ZW", { month: "short", year: "numeric" }); } catch { return "—"; } })();
+      const statusLabel = { active: "Active", revoked: "Revoked", paid: "Paid" }[card.status] || card.status;
+      return `<div class="stf-rwd-item">
+  <div class="stf-rwd-item-header">
+    <div class="stf-rwd-item-info">
+      <strong class="stf-rwd-item-name">${card.name}</strong>
+      <span class="stf-rwd-item-serial">${card.serial}</span>
+      <span class="stf-rwd-item-date">Issued ${issued}${card.issuedBy ? " · " + card.issuedBy : ""}</span>
+    </div>
+    <span class="stf-rwd-status-badge stf-rwd-status-${card.status}">${statusLabel}</span>
+  </div>
+  <div class="stf-rwd-item-stats">
+    <span>↗ <strong>${card.referrals || 0}</strong> referral${card.referrals === 1 ? "" : "s"}</span>
+    <span>🛒 <strong>${card.purchases || 0}</strong> purchase${card.purchases === 1 ? "" : "s"}</span>
+    <span class="${reward > 0 ? "stf-rwd-owed-active" : ""}">💰 <strong>$${reward}</strong> owed</span>
+  </div>
+  <div class="stf-rwd-item-actions">
+    ${isActive ? `
+    <button class="stf-rwd-btn" data-op="referral" data-serial="${card.serial}" data-query="${query}">+ Referral</button>
+    <button class="stf-rwd-btn" data-op="purchase" data-serial="${card.serial}" data-query="${query}">+ Purchase</button>
+    ${reward > 0 ? `<button class="stf-rwd-btn stf-rwd-btn-pay" data-op="pay" data-serial="${card.serial}" data-query="${query}" data-amount="${reward}">Pay $${reward} &amp; Revoke</button>` : ""}
+    <button class="stf-rwd-btn stf-rwd-btn-revoke" data-op="revoke" data-serial="${card.serial}" data-query="${query}">Revoke</button>
+    ` : `
+    <button class="stf-rwd-btn stf-rwd-btn-renew" data-op="renew" data-serial="${card.serial}" data-query="${query}">Renew Card</button>
+    `}
+  </div>
+</div>`;
+    }).join("");
+
+    rwdResults.querySelectorAll(".stf-rwd-btn").forEach(btn => {
+      btn.addEventListener("click", () => handleManageOp(btn));
+    });
+  }
+
+  async function handleManageOp(btn) {
+    const op = btn.dataset.op, serial = btn.dataset.serial, query = btn.dataset.query || "";
+    const orig = btn.textContent;
+
+    if (op === "revoke") {
+      const reason = prompt("Reason for revocation (optional):") ?? "Policy violation";
+      btn.disabled = true; btn.textContent = "…";
+      await callOp("/api/rewards-revoke", { serial, revokedBy: `${verifiedStaff.firstName} ${verifiedStaff.lastName}`, reason }, query, btn, orig);
+    } else if (op === "pay") {
+      const amount = btn.dataset.amount;
+      if (!confirm(`Confirm: pay $${amount} reward and auto-revoke this card?`)) return;
+      btn.disabled = true; btn.textContent = "…";
+      await callOp("/api/rewards-pay", { serial, paidBy: `${verifiedStaff.firstName} ${verifiedStaff.lastName}` }, query, btn, orig);
+    } else if (op === "renew") {
+      btn.disabled = true; btn.textContent = "…";
+      await callOp("/api/rewards-renew", { serial, renewedBy: `${verifiedStaff.firstName} ${verifiedStaff.lastName}` }, query, btn, orig);
+    } else {
+      btn.disabled = true; btn.textContent = "…";
+      await callOp("/api/rewards-add", { serial, type: op, count: 1 }, query, btn, orig);
+    }
+  }
+
+  async function callOp(url, body, query, btn, orig) {
+    try {
+      const res  = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await res.json().catch(() => ({}));
+      if (data.ok) {
+        const lr   = await fetch("/api/rewards-lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
+        const ld   = await lr.json().catch(() => ({}));
+        if (ld.ok) renderManagePanel(ld.cards, query);
+      } else {
+        if (rwdManageErr) rwdManageErr.textContent = data.error || "Operation failed.";
+        btn.disabled = false; btn.textContent = orig;
+      }
+    } catch {
+      if (rwdManageErr) rwdManageErr.textContent = "Network error.";
+      btn.disabled = false; btn.textContent = orig;
+    }
+  }
+
+  // ── Card generation ────────────────────────────────────────────
+
+  async function registerAndPreviewRewardsCard(name, phone) {
+    currentCardSerial = generateSerial("VRC");
+    if (cardPreview) cardPreview.innerHTML = buildRwdCardHtml(name);
+    if (cardTitle)   cardTitle.textContent = "Rewards Card Preview";
+    document.querySelectorAll(".stf-size-btn").forEach(b => b.classList.toggle("active", b.dataset.scale === "1"));
+    if (cardScaler) cardScaler.style.transform = "scale(1)";
+    if (cardStage)  cardStage.style.minHeight  = "272px";
+    try {
+      const res  = await fetch("/api/rewards-create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serial: currentCardSerial, customerName: name, phone,
+          staffName: `${verifiedStaff.firstName} ${verifiedStaff.lastName}`,
+          staffRole: verifiedStaff.role,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!data.ok) { err2.textContent = data.error || "Card could not be registered."; return; }
+    } catch {
+      err2.textContent = "Card generated but could not be registered — check connection.";
+      return;
+    }
+    showPanel(5);
+  }
+
+  function renderBizCardPreview() {
+    if (cardPreview) cardPreview.innerHTML = buildBizCardHtml();
+    if (cardTitle)   cardTitle.textContent = "Business Card Preview";
+    document.querySelectorAll(".stf-size-btn").forEach(b => b.classList.toggle("active", b.dataset.scale === "1"));
+    if (cardScaler) cardScaler.style.transform = "scale(1)";
+    if (cardStage)  cardStage.style.minHeight  = "272px";
+  }
 
   function collectDetails() {
     const notes = document.getElementById("stfNotes").value.trim();
@@ -367,9 +545,9 @@ body { margin: 0; padding: 36px; background: #d0cfc7; display: flex; align-items
 </div>`;
   }
 
-  function buildRwdCardHtml() {
+  function buildRwdCardHtml(customerName) {
     if (!currentCardSerial) currentCardSerial = generateSerial("VRC");
-    const customerName = (document.getElementById("stfRwdCustomer")?.value || "").trim() || "—";
+    const name   = customerName || (document.getElementById("stfRwdCustomer")?.value || "").trim() || "—";
     const issued = new Date().toLocaleDateString("en-ZW", { month: "short", year: "numeric" });
     return `<div class="vue-card vue-rwd-card">
   <div class="vue-card-wm vue-card-wm-light" aria-hidden="true">${buildWatermarkRows()}</div>
@@ -382,7 +560,7 @@ body { margin: 0; padding: 36px; background: #d0cfc7; display: flex; align-items
   </div>
   <div class="vue-rwd-body">
     <div class="vue-rwd-label">Valued Member</div>
-    <div class="vue-rwd-name">${customerName}</div>
+    <div class="vue-rwd-name">${name}</div>
     <div class="vue-rwd-cardno">${currentCardSerial}</div>
   </div>
   <div class="vue-rwd-footer">
@@ -392,13 +570,32 @@ body { margin: 0; padding: 36px; background: #d0cfc7; display: flex; align-items
 </div>`;
   }
 
-  function renderCardPreview() {
-    currentCardSerial = null;
-    const html = selectedAction === "biz-card" ? buildBizCardHtml() : buildRwdCardHtml();
-    if (cardPreview) cardPreview.innerHTML = html;
-    if (cardTitle) cardTitle.textContent = selectedAction === "biz-card" ? "Business Card Preview" : "Rewards Card Preview";
-    document.querySelectorAll(".stf-size-btn").forEach(b => b.classList.toggle("active", b.dataset.scale === "1"));
-    if (cardScaler) cardScaler.style.transform = "scale(1)";
-    if (cardStage)  cardStage.style.minHeight  = "272px";
+  function buildRwdBackHtml() {
+    const serial = currentCardSerial || "—";
+    return `<div class="vue-card vue-rwd-back">
+  <div class="vue-card-wm vue-card-wm-light" aria-hidden="true">${buildWatermarkRows()}</div>
+  <div class="vue-rwd-back-inner">
+    <div class="vue-rwd-back-head">
+      <span class="vue-rwd-back-brand">VUE AUTO PARTS</span>
+      <span class="vue-rwd-back-sub">REWARDS PROGRAMME</span>
+    </div>
+    <div class="vue-rwd-back-rule"></div>
+    <div class="vue-rwd-back-tiers">
+      <div class="vue-rwd-back-tier">
+        <span class="vue-rwd-back-stars">★★★★★</span>
+        <span class="vue-rwd-back-tier-desc">5 referrals or purchases</span>
+        <span class="vue-rwd-back-tier-val">$3.00</span>
+      </div>
+      <div class="vue-rwd-back-tier">
+        <span class="vue-rwd-back-stars">★ × 15</span>
+        <span class="vue-rwd-back-tier-desc">15 referrals or purchases</span>
+        <span class="vue-rwd-back-tier-val">$7.00 max</span>
+      </div>
+    </div>
+    <div class="vue-rwd-back-rule"></div>
+    <p class="vue-rwd-back-terms">Not transferable. Valid at VUE Auto Parts, Chipinge, Zimbabwe only. This card may be revoked without prior notice for rude behaviour or any violation of store policy.</p>
+    <div class="vue-rwd-back-serial">${serial}</div>
+  </div>
+</div>`;
   }
 })();
