@@ -246,6 +246,68 @@ async function serveStatic(request, response) {
   }
 }
 
+async function handleDraft(request, response) {
+  const apiKey = process.env.GROQ_API_KEY;
+  const model = (process.env.GROQ_MODEL || "llama-3.1-8b-instant").toLowerCase();
+
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const name = String(body.name || "").trim().slice(0, 100);
+  const phone = String(body.phone || "").trim().slice(0, 30);
+  const vehicle = String(body.vehicle || "").trim().slice(0, 100);
+  const part = String(body.part || "").trim().slice(0, 200);
+
+  if (!name || !vehicle || !part) {
+    return sendJson(response, 400, { ok: false, error: "Name, vehicle and part are required." });
+  }
+
+  if (!apiKey) {
+    const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name}${phone ? ` and my contact number is ${phone}` : ""}. I'm looking for ${part} for my ${vehicle}.\n\nPlease let me know if you have it in stock and the price. Thank you.`;
+    return sendJson(response, 200, { ok: true, draft: fallback });
+  }
+
+  const prompt = `Write a short, natural, friendly enquiry message from a customer to an auto parts shop called VUE Auto Parts in Chipinge, Zimbabwe. Keep it conversational and genuine — like a real person texting a shop, not a formal letter. 2-4 sentences max.
+
+Customer details:
+- Name: ${name}
+- Phone: ${phone || "not provided"}
+- Vehicle: ${vehicle}
+- Part needed: ${part}
+
+Return ONLY the message text, no subject line, no "Dear", no sign-off label. Just the body of the message.`;
+
+  try {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        temperature: 0.7,
+        max_tokens: 120,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (!groqRes.ok) {
+      const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name}${phone ? ` and my contact number is ${phone}` : ""}. I'm looking for ${part} for my ${vehicle}.\n\nPlease let me know if you have it in stock and the price. Thank you.`;
+      return sendJson(response, 200, { ok: true, draft: fallback });
+    }
+
+    const data = await groqRes.json();
+    const draft = data.choices?.[0]?.message?.content?.trim() || "";
+    return sendJson(response, 200, { ok: true, draft: draft || `Hi, I'm ${name} and I'm looking for ${part} for my ${vehicle}. Please contact me on ${phone}.` });
+  } catch (err) {
+    console.error("[draft] error:", err.message);
+    const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name}${phone ? ` and my number is ${phone}` : ""}. I need ${part} for my ${vehicle}. Please let me know price and availability.`;
+    return sendJson(response, 200, { ok: true, draft: fallback });
+  }
+}
+
 async function handleEnquiry(request, response) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -261,38 +323,45 @@ async function handleEnquiry(request, response) {
   }
 
   const name = String(body.name || "").trim().slice(0, 100);
+  const phone = String(body.phone || "").trim().slice(0, 30);
   const vehicle = String(body.vehicle || "").trim().slice(0, 100);
   const part = String(body.part || "").trim().slice(0, 200);
-  const notes = String(body.notes || "").trim().slice(0, 500);
+  const message = String(body.message || "").trim().slice(0, 1000);
 
-  if (!name || !vehicle || !part) {
-    return sendJson(response, 400, { ok: false, error: "Name, vehicle and part are required." });
+  if (!name || !vehicle || !part || !message) {
+    return sendJson(response, 400, { ok: false, error: "All fields are required." });
   }
 
   const html = `
-    <h2 style="color:#1a3a2a">New Part Enquiry — VUE Auto Parts</h2>
-    <table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:15px">
-      <tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700;width:130px">Name</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${name}</td></tr>
-      <tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700">Vehicle</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${vehicle}</td></tr>
-      <tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700">Part needed</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${part}</td></tr>
-      ${notes ? `<tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700">Notes</td><td style="padding:8px 12px">${notes}</td></tr>` : ""}
-    </table>
-    <p style="margin-top:20px;color:#666;font-size:13px">Sent from the VUE Auto Parts website enquiry form.</p>
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+      <div style="background:#1a3a2a;padding:20px 24px;border-radius:8px 8px 0 0">
+        <h2 style="color:#fff;margin:0;font-size:18px">New Part Enquiry</h2>
+        <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:13px">VUE Auto Parts website</p>
+      </div>
+      <div style="background:#f9f9f9;padding:20px 24px;border-left:1px solid #eee;border-right:1px solid #eee">
+        <table style="border-collapse:collapse;width:100%;font-size:14px">
+          <tr><td style="padding:7px 0;color:#666;width:110px;font-weight:600">Name</td><td style="padding:7px 0;font-weight:700">${name}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">Phone</td><td style="padding:7px 0;font-weight:700">${phone || "—"}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">Vehicle</td><td style="padding:7px 0;font-weight:700">${vehicle}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">Part needed</td><td style="padding:7px 0;font-weight:700">${part}</td></tr>
+        </table>
+      </div>
+      <div style="background:#fff;padding:20px 24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+        <p style="color:#444;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap">${message}</p>
+      </div>
+    </div>
   `;
 
-  const text = `New Part Enquiry\n\nName: ${name}\nVehicle: ${vehicle}\nPart needed: ${part}${notes ? `\nNotes: ${notes}` : ""}\n\nSent from vueautoparts website.`;
+  const text = `New Part Enquiry\n\nName: ${name}\nPhone: ${phone || "—"}\nVehicle: ${vehicle}\nPart needed: ${part}\n\n${message}`;
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         from: "VUE Auto Parts <onboarding@resend.dev>",
         to: ["info@vueautoparts.com"],
-        subject: `Part enquiry: ${part} — ${vehicle}`,
+        subject: `Enquiry: ${part} — ${vehicle} (${name})`,
         html,
         text,
       }),
@@ -301,14 +370,14 @@ async function handleEnquiry(request, response) {
     if (!res.ok) {
       const err = await res.text().catch(() => "");
       console.error("[enquiry] Resend error:", res.status, err);
-      return sendJson(response, 500, { ok: false, error: "Could not send email. Please try WhatsApp." });
+      return sendJson(response, 500, { ok: false, error: "Could not send. Please try WhatsApp." });
     }
 
-    console.log("[enquiry] sent for:", name, "|", vehicle, "|", part);
+    console.log("[enquiry] sent:", name, "|", phone, "|", vehicle, "|", part);
     return sendJson(response, 200, { ok: true });
   } catch (err) {
     console.error("[enquiry] fetch error:", err.message);
-    return sendJson(response, 500, { ok: false, error: "Could not send email. Please try WhatsApp." });
+    return sendJson(response, 500, { ok: false, error: "Could not send. Please try WhatsApp." });
   }
 }
 
@@ -316,6 +385,9 @@ const server = http.createServer(async (request, response) => {
   try {
     if (request.method === "POST" && request.url === "/api/ask") {
       return await handleAsk(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/draft") {
+      return await handleDraft(request, response);
     }
     if (request.method === "POST" && request.url === "/api/enquiry") {
       return await handleEnquiry(request, response);

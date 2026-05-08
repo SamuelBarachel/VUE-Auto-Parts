@@ -278,29 +278,8 @@
         <div>
           <p class="eyebrow">Contact</p>
           <h2>Tell us the part, model &amp; quantity.</h2>
-          <p>Fill in below and we'll get back to you — no email account needed on your side.</p>
-          <form id="enquiryForm" class="enquiry-form" novalidate>
-            <div class="enquiry-row">
-              <label for="enqName">Your name</label>
-              <input id="enqName" name="name" type="text" placeholder="e.g. Tendai Moyo" required maxlength="100">
-            </div>
-            <div class="enquiry-row">
-              <label for="enqVehicle">Vehicle model</label>
-              <input id="enqVehicle" name="vehicle" type="text" placeholder="e.g. Honda Fit 2009" required maxlength="100">
-            </div>
-            <div class="enquiry-row">
-              <label for="enqPart">Part needed</label>
-              <input id="enqPart" name="part" type="text" placeholder="e.g. Front brake pads" required maxlength="200">
-            </div>
-            <div class="enquiry-row">
-              <label for="enqNotes">Extra details <span class="optional">(optional)</span></label>
-              <textarea id="enqNotes" name="notes" placeholder="Chassis number, colour, quantity…" maxlength="500" rows="3"></textarea>
-            </div>
-            <div class="enquiry-actions">
-              <button type="submit" class="enquiry-submit">Send enquiry</button>
-              <span id="enquiryStatus" class="enquiry-status" aria-live="polite"></span>
-            </div>
-          </form>
+          <p>We'll draft a message for you — just review and send. No email account needed.</p>
+          <button class="enq-trigger" id="enqOpen" type="button">Send an enquiry</button>
         </div>
         <div class="contact-card">
           <img src="vueauto-logo.jpeg" alt="VUE Auto Parts">
@@ -320,6 +299,73 @@
           </dl>
         </div>
       </section>
+
+      <!-- Enquiry modal -->
+      <div id="enqOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Send an enquiry" hidden>
+        <div class="enq-modal">
+          <div class="enq-modal-header">
+            <div class="enq-steps">
+              <span class="enq-step active" data-step="1">1</span>
+              <span class="enq-step-line"></span>
+              <span class="enq-step" data-step="2">2</span>
+            </div>
+            <button class="enq-close" id="enqClose" aria-label="Close">&times;</button>
+          </div>
+
+          <!-- Step 1: Details -->
+          <div class="enq-panel" id="enqPanel1">
+            <h3 class="enq-title">Your details</h3>
+            <p class="enq-subtitle">We'll draft your message automatically.</p>
+            <div class="enq-fields">
+              <div class="enq-field">
+                <label for="enqName">Your name</label>
+                <input id="enqName" type="text" placeholder="e.g. Tendai Moyo" maxlength="100" autocomplete="name">
+              </div>
+              <div class="enq-field">
+                <label for="enqPhone">Phone / WhatsApp <span class="enq-opt">(optional)</span></label>
+                <input id="enqPhone" type="tel" placeholder="e.g. +263 77 123 4567" maxlength="30" autocomplete="tel">
+              </div>
+              <div class="enq-field">
+                <label for="enqVehicle">Your vehicle</label>
+                <input id="enqVehicle" type="text" placeholder="e.g. Honda Fit 2009" maxlength="100">
+              </div>
+              <div class="enq-field">
+                <label for="enqPart">Part needed</label>
+                <input id="enqPart" type="text" placeholder="e.g. Front brake pads" maxlength="200">
+              </div>
+            </div>
+            <div class="enq-foot">
+              <span class="enq-err" id="enqErr1" aria-live="polite"></span>
+              <button class="enq-btn-primary" id="enqNextBtn" type="button">Draft my message →</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Review & Send -->
+          <div class="enq-panel" id="enqPanel2" hidden>
+            <h3 class="enq-title">Review &amp; send</h3>
+            <p class="enq-subtitle">AI-drafted for you — edit anything you like.</p>
+            <div class="enq-draft-wrap">
+              <div class="enq-draft-loading" id="enqDraftLoading">
+                <span class="enq-spinner"></span> Drafting your message…
+              </div>
+              <textarea id="enqDraft" class="enq-draft" rows="7" maxlength="1000" hidden></textarea>
+            </div>
+            <div class="enq-foot">
+              <button class="enq-btn-ghost" id="enqBackBtn" type="button">← Back</button>
+              <span class="enq-err" id="enqErr2" aria-live="polite"></span>
+              <button class="enq-btn-primary" id="enqSendBtn" type="button" disabled>Send</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Success -->
+          <div class="enq-panel enq-success" id="enqPanel3" hidden>
+            <div class="enq-success-icon">✓</div>
+            <h3 class="enq-title">Enquiry sent!</h3>
+            <p class="enq-subtitle">We'll get back to you shortly. You can also reach us on WhatsApp for faster responses.</p>
+            <a class="enq-btn-primary" href="https://wa.me/16038662272" target="_blank" rel="noopener">Open WhatsApp</a>
+          </div>
+        </div>
+      </div>
     </main>
 
     <footer class="site-footer">
