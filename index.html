@@ -24,6 +24,10 @@
         AI
       </button>
 
+      <button class="earn-trigger" id="earnTrigger" type="button" aria-expanded="false" aria-controls="earnPanel">
+        Earn
+      </button>
+
       <nav aria-label="Primary navigation">
         <a href="#models">Models</a>
         <a href="#stock">Parts</a>
@@ -33,6 +37,30 @@
 
       <a class="header-action" href="https://wa.me/16038662272">WhatsApp</a>
     </header>
+
+    <section class="earn-panel" id="earnPanel" hidden aria-label="VUE Auto Parts referral programme">
+      <div class="earn-header">
+        <p class="eyebrow">Refer &amp; earn cash</p>
+        <button class="earn-close" id="earnClose" type="button" aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="earn-tiers">
+        <div class="earn-tier">
+          <strong class="earn-amount">$5</strong>
+          <span>Refer <strong>5 people</strong> who buy</span>
+          <small>Cash or discount</small>
+        </div>
+        <div class="earn-tier highlight">
+          <strong class="earn-amount">$10</strong>
+          <span>Refer <strong>15+ people</strong> who buy</span>
+          <small>Cash or discount</small>
+        </div>
+      </div>
+      <p class="earn-note">Direct friends to VUE Auto Parts. When they buy, you earn. Simple.</p>
+      <a class="button primary earn-cta" href="https://wa.me/16038662272?text=Hi%2C%20I%27d%20like%20to%20learn%20more%20about%20the%20referral%20programme." target="_blank" rel="noopener">
+        Click here to learn more
+      </a>
+      <p class="earn-tc">Terms &amp; conditions apply.</p>
+    </section>
 
     <section class="ai-panel" id="aiPanel" hidden aria-label="VUE Auto Parts AI helper">
       <form id="aiForm">
@@ -280,5 +308,6 @@
     <script src="site.js?v=1"></script>
     <script src="inventory.js?v=6"></script>
     <script src="ai.js?v=1"></script>
+    <script src="earn.js?v=1"></script>
   </body>
 </html>

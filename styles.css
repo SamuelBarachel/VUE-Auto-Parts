@@ -173,6 +173,139 @@ nav a:hover::after {
   }
 }
 
+/* ── Earn button ── */
+.earn-trigger {
+  align-items: center;
+  background: var(--gold);
+  border: 0;
+  border-radius: 999px;
+  color: #12100a;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 900;
+  height: 36px;
+  justify-content: center;
+  padding: 0 14px;
+}
+
+.earn-trigger:hover {
+  background: #c49d34;
+}
+
+/* ── Earn panel ── */
+.earn-panel {
+  background: var(--green-dark);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  box-shadow: 0 16px 48px rgba(6,47,34,0.28);
+  color: #fff;
+  max-width: 360px;
+  padding: 16px;
+  position: fixed;
+  right: 14px;
+  top: 56px;
+  width: calc(100% - 28px);
+  z-index: 35;
+}
+
+.earn-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.earn-header .eyebrow {
+  color: var(--gold);
+  margin: 0;
+}
+
+.earn-close {
+  background: transparent;
+  border: 0;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.earn-close:hover {
+  color: #fff;
+}
+
+.earn-tiers {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 12px;
+}
+
+.earn-tier {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+}
+
+.earn-tier.highlight {
+  background: rgba(214,173,63,0.15);
+  border-color: var(--gold);
+}
+
+.earn-amount {
+  color: var(--gold);
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.earn-tier span {
+  color: rgba(255,255,255,0.9);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.earn-tier span strong {
+  color: #fff;
+}
+
+.earn-tier small {
+  color: var(--gold);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.earn-note {
+  color: rgba(255,255,255,0.72);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+
+.earn-cta {
+  display: flex;
+  font-size: 0.88rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.earn-tc {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.72rem;
+  margin: 8px 0 0;
+  text-align: center;
+}
+
+/* ── AI panel ── */
 .ai-panel {
   background: #fff;
   border: 1px solid var(--line);
@@ -183,7 +316,7 @@ nav a:hover::after {
   padding: 14px;
   position: fixed;
   right: 14px;
-  top: 82px;
+  top: 56px;
   width: calc(100% - 28px);
   z-index: 35;
 }
