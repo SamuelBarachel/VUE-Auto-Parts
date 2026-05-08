@@ -57,6 +57,8 @@ async function submitQuestion(question) {
   appendBubble("user", question);
   aiQuestion.value = "";
 
+  // Snapshot history BEFORE adding the current message so it isn't sent twice
+  const historySnapshot = conversationHistory.slice(-10);
   conversationHistory.push({ role: "user", content: question });
 
   const typing = showTyping();
@@ -67,7 +69,7 @@ async function submitQuestion(question) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         question,
-        history: conversationHistory.slice(-10),
+        history: historySnapshot,
       }),
     });
 
