@@ -733,27 +733,26 @@ h2 {
 }
 
 .popular-item {
-  align-items: center;
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
 }
 
-.popular-info strong {
-  display: block;
-  font-size: 0.95rem;
+.popular-model {
+  color: var(--green-dark);
+  font-size: 1rem;
+  font-weight: 900;
 }
 
-.popular-info span {
+.popular-part {
   color: var(--muted);
-  display: block;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  margin-top: 2px;
+  flex: 1;
 }
 
 .popular-avail {

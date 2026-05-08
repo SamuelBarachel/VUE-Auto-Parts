@@ -3,7 +3,7 @@ const INVENTORY_URL =
 const SALES_URL =
   "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Sales";
 
-const POPULAR_CACHE_KEY = "vue_popular_v2";
+const POPULAR_CACHE_KEY = "vue_popular_v3";
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 
 window.VUEInventoryTools = {
@@ -173,17 +173,29 @@ async function getPopularFromSales(rawRows) {
     if (id) salesCountById[id] = (salesCountById[id] || 0) + n;
   });
 
-  // Join with inventory rows (which have Part ID) to resolve names
-  // Only expose Vehicle Model + Part Name — never Part ID
-  const joined = rawRows
-    .filter(r => r["Part ID"] && salesCountById[r["Part ID"]])
-    .map(r => ({
-      "Vehicle Model": r["Vehicle Model"],
-      "Part Name":     r["Part Name"],
-      salesCount:      salesCountById[r["Part ID"]],
-    }))
-    .sort((a, b) => b.salesCount - a.salesCount)
-    .slice(0, 3);
+  // For each model, find the single most popular part (by sales count)
+  const modelBest = {}; // model -> { partName, count }
+  rawRows.forEach(r => {
+    const id    = r["Part ID"];
+    const model = r["Vehicle Model"];
+    const part  = r["Part Name"];
+    if (!id || !model || !part) return;
+    const count = salesCountById[id] || 0;
+    if (!modelBest[model] || count > modelBest[model].count) {
+      modelBest[model] = { part, count };
+    }
+  });
+
+  // Rank models by their best part's sales count, keep top 3
+  const joined = Object.entries(modelBest)
+    .filter(([, v]) => v.count > 0)
+    .sort(([, a], [, b]) => b.count - a.count)
+    .slice(0, 3)
+    .map(([model, v]) => ({
+      "Vehicle Model": model,
+      "Part Name":     v.part,
+      salesCount:      v.count,
+    }));
 
   try {
     localStorage.setItem(POPULAR_CACHE_KEY, JSON.stringify({ data: joined, ts: Date.now() }));
@@ -204,14 +216,12 @@ function renderPopular(parts) {
     const avail = inv ? availabilityLabel(inv) : null;
     const cls   = inv ? stockClass(inv) : "";
     return `<li class="popular-item">
-      <div class="popular-info">
-        <strong>${p["Part Name"]}</strong>
-        <span>${p["Vehicle Model"]}</span>
-      </div>
+      <div class="popular-model">${p["Vehicle Model"]}</div>
+      <div class="popular-part">${p["Part Name"]}</div>
       ${avail ? `<span class="popular-avail ${cls}">${avail}</span>` : ""}
     </li>`;
   }).join("");
-  popularEl.innerHTML = `<p class="eyebrow popular-eyebrow">Popular this week</p><ul class="popular-list">${items}</ul>`;
+  popularEl.innerHTML = `<p class="eyebrow popular-eyebrow">Most bought this week — by model</p><ul class="popular-list">${items}</ul>`;
 }
 
 /* ── Boot ────────────────────────────────────────────────── */
