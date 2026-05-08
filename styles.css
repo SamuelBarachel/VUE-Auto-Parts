@@ -667,21 +667,6 @@ h1 {
   margin-bottom: 2px;
 }
 
-.trust-strip {
-  background: var(--green-dark);
-  color: #fff;
-  display: grid;
-  gap: 1px;
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.trust-strip span {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.82rem;
-  font-weight: 800;
-  padding: 7px 14px;
-}
 
 .section {
   padding: clamp(16px, 2vw, 28px) clamp(16px, 3.2vw, 48px);
@@ -1831,7 +1816,6 @@ dd {
       url("assets/vue-auto-parts-hero.png") center / cover no-repeat;
   }
 
-  .trust-strip,
   .model-grid,
   .stock-layout,
   .contact,
@@ -2072,7 +2056,6 @@ dd {
     min-width: 120px;
   }
 
-  .trust-strip,
   .category-grid {
     grid-template-columns: 1fr;
   }
