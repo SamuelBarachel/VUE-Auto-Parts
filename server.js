@@ -246,10 +246,79 @@ async function serveStatic(request, response) {
   }
 }
 
+async function handleEnquiry(request, response) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[enquiry] RESEND_API_KEY not set");
+    return sendJson(response, 500, { ok: false, error: "Email service not configured." });
+  }
+
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const name = String(body.name || "").trim().slice(0, 100);
+  const vehicle = String(body.vehicle || "").trim().slice(0, 100);
+  const part = String(body.part || "").trim().slice(0, 200);
+  const notes = String(body.notes || "").trim().slice(0, 500);
+
+  if (!name || !vehicle || !part) {
+    return sendJson(response, 400, { ok: false, error: "Name, vehicle and part are required." });
+  }
+
+  const html = `
+    <h2 style="color:#1a3a2a">New Part Enquiry — VUE Auto Parts</h2>
+    <table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:15px">
+      <tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700;width:130px">Name</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${name}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700">Vehicle</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${vehicle}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700">Part needed</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${part}</td></tr>
+      ${notes ? `<tr><td style="padding:8px 12px;background:#f4f4f4;font-weight:700">Notes</td><td style="padding:8px 12px">${notes}</td></tr>` : ""}
+    </table>
+    <p style="margin-top:20px;color:#666;font-size:13px">Sent from the VUE Auto Parts website enquiry form.</p>
+  `;
+
+  const text = `New Part Enquiry\n\nName: ${name}\nVehicle: ${vehicle}\nPart needed: ${part}${notes ? `\nNotes: ${notes}` : ""}\n\nSent from vueautoparts website.`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "VUE Auto Parts <onboarding@resend.dev>",
+        to: ["info@vueautoparts.com"],
+        subject: `Part enquiry: ${part} — ${vehicle}`,
+        html,
+        text,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text().catch(() => "");
+      console.error("[enquiry] Resend error:", res.status, err);
+      return sendJson(response, 500, { ok: false, error: "Could not send email. Please try WhatsApp." });
+    }
+
+    console.log("[enquiry] sent for:", name, "|", vehicle, "|", part);
+    return sendJson(response, 200, { ok: true });
+  } catch (err) {
+    console.error("[enquiry] fetch error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not send email. Please try WhatsApp." });
+  }
+}
+
 const server = http.createServer(async (request, response) => {
   try {
     if (request.method === "POST" && request.url === "/api/ask") {
       return await handleAsk(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/enquiry") {
+      return await handleEnquiry(request, response);
     }
     return await serveStatic(request, response);
   } catch (error) {

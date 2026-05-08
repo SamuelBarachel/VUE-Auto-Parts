@@ -278,7 +278,29 @@
         <div>
           <p class="eyebrow">Contact</p>
           <h2>Tell us the part, model &amp; quantity.</h2>
-          <p>Include photos or chassis details if you have them. We'll match it fast.</p>
+          <p>Fill in below and we'll get back to you — no email account needed on your side.</p>
+          <form id="enquiryForm" class="enquiry-form" novalidate>
+            <div class="enquiry-row">
+              <label for="enqName">Your name</label>
+              <input id="enqName" name="name" type="text" placeholder="e.g. Tendai Moyo" required maxlength="100">
+            </div>
+            <div class="enquiry-row">
+              <label for="enqVehicle">Vehicle model</label>
+              <input id="enqVehicle" name="vehicle" type="text" placeholder="e.g. Honda Fit 2009" required maxlength="100">
+            </div>
+            <div class="enquiry-row">
+              <label for="enqPart">Part needed</label>
+              <input id="enqPart" name="part" type="text" placeholder="e.g. Front brake pads" required maxlength="200">
+            </div>
+            <div class="enquiry-row">
+              <label for="enqNotes">Extra details <span class="optional">(optional)</span></label>
+              <textarea id="enqNotes" name="notes" placeholder="Chassis number, colour, quantity…" maxlength="500" rows="3"></textarea>
+            </div>
+            <div class="enquiry-actions">
+              <button type="submit" class="enquiry-submit">Send enquiry</button>
+              <span id="enquiryStatus" class="enquiry-status" aria-live="polite"></span>
+            </div>
+          </form>
         </div>
         <div class="contact-card">
           <img src="vueauto-logo.jpeg" alt="VUE Auto Parts">
@@ -286,6 +308,10 @@
             <div>
               <dt>Location</dt>
               <dd>Chipinge, Manicaland</dd>
+            </div>
+            <div>
+              <dt>WhatsApp</dt>
+              <dd><a href="https://wa.me/16038662272">+16038662272</a></dd>
             </div>
             <div>
               <dt>Email</dt>
@@ -305,6 +331,7 @@
       WhatsApp: +16038662272
     </a>
     <script src="site.js?v=1"></script>
+    <script src="enquiry.js?v=1"></script>
     <script src="inventory.js?v=6"></script>
     <script src="ai.js?v=2"></script>
     <script src="earn.js?v=1"></script>
