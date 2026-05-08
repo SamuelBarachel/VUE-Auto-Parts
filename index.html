@@ -12,7 +12,7 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="#top" aria-label="VUE Auto Parts home">
+      <a class="brand" href="#top" id="brandLogo" aria-label="VUE Auto Parts staff portal">
         <img src="vueauto-logo.jpeg" alt="VUE Auto Parts logo">
         <span>
           <strong>VUE Auto Parts</strong>
@@ -300,6 +300,200 @@
         </div>
       </section>
 
+      <!-- Staff portal modal -->
+      <div id="stfOverlay" class="enq-overlay stf-overlay" role="dialog" aria-modal="true" aria-label="Staff portal" hidden>
+        <div class="enq-modal stf-modal">
+
+          <!-- Dark header bar -->
+          <div class="stf-modal-head">
+            <div class="stf-head-left">
+              <span class="stf-lock-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <span class="stf-head-title">Staff Portal</span>
+            </div>
+            <div class="stf-head-right">
+              <div class="stf-steps">
+                <span class="stf-step active" id="stfStep1">1</span>
+                <span class="stf-step-line"></span>
+                <span class="stf-step" id="stfStep2">2</span>
+                <span class="stf-step-line"></span>
+                <span class="stf-step" id="stfStep3">3</span>
+              </div>
+              <button class="stf-close" id="stfClose" aria-label="Close">&times;</button>
+            </div>
+          </div>
+
+          <!-- Panel 1: Verify identity -->
+          <div class="enq-panel" id="stfPanel1">
+            <h3 class="enq-title">Verify your identity</h3>
+            <p class="enq-subtitle">Your details are checked against our records before you can log anything.</p>
+            <div class="enq-fields">
+              <div class="stf-name-row">
+                <div class="enq-field">
+                  <label for="stfFirstName">First name</label>
+                  <input id="stfFirstName" type="text" placeholder="e.g. Tendai" maxlength="60" autocomplete="given-name">
+                </div>
+                <div class="enq-field">
+                  <label for="stfLastName">Last name</label>
+                  <input id="stfLastName" type="text" placeholder="e.g. Moyo" maxlength="60" autocomplete="family-name">
+                </div>
+              </div>
+              <div class="enq-field">
+                <label for="stfId">National ID</label>
+                <input id="stfId" type="text" placeholder="e.g. 63-123456A78" maxlength="50">
+              </div>
+              <div class="enq-field">
+                <label for="stfRole">Your role</label>
+                <input id="stfRole" type="text" placeholder="e.g. Sales Assistant" maxlength="60">
+              </div>
+            </div>
+            <div id="stfVerifyLoading" class="stf-verify-loading" hidden>
+              <span class="enq-spinner"></span> Checking records…
+            </div>
+            <div class="enq-foot">
+              <span class="enq-err" id="stfErr1" aria-live="polite"></span>
+              <button class="enq-btn-primary stf-btn" id="stfVerifyBtn" type="button">Verify →</button>
+            </div>
+          </div>
+
+          <!-- Panel 2: Choose action -->
+          <div class="enq-panel" id="stfPanel2" hidden>
+            <div class="stf-confirmed-badge">
+              <span class="stf-confirmed-icon" aria-hidden="true">✓</span>
+              <div>
+                <strong id="stfConfirmedName">—</strong>
+                <span id="stfConfirmedRole">—</span>
+              </div>
+            </div>
+            <h3 class="enq-title">What do you want to log?</h3>
+            <p class="enq-subtitle">Choose an action — we'll draft the message for you.</p>
+
+            <div class="stf-actions">
+              <button class="stf-action-card" data-action="clock-in" type="button">
+                <span class="stf-action-icon stf-icon-in" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </span>
+                <strong>Clock In</strong>
+                <span>Report to work</span>
+              </button>
+              <button class="stf-action-card" data-action="clock-out" type="button">
+                <span class="stf-action-icon stf-icon-out" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </span>
+                <strong>Clock Out</strong>
+                <span>End of day</span>
+              </button>
+              <button class="stf-action-card" data-action="event" type="button">
+                <span class="stf-action-icon stf-icon-event" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </span>
+                <strong>Report Event</strong>
+                <span>Incidents &amp; issues</span>
+              </button>
+              <button class="stf-action-card" data-action="pay" type="button">
+                <span class="stf-action-icon stf-icon-pay" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                </span>
+                <strong>Pay Request</strong>
+                <span>End of month</span>
+              </button>
+            </div>
+
+            <!-- Conditional: Event fields -->
+            <div class="stf-context" id="stfCtx_event" hidden>
+              <div class="enq-field">
+                <label for="stfEventType">Type of event</label>
+                <select id="stfEventType" class="stf-select">
+                  <option value="Customer was rude">Customer was rude</option>
+                  <option value="Theft or attempted theft">Theft or attempted theft</option>
+                  <option value="Accident or injury">Accident or injury</option>
+                  <option value="Dispute with a colleague">Dispute with a colleague</option>
+                  <option value="Equipment or stock issue">Equipment or stock issue</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="enq-field">
+                <label for="stfEventDesc">Describe what happened</label>
+                <textarea id="stfEventDesc" class="stf-textarea" rows="3" maxlength="600" placeholder="Briefly describe the event…"></textarea>
+              </div>
+            </div>
+
+            <!-- Conditional: Pay fields -->
+            <div class="stf-context" id="stfCtx_pay" hidden>
+              <div class="stf-month-year">
+                <div class="enq-field">
+                  <label for="stfPayMonth">Month</label>
+                  <select id="stfPayMonth" class="stf-select">
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                  </select>
+                </div>
+                <div class="enq-field">
+                  <label for="stfPayYear">Year</label>
+                  <select id="stfPayYear" class="stf-select">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Always visible notes (shown when action is selected) -->
+            <div id="stfNotesWrap" class="stf-context" hidden>
+              <div class="enq-field">
+                <label for="stfNotes">Additional notes <span class="enq-opt">(optional)</span></label>
+                <textarea id="stfNotes" class="stf-textarea" rows="2" maxlength="400" placeholder="Anything else to add…"></textarea>
+              </div>
+            </div>
+
+            <div class="enq-foot" style="margin-top:18px">
+              <button class="enq-btn-ghost" id="stfBack2" type="button">← Back</button>
+              <span class="enq-err" id="stfErr2" aria-live="polite"></span>
+              <button class="enq-btn-primary stf-btn" id="stfDraftBtn" type="button" disabled>Draft my message →</button>
+            </div>
+          </div>
+
+          <!-- Panel 3: Review & Send -->
+          <div class="enq-panel" id="stfPanel3" hidden>
+            <h3 class="enq-title">Review &amp; send</h3>
+            <p class="enq-subtitle">AI-drafted based on your report — edit anything you like.</p>
+            <div class="enq-draft-wrap">
+              <div class="enq-draft-loading" id="stfDraftLoading">
+                <span class="enq-spinner"></span> Drafting your message…
+              </div>
+              <textarea id="stfDraft" class="enq-draft" rows="7" maxlength="2000" hidden></textarea>
+            </div>
+            <div class="enq-foot">
+              <button class="enq-btn-ghost" id="stfBack3" type="button">← Back</button>
+              <span class="enq-err" id="stfErr3" aria-live="polite"></span>
+              <button class="enq-btn-primary stf-btn" id="stfSendBtn" type="button" disabled>Send</button>
+            </div>
+          </div>
+
+          <!-- Panel 4: Success -->
+          <div class="enq-panel enq-success" id="stfPanel4" hidden>
+            <div class="enq-success-icon" style="background:#d1fae5;color:#065f46">✓</div>
+            <h3 class="enq-title">Report sent!</h3>
+            <p class="enq-subtitle">Management has been notified. You can also reach us on WhatsApp for urgent matters.</p>
+            <a class="enq-btn-primary stf-btn" href="https://wa.me/16038662272" target="_blank" rel="noopener">Open WhatsApp</a>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Rewards registration modal -->
       <div id="rwdOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Register for rewards" hidden>
         <div class="enq-modal">
@@ -453,5 +647,6 @@
     <script src="ai.js?v=2"></script>
     <script src="earn.js?v=1"></script>
     <script src="rewards.js?v=1"></script>
+    <script src="staff.js?v=1"></script>
   </body>
 </html>

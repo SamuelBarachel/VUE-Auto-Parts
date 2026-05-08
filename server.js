@@ -6,6 +6,8 @@ const PORT = process.env.PORT || 5000;
 const ROOT = __dirname;
 const INVENTORY_URL =
   "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Inventory";
+const STAFF_URL =
+  "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Staff";
 
 const WHATSAPP_FALLBACK = {
   answer:
@@ -511,6 +513,250 @@ async function handleRewardEnquiry(request, response) {
   }
 }
 
+async function handleStaffVerify(request, response) {
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const firstName = String(body.firstName || "").trim().toLowerCase();
+  const lastName  = String(body.lastName  || "").trim().toLowerCase();
+  const id        = String(body.id        || "").trim().toLowerCase();
+  const role      = String(body.role      || "").trim().toLowerCase();
+
+  if (!firstName || !lastName || !id || !role) {
+    return sendJson(response, 400, { ok: false, error: "All fields are required." });
+  }
+
+  let staffList;
+  try {
+    const res = await fetch(STAFF_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Staff fetch failed: ${res.status}`);
+    const csv = await res.text();
+    const rows = parseCsv(csv);
+    const headers = rows[0] || [];
+    const idx = {
+      firstName: headers.findIndex(h => h.trim().toLowerCase() === "first name"),
+      lastName:  headers.findIndex(h => h.trim().toLowerCase() === "last name"),
+      id:        headers.findIndex(h => h.trim().toLowerCase() === "id"),
+      role:      headers.findIndex(h => h.trim().toLowerCase() === "role"),
+    };
+    staffList = rows.slice(1).map(row => ({
+      firstName: (row[idx.firstName] || "").trim(),
+      lastName:  (row[idx.lastName]  || "").trim(),
+      id:        (row[idx.id]        || "").trim(),
+      role:      (row[idx.role]      || "").trim(),
+    })).filter(s => s.firstName || s.lastName);
+  } catch (err) {
+    console.error("[staff-verify] sheet fetch error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not load staff list. Try again." });
+  }
+
+  const match = staffList.find(s =>
+    s.firstName.toLowerCase() === firstName &&
+    s.lastName.toLowerCase()  === lastName  &&
+    s.id.toLowerCase()        === id        &&
+    s.role.toLowerCase()      === role
+  );
+
+  if (!match) {
+    console.log("[staff-verify] no match for:", firstName, lastName, id, role);
+    return sendJson(response, 200, { ok: false, error: "Details not found. Please check your information and try again." });
+  }
+
+  console.log("[staff-verify] verified:", match.firstName, match.lastName, match.role);
+  return sendJson(response, 200, { ok: true, staff: match });
+}
+
+async function handleStaffDraft(request, response) {
+  const apiKey = process.env.GROQ_API_KEY;
+  const model = (process.env.GROQ_MODEL || "llama-3.1-8b-instant").toLowerCase();
+
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const firstName = String(body.firstName || "").trim();
+  const lastName  = String(body.lastName  || "").trim();
+  const role      = String(body.role      || "").trim();
+  const action    = String(body.action    || "").trim();
+  const details   = body.details || {};
+  const now       = new Date().toLocaleString("en-ZW", { dateStyle: "full", timeStyle: "short" });
+
+  const actionLabels = {
+    "clock-in":  "reporting to work (clocking in)",
+    "clock-out": "reporting the end of the work day (clocking out)",
+    "event":     "reporting a workplace event or incident",
+    "pay":       "submitting a pay report or request",
+  };
+
+  let contextBlock = `Date and Time: ${now}\n`;
+  if (action === "event") {
+    contextBlock += `Event type: ${details.eventType || "Unspecified"}\n`;
+    if (details.eventDesc) contextBlock += `Description: ${details.eventDesc}\n`;
+  }
+  if (action === "pay") {
+    contextBlock += `Pay period: ${details.payMonth || ""} ${details.payYear || ""}\n`;
+  }
+  if (details.notes) contextBlock += `Additional notes: ${details.notes}\n`;
+
+  const toneGuide = action === "event"
+    ? "Clear, factual and professional — this is an incident report."
+    : action === "pay"
+    ? "Polite, professional, and direct — this is a formal pay request."
+    : "Warm, brief and professional — a quick check-in message.";
+
+  const prompt = `Write a short, professional staff message for VUE Auto Parts in Chipinge, Zimbabwe. The staff member is ${actionLabels[action] || action}.
+
+Staff details:
+- Name: ${firstName} ${lastName}
+- Role: ${role}
+
+Context:
+${contextBlock}
+
+Tone: ${toneGuide}
+Length: 2–4 sentences. Natural, genuine, not stiff.
+Return ONLY the message body — no subject line, no greeting label, no sign-off label.`;
+
+  const fallback = buildStaffFallback(firstName, lastName, role, action, details, now);
+  if (!apiKey) return sendJson(response, 200, { ok: true, draft: fallback });
+
+  try {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        temperature: 0.6,
+        max_tokens: 160,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!groqRes.ok) return sendJson(response, 200, { ok: true, draft: fallback });
+    const data = await groqRes.json();
+    const draft = data.choices?.[0]?.message?.content?.trim() || "";
+    return sendJson(response, 200, { ok: true, draft: draft || fallback });
+  } catch (err) {
+    console.error("[staff-draft] error:", err.message);
+    return sendJson(response, 200, { ok: true, draft: fallback });
+  }
+}
+
+function buildStaffFallback(firstName, lastName, role, action, details, now) {
+  const full = `${firstName} ${lastName}`;
+  if (action === "clock-in")  return `Hi Management,\n\nThis is ${full} (${role}) reporting to work on ${now}.\n\n${details.notes || ""}`.trim();
+  if (action === "clock-out") return `Hi Management,\n\nThis is ${full} (${role}) signing off for the day on ${now}.\n\n${details.notes || ""}`.trim();
+  if (action === "event")     return `Hi Management,\n\nThis is ${full} (${role}) reporting an event on ${now}. Type: ${details.eventType || "Unspecified"}.\n\n${details.eventDesc || ""}\n\n${details.notes || ""}`.trim();
+  if (action === "pay")       return `Hi Management,\n\nThis is ${full} (${role}) submitting a pay request for ${details.payMonth || ""} ${details.payYear || ""}.\n\n${details.notes || ""}`.trim();
+  return "";
+}
+
+async function handleStaffReport(request, response) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[staff-report] RESEND_API_KEY not set");
+    return sendJson(response, 500, { ok: false, error: "Email service not configured." });
+  }
+
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const firstName = String(body.firstName || "").trim();
+  const lastName  = String(body.lastName  || "").trim();
+  const role      = String(body.role      || "").trim();
+  const action    = String(body.action    || "").trim();
+  const details   = body.details || {};
+  const message   = String(body.message  || "").trim().slice(0, 2000);
+  const now       = new Date().toLocaleString("en-ZW", { dateStyle: "full", timeStyle: "short" });
+
+  if (!firstName || !lastName || !role || !action || !message) {
+    return sendJson(response, 400, { ok: false, error: "All fields are required." });
+  }
+
+  const actionLabels = {
+    "clock-in":  "Clock In",
+    "clock-out": "Clock Out",
+    "event":     "Event Report",
+    "pay":       "Pay Request",
+  };
+  const actionColors = {
+    "clock-in":  "#166534",
+    "clock-out": "#7c3aed",
+    "event":     "#b45309",
+    "pay":       "#0f4f36",
+  };
+  const actionLabel = actionLabels[action] || action;
+  const accentColor = actionColors[action] || "#0f4f36";
+
+  let extraRows = "";
+  if (action === "event") {
+    extraRows += `<tr><td style="padding:7px 0;color:#666;width:130px;font-weight:600">Event type</td><td style="padding:7px 0;font-weight:700">${details.eventType || "—"}</td></tr>`;
+  }
+  if (action === "pay") {
+    extraRows += `<tr><td style="padding:7px 0;color:#666;font-weight:600">Pay period</td><td style="padding:7px 0;font-weight:700">${details.payMonth || ""} ${details.payYear || ""}</td></tr>`;
+  }
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+      <div style="background:${accentColor};padding:20px 24px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <h2 style="color:#fff;margin:0;font-size:18px">Staff ${actionLabel}</h2>
+          <p style="color:rgba(255,255,255,0.65);margin:4px 0 0;font-size:13px">VUE Auto Parts · ${now}</p>
+        </div>
+        <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:800;letter-spacing:0.08em;padding:4px 10px;border-radius:999px;text-transform:uppercase">${actionLabel}</span>
+      </div>
+      <div style="background:#f9f9f9;padding:20px 24px;border-left:1px solid #eee;border-right:1px solid #eee">
+        <table style="border-collapse:collapse;width:100%;font-size:14px">
+          <tr><td style="padding:7px 0;color:#666;width:130px;font-weight:600">Name</td><td style="padding:7px 0;font-weight:700">${firstName} ${lastName}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">Role</td><td style="padding:7px 0;font-weight:700">${role}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">Action</td><td style="padding:7px 0;font-weight:700">${actionLabel}</td></tr>
+          ${extraRows}
+        </table>
+      </div>
+      <div style="background:#fff;padding:20px 24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+        <p style="color:#444;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap">${message}</p>
+      </div>
+    </div>
+  `;
+
+  const text = `Staff ${actionLabel}\n\nName: ${firstName} ${lastName}\nRole: ${role}\nDate: ${now}\n\n${message}`;
+  const subject = `[Staff] ${actionLabel} — ${firstName} ${lastName} (${role})`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "VUE Auto Parts Staff <onboarding@resend.dev>",
+        to: ["info@vueautoparts.com"],
+        subject,
+        html,
+        text,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text().catch(() => "");
+      console.error("[staff-report] Resend error:", res.status, err);
+      return sendJson(response, 500, { ok: false, error: "Could not send. Please try WhatsApp." });
+    }
+    console.log("[staff-report] sent:", firstName, lastName, "|", role, "|", action);
+    return sendJson(response, 200, { ok: true });
+  } catch (err) {
+    console.error("[staff-report] fetch error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not send. Please try WhatsApp." });
+  }
+}
+
 const server = http.createServer(async (request, response) => {
   try {
     if (request.method === "POST" && request.url === "/api/ask") {
@@ -527,6 +773,15 @@ const server = http.createServer(async (request, response) => {
     }
     if (request.method === "POST" && request.url === "/api/reward-enquiry") {
       return await handleRewardEnquiry(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff-verify") {
+      return await handleStaffVerify(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff-draft") {
+      return await handleStaffDraft(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff-report") {
+      return await handleStaffReport(request, response);
     }
     return await serveStatic(request, response);
   } catch (error) {
