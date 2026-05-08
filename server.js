@@ -144,6 +144,8 @@ async function handleAsk(request, response) {
   const apiKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 
+  console.log("[ask] key present:", !!apiKey, "| model:", model);
+
   const body = JSON.parse(await readRequestBody(request) || "{}");
   const question = String(body.question || "").trim().slice(0, 500);
   const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
@@ -153,11 +155,14 @@ async function handleAsk(request, response) {
   let inventory;
   try {
     inventory = await getInventory();
-  } catch (_) {
+    console.log("[ask] inventory rows:", inventory.length);
+  } catch (err) {
+    console.error("[ask] inventory fetch failed:", err.message);
     return sendJson(response, 200, WHATSAPP_FALLBACK);
   }
 
   if (!apiKey) {
+    console.error("[ask] no API key — returning fallback");
     return sendJson(response, 200, WHATSAPP_FALLBACK);
   }
 
@@ -187,11 +192,14 @@ async function handleAsk(request, response) {
         messages,
       }),
     });
-  } catch (_) {
+  } catch (err) {
+    console.error("[ask] Groq fetch error:", err.message);
     return sendJson(response, 200, WHATSAPP_FALLBACK);
   }
 
   if (!groqResponse.ok) {
+    const errText = await groqResponse.text().catch(() => "");
+    console.error("[ask] Groq returned", groqResponse.status, errText);
     return sendJson(response, 200, WHATSAPP_FALLBACK);
   }
 
