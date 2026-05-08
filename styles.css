@@ -698,168 +698,86 @@ h2 {
   font-weight: 650;
 }
 
-.inventory-table td:nth-child(4),
-.inventory-table td:nth-child(5),
-.inventory-table td:nth-child(6) {
+.inventory-table td:nth-child(3) {
   text-align: right;
   white-space: nowrap;
-}
-
-.inventory-table .price-cell {
-  background: #ecfbf3;
-  font-weight: 900;
-}
-
-.inventory-table td:nth-child(5) {
-  background: #edf5ff;
-  font-weight: 900;
-}
-
-.hold-button {
-  background: var(--green);
-  border: 0;
-  border-radius: 999px;
-  color: #fff;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 900;
-  min-height: 34px;
-  padding: 0 12px;
-  white-space: nowrap;
-}
-
-.hold-button:disabled {
-  background: #d7ddd8;
-  color: var(--muted);
-  cursor: not-allowed;
-}
-
-.hold-basket {
-  background: var(--green-dark);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  color: #fff;
-  margin-top: 12px;
-  padding: 14px 18px;
-}
-
-.basket-header {
-  align-items: center;
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
-
-.basket-header-left {
-  flex: 1;
-  min-width: 0;
-}
-
-.basket-header-right {
-  align-items: center;
-  display: flex;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.hold-basket .eyebrow {
-  margin-bottom: 4px;
-}
-
-.basket-empty {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.88rem;
-  font-weight: 700;
-}
-
-.basket-items {
-  display: grid;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.basket-item {
-  align-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr 90px 86px auto;
-  padding: 10px;
-}
-
-.basket-item strong,
-.basket-item span {
-  display: block;
-}
-
-.basket-item span,
-.basket-item label span {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.78rem;
-  font-weight: 800;
-  margin-top: 2px;
-}
-
-.basket-item input {
-  background: #fff;
-  border: 0;
-  border-radius: 8px;
-  color: var(--ink);
-  font: inherit;
-  font-weight: 900;
-  min-height: 34px;
-  padding: 0 8px;
-  width: 100%;
-}
-
-.basket-item button {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-  color: #fff;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.76rem;
-  font-weight: 900;
-  min-height: 32px;
-  padding: 0 10px;
-}
-
-.basket-total {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-}
-
-.basket-total span {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.84rem;
-  font-weight: 800;
-}
-
-.basket-total strong {
-  color: var(--gold);
-  font-size: 1.1rem;
-  font-weight: 900;
-}
-
-.hold-whatsapp.disabled {
-  background: rgba(255, 255, 255, 0.16);
-  color: rgba(255, 255, 255, 0.5);
-  pointer-events: none;
 }
 
 .inventory-table .stock-out {
   background: #231f20;
   color: #fff;
+  font-weight: 900;
 }
 
 .inventory-table .stock-good {
   color: var(--green);
+  font-weight: 900;
+}
+
+/* ── Popular parts ── */
+#popularParts {
+  margin-top: 18px;
+}
+
+.popular-eyebrow {
+  margin-bottom: 10px;
+}
+
+.popular-list {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.popular-item {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.popular-info strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.popular-info span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.popular-avail {
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.popular-avail.stock-good {
+  background: #ecfbf3;
+  color: var(--green);
+}
+
+.popular-avail.stock-out {
+  background: #231f20;
+  color: #fff;
+}
+
+.popular-empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 12px;
 }
 
 /* ── Parts / Stock section ── */
@@ -1271,21 +1189,6 @@ dd {
     text-transform: uppercase;
   }
 
-  .inventory-table td:nth-child(4),
-  .inventory-table td:nth-child(5),
-  .inventory-table td:nth-child(6) {
-    text-align: left;
-  }
-
-  .basket-item {
-    align-items: start;
-    grid-template-columns: 1fr;
-  }
-
-  .hold-whatsapp {
-    justify-self: stretch;
-  }
-
   .section {
     padding-block: 22px;
   }
@@ -1296,16 +1199,6 @@ dd {
 
   .process-list {
     grid-template-columns: 1fr;
-  }
-
-  .basket-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .basket-header-right {
-    width: 100%;
-    justify-content: space-between;
   }
 
   .category-img-wrap {

@@ -204,15 +204,15 @@
         <div class="inventory-heading">
           <div>
             <p class="eyebrow">Parts finder</p>
-            <h2>Search live stock. Add to basket. WhatsApp to hold.</h2>
+            <h2>Search live stock. See what's available now.</h2>
           </div>
-          <p>Find a part, add it to your basket, then send one WhatsApp to hold it for 2 hours.</p>
+          <p>Type a part or pick a model to check live availability. WhatsApp us to hold or order.</p>
         </div>
 
         <div class="inventory-toolbar" aria-label="Inventory search controls">
           <label class="search-box">
             <span>Search</span>
-            <input id="inventorySearch" type="search" placeholder="Honda Fit, oil filter, GD1…">
+            <input id="inventorySearch" type="search" placeholder="Honda Fit, oil filter…">
           </label>
           <label class="filter-box">
             <span>Model</span>
@@ -224,16 +224,15 @@
 
         <div class="inventory-status" id="inventoryStatus">Loading live inventory…</div>
 
-        <div class="inventory-table-wrap" aria-live="polite">
+        <div id="popularParts" aria-live="polite"></div>
+
+        <div class="inventory-table-wrap" aria-live="polite" hidden>
           <table class="inventory-table">
             <thead>
               <tr>
                 <th>Model</th>
                 <th>Part</th>
-                <th>Spec</th>
-                <th>Price</th>
                 <th>Availability</th>
-                <th>Hold</th>
               </tr>
             </thead>
             <tbody id="inventoryBody"></tbody>
@@ -241,27 +240,8 @@
         </div>
 
         <div class="inventory-empty" id="inventoryEmpty" hidden>
-          No results. Try a different model, part name, or spec.
+          No results found. Try a different model or part name.
         </div>
-
-        <aside class="hold-basket" aria-label="Two hour hold basket">
-          <div class="basket-header">
-            <div class="basket-header-left">
-              <p class="eyebrow">2-hour hold basket</p>
-              <div class="basket-empty" id="basketEmpty">No parts added yet.</div>
-              <div class="basket-items" id="basketItems"></div>
-            </div>
-            <div class="basket-header-right">
-              <div class="basket-total" id="basketTotal" hidden>
-                <span>Total</span>
-                <strong>$0.00</strong>
-              </div>
-              <a class="button primary hold-whatsapp disabled" id="holdWhatsApp" href="#" aria-disabled="true">
-                Send hold request
-              </a>
-            </div>
-          </div>
-        </aside>
       </section>
 
       <section class="section sourcing" id="service">
