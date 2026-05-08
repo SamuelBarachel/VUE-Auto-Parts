@@ -1165,6 +1165,10 @@ dd {
     gap: 8px;
   }
 
+  nav {
+    justify-content: center;
+  }
+
   .ai-trigger {
     height: 28px;
     min-width: 32px;
