@@ -1,3 +1,15 @@
+const header = document.querySelector(".site-header");
+const mainEl = document.querySelector("main");
+
+function syncHeaderHeight() {
+  const h = header.getBoundingClientRect().height;
+  mainEl.style.paddingTop = h + "px";
+  document.documentElement.style.setProperty("--header-h", h + "px");
+}
+
+syncHeaderHeight();
+window.addEventListener("resize", syncHeaderHeight);
+
 const navLinks = [...document.querySelectorAll('nav a[href^="#"]')];
 const navSections = navLinks
   .map((link) => document.querySelector(link.getAttribute("href")))
