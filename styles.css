@@ -43,14 +43,14 @@ a {
 
 .site-header {
   align-items: center;
-  backdrop-filter: blur(24px);
-  background: rgba(251, 250, 245, 0.86);
+  backdrop-filter: blur(16px);
+  background: rgba(251, 250, 245, 0.9);
   border-bottom: 1px solid var(--line);
   display: flex;
-  gap: 22px;
+  gap: 14px;
   justify-content: space-between;
   left: 0;
-  padding: 8px clamp(16px, 3vw, 44px);
+  padding: 5px clamp(12px, 2.6vw, 40px);
   position: sticky;
   right: 0;
   top: 0;
@@ -60,8 +60,8 @@ a {
 .brand {
   align-items: center;
   display: flex;
-  gap: 10px;
-  min-width: 190px;
+  gap: 8px;
+  flex-shrink: 0;
   text-decoration: none;
 }
 
@@ -69,48 +69,41 @@ a {
   aspect-ratio: 1;
   border: 1px solid rgba(15, 79, 54, 0.2);
   border-radius: 50%;
-  height: 38px;
+  height: 30px;
   object-fit: cover;
-}
-
-.brand strong,
-.brand small {
-  display: block;
-  letter-spacing: 0;
 }
 
 .brand strong {
   color: var(--green-dark);
-  font-size: 0.93rem;
+  display: block;
+  font-size: 0.88rem;
   font-weight: 900;
+  letter-spacing: 0;
 }
 
 .brand small {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-  margin-top: 1px;
-  text-transform: uppercase;
+  display: none;
 }
 
 nav {
   align-items: center;
   display: flex;
-  gap: clamp(12px, 1.4vw, 22px);
+  gap: clamp(10px, 1.2vw, 20px);
 }
 
 nav a,
 .header-action,
 .ai-trigger {
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 800;
   text-decoration: none;
 }
 
 nav a {
   color: #26302b;
-  padding-bottom: 5px;
+  padding-bottom: 4px;
   position: relative;
+  white-space: nowrap;
 }
 
 nav a::after {
@@ -118,7 +111,7 @@ nav a::after {
   border-radius: 999px;
   bottom: 0;
   content: "";
-  height: 3px;
+  height: 2px;
   left: 0;
   opacity: 0;
   position: absolute;
@@ -138,7 +131,8 @@ nav a:hover::after {
   background: var(--green);
   border-radius: 999px;
   color: #fff;
-  padding: 10px 16px;
+  padding: 6px 13px;
+  white-space: nowrap;
 }
 
 .ai-trigger {
@@ -151,10 +145,10 @@ nav a:hover::after {
   color: #fff;
   cursor: pointer;
   display: inline-flex;
-  height: 36px;
+  height: 30px;
   justify-content: center;
-  min-width: 42px;
-  padding: 0 12px;
+  min-width: 36px;
+  padding: 0 10px;
   text-shadow: 0 1px 8px rgba(6, 47, 34, 0.32);
 }
 
@@ -183,11 +177,11 @@ nav a:hover::after {
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 900;
-  height: 36px;
+  height: 30px;
   justify-content: center;
-  padding: 0 14px;
+  padding: 0 12px;
   gap: 4px;
 }
 
@@ -1135,16 +1129,20 @@ dd {
 
 @media (max-width: 980px) {
   .site-header {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
   }
 
   nav {
-    justify-content: center;
-    order: 3;
     overflow-x: auto;
-    padding-bottom: 2px;
-    width: 100%;
+    flex-shrink: 1;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  nav::-webkit-scrollbar {
+    display: none;
   }
 
   .hero {
@@ -1178,55 +1176,29 @@ dd {
 
 @media (max-width: 640px) {
   .site-header {
-    gap: 8px 8px;
-    padding-bottom: 4px;
-    padding-top: 7px;
-  }
-
-  nav {
-    margin-top: -2px;
-    padding-bottom: 0;
-  }
-
-  .brand {
-    min-width: 0;
-    max-width: calc(100% - 156px);
-  }
-
-  .brand img {
-    height: 36px;
-  }
-
-  .header-action {
-    align-items: center;
-    align-self: center;
-    border-radius: 999px;
-    display: inline-flex;
-    font-size: 0.76rem;
-    height: 36px;
-    justify-content: center;
-    padding: 0 12px;
-    white-space: nowrap;
+    gap: 8px;
   }
 
   .ai-trigger {
-    height: 36px;
+    height: 28px;
+    min-width: 32px;
+    padding: 0 8px;
   }
 
   /* Earn → coin icon only */
   .earn-trigger {
-    height: 36px;
-    width: 36px;
+    height: 28px;
+    width: 28px;
     padding: 0;
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
   .earn-label { display: none; }
   .earn-icon  { display: inline; }
 
   /* WhatsApp → icon only, circular */
   .header-action {
-    height: 36px;
-    width: 36px;
+    height: 28px;
+    width: 28px;
     padding: 0;
     border-radius: 50%;
     display: inline-flex;
@@ -1235,6 +1207,11 @@ dd {
   }
   .wa-label { display: none; }
   .wa-icon  { display: flex; }
+
+  .wa-icon svg {
+    width: 15px;
+    height: 15px;
+  }
 
   .ai-panel {
     right: 10px;
