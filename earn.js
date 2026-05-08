@@ -29,7 +29,7 @@
   close && close.addEventListener('click', closeEarn);
 
   document.addEventListener('click', function (e) {
-    if (!panel.hidden && !panel.contains(e.target) && e.target !== trigger) {
+    if (!panel.hidden && !panel.contains(e.target) && !trigger.contains(e.target)) {
       closeEarn();
     }
   });
