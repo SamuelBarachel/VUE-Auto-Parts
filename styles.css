@@ -495,10 +495,9 @@ h1 {
 .trust-strip span {
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.82);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 800;
-  min-height: 40px;
-  padding: 10px 16px;
+  padding: 7px 14px;
 }
 
 .section {
