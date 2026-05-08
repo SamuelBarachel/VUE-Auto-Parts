@@ -5,7 +5,7 @@ const path = require("node:path");
 const PORT = process.env.PORT || 5000;
 const ROOT = __dirname;
 const INVENTORY_URL =
-  "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Master-Inventory-%26-Location";
+  "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Inventory";
 
 const WHATSAPP_FALLBACK = {
   answer:
@@ -73,13 +73,15 @@ function csvToInventory(csvText) {
 }
 
 function publicInventoryRow(row) {
-  const stock = Number.parseInt(row["Stock on Hand"], 10);
+  const count = Number.parseInt(row["Count"] || row["Stock on Hand"], 10);
+  const rawPrice = row["Unit Price"] || row["Unit Price (USD Base)"] || "";
+  const price = rawPrice ? `$${parseFloat(rawPrice).toFixed(2)}` : "Ask for price";
   return {
     model: row["Vehicle Model"] || "",
     part: row["Part Name"] || "",
-    specification: row.Specification || "",
-    price: row["Unit Price (USD Base)"] || "Ask for price",
-    availability: !Number.isNaN(stock) && stock > 0 ? "In stock" : "Ask in store",
+    specification: row["Specification"] || "",
+    price: isNaN(parseFloat(rawPrice)) ? (rawPrice || "Ask for price") : price,
+    availability: !Number.isNaN(count) && count > 0 ? "In stock" : "Ask in store",
   };
 }
 
@@ -142,7 +144,7 @@ function sendJson(response, status, body) {
 
 async function handleAsk(request, response) {
   const apiKey = process.env.GROQ_API_KEY;
-  const model = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
+  const model = (process.env.GROQ_MODEL || "llama-3.1-8b-instant").toLowerCase();
 
   console.log("[ask] key present:", !!apiKey, "| model:", model);
 
