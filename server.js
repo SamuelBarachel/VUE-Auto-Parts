@@ -381,6 +381,136 @@ async function handleEnquiry(request, response) {
   }
 }
 
+async function handleRewardDraft(request, response) {
+  const apiKey = process.env.GROQ_API_KEY;
+  const model = (process.env.GROQ_MODEL || "llama-3.1-8b-instant").toLowerCase();
+
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const name     = String(body.name     || "").trim().slice(0, 100);
+  const location = String(body.location || "").trim().slice(0, 100);
+  const phone    = String(body.phone    || "").trim().slice(0, 30);
+  const idNumber = String(body.idNumber || "").trim().slice(0, 50);
+
+  if (!name || !location || !phone || !idNumber) {
+    return sendJson(response, 400, { ok: false, error: "All fields are required." });
+  }
+
+  const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name} and I live in ${location}. My phone number is ${phone} and my ID number is ${idNumber}.\n\nI would like to register for the referral rewards programme. Please let me know the next steps. Thank you.`;
+
+  if (!apiKey) return sendJson(response, 200, { ok: true, draft: fallback });
+
+  const prompt = `Write a short, natural, friendly message from a customer who wants to join the VUE Auto Parts referral rewards programme in Chipinge, Zimbabwe. The programme pays $5 for 5 referrals and $10 for 15+ referrals. Keep it conversational and genuine — like a real person texting, not a formal letter. 2–4 sentences max. Include all the details naturally.
+
+Customer details:
+- Name: ${name}
+- Location: ${location}
+- Phone: ${phone}
+- ID number: ${idNumber}
+
+Return ONLY the message body. No subject line, no greeting label, no sign-off label.`;
+
+  try {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        temperature: 0.7,
+        max_tokens: 150,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (!groqRes.ok) return sendJson(response, 200, { ok: true, draft: fallback });
+
+    const data = await groqRes.json();
+    const draft = data.choices?.[0]?.message?.content?.trim() || "";
+    return sendJson(response, 200, { ok: true, draft: draft || fallback });
+  } catch (err) {
+    console.error("[reward-draft] error:", err.message);
+    return sendJson(response, 200, { ok: true, draft: fallback });
+  }
+}
+
+async function handleRewardEnquiry(request, response) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[reward-enquiry] RESEND_API_KEY not set");
+    return sendJson(response, 500, { ok: false, error: "Email service not configured." });
+  }
+
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const name     = String(body.name     || "").trim().slice(0, 100);
+  const location = String(body.location || "").trim().slice(0, 100);
+  const phone    = String(body.phone    || "").trim().slice(0, 30);
+  const idNumber = String(body.idNumber || "").trim().slice(0, 50);
+  const message  = String(body.message  || "").trim().slice(0, 1000);
+
+  if (!name || !location || !phone || !idNumber || !message) {
+    return sendJson(response, 400, { ok: false, error: "All fields are required." });
+  }
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+      <div style="background:#1a3a2a;padding:20px 24px;border-radius:8px 8px 0 0">
+        <h2 style="color:#fff;margin:0;font-size:18px">New Rewards Registration</h2>
+        <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:13px">VUE Auto Parts referral programme</p>
+      </div>
+      <div style="background:#f9f9f9;padding:20px 24px;border-left:1px solid #eee;border-right:1px solid #eee">
+        <table style="border-collapse:collapse;width:100%;font-size:14px">
+          <tr><td style="padding:7px 0;color:#666;width:110px;font-weight:600">Name</td><td style="padding:7px 0;font-weight:700">${name}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">Location</td><td style="padding:7px 0;font-weight:700">${location}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">Phone</td><td style="padding:7px 0;font-weight:700">${phone}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600">ID Number</td><td style="padding:7px 0;font-weight:700">${idNumber}</td></tr>
+        </table>
+      </div>
+      <div style="background:#fff;padding:20px 24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+        <p style="color:#444;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap">${message}</p>
+      </div>
+    </div>
+  `;
+
+  const text = `New Rewards Registration\n\nName: ${name}\nLocation: ${location}\nPhone: ${phone}\nID Number: ${idNumber}\n\n${message}`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "VUE Auto Parts <onboarding@resend.dev>",
+        to: ["info@vueautoparts.com"],
+        subject: `Rewards Registration: ${name} — ${location}`,
+        html,
+        text,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text().catch(() => "");
+      console.error("[reward-enquiry] Resend error:", res.status, err);
+      return sendJson(response, 500, { ok: false, error: "Could not send. Please try WhatsApp." });
+    }
+
+    console.log("[reward-enquiry] sent:", name, "|", phone, "|", location, "|", idNumber);
+    return sendJson(response, 200, { ok: true });
+  } catch (err) {
+    console.error("[reward-enquiry] fetch error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not send. Please try WhatsApp." });
+  }
+}
+
 const server = http.createServer(async (request, response) => {
   try {
     if (request.method === "POST" && request.url === "/api/ask") {
@@ -391,6 +521,12 @@ const server = http.createServer(async (request, response) => {
     }
     if (request.method === "POST" && request.url === "/api/enquiry") {
       return await handleEnquiry(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/reward-draft") {
+      return await handleRewardDraft(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/reward-enquiry") {
+      return await handleRewardEnquiry(request, response);
     }
     return await serveStatic(request, response);
   } catch (error) {

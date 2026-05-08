@@ -1439,6 +1439,28 @@ h2 {
   width: 56px;
 }
 
+/* ── Rewards notice box ── */
+.rwd-notice {
+  align-items: flex-start;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #166534;
+  display: flex;
+  font-size: 0.83rem;
+  font-weight: 600;
+  gap: 8px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+}
+
+.rwd-notice-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
 .contact-card {
   background: #fff;
   border: 1px solid var(--line);
