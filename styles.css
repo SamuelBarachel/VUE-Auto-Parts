@@ -1646,10 +1646,15 @@ h2 {
 .stf-icon-event { background: #fef9c3; color: #92400e; }
 .stf-icon-pay   { background: #fef3c7; color: #92400e; }
 
+.stf-icon-biz  { background: #ccfbf1; color: #0f766e; }
+.stf-icon-rwd  { background: #fef9c3; color: #92400e; }
+
 .stf-action-card.selected .stf-icon-in    { background: #bbf7d0; }
 .stf-action-card.selected .stf-icon-out   { background: #ddd6fe; }
 .stf-action-card.selected .stf-icon-event { background: #fde68a; }
 .stf-action-card.selected .stf-icon-pay   { background: #fde68a; }
+.stf-action-card.selected .stf-icon-biz   { background: #99f6e4; }
+.stf-action-card.selected .stf-icon-rwd   { background: #fde68a; }
 
 /* Conditional context fields */
 .stf-context {
@@ -1689,7 +1694,336 @@ h2 {
   resize: vertical;
 }
 
-/* Primary button tinted for staff */
+/* ── Card info notice ── */
+.stf-card-info-notice {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  color: #0369a1;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 10px 14px;
+}
+
+/* ── Rewards card customer name input ── */
+.stf-input {
+  background: #f7f7f5;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  padding: 9px 12px;
+  transition: border-color 160ms;
+  width: 100%;
+}
+.stf-input:focus { border-color: var(--green); }
+
+/* ── Card preview panel controls ── */
+.stf-card-size-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.stf-card-size-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.stf-size-btn {
+  background: #f0f0ea;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 11px;
+  transition: background 140ms, border-color 140ms, color 140ms;
+}
+.stf-size-btn:hover { background: #e5e5de; }
+.stf-size-btn.active {
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+  color: #fff;
+}
+.stf-card-stage {
+  background: #e4e3db;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 4px;
+  min-height: 272px;
+  overflow: hidden;
+  padding: 28px 16px;
+  transition: min-height 200ms ease;
+}
+.stf-card-scaler {
+  display: inline-block;
+  transform-origin: top center;
+  transition: transform 200ms ease;
+}
+
+/* ════════════════════════════════════════
+   VUE Cards — Business & Rewards
+   ════════════════════════════════════════ */
+.vue-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.32), 0 2px 8px rgba(0,0,0,0.18);
+  font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+  height: 215px;
+  overflow: hidden;
+  position: relative;
+  width: 340px;
+}
+
+/* Diagonal watermark */
+.vue-card-wm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 200%;
+  left: -50%;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  top: -50%;
+  transform: rotate(-28deg);
+  user-select: none;
+  width: 200%;
+  z-index: 1;
+}
+.vue-card-wm-row {
+  color: rgba(255,255,255,0.055);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  white-space: nowrap;
+}
+.vue-card-wm-light .vue-card-wm-row {
+  color: rgba(6,47,34,0.065);
+}
+
+/* Fine diagonal security pattern */
+.vue-biz-card::after,
+.vue-rwd-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(255,255,255,0.018) 5px,
+    rgba(255,255,255,0.018) 6px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Business Card ── */
+.vue-biz-card {
+  background: linear-gradient(135deg, #062f22 0%, #0f4f36 55%, #0a3d2b 100%);
+  color: #fff;
+}
+.vue-biz-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 15px 18px 13px;
+  position: relative;
+  z-index: 2;
+}
+.vue-biz-top {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: auto;
+}
+.vue-biz-logomark {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+}
+.vue-biz-v {
+  align-items: center;
+  background: #d6ad3f;
+  border-radius: 5px;
+  color: #062f22;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 900;
+  height: 26px;
+  justify-content: center;
+  line-height: 1;
+  width: 26px;
+}
+.vue-biz-brandtext {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.vue-biz-brand {
+  color: #d6ad3f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+.vue-biz-sub {
+  color: rgba(255,255,255,0.55);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+.vue-biz-loc {
+  color: rgba(255,255,255,0.45);
+  font-size: 6.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding-top: 3px;
+  text-align: right;
+}
+.vue-biz-name-area { margin-bottom: 12px; }
+.vue-biz-name {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+.vue-biz-role {
+  color: #d6ad3f;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+.vue-biz-bottom {
+  align-items: flex-end;
+  display: flex;
+  justify-content: space-between;
+}
+.vue-biz-contact {
+  color: rgba(255,255,255,0.6);
+  font-size: 7.5px;
+  font-weight: 500;
+  line-height: 1.8;
+}
+.vue-biz-serial {
+  color: rgba(255,255,255,0.28);
+  font-family: 'Courier New', monospace;
+  font-size: 6.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.vue-biz-strip {
+  background: linear-gradient(90deg, #b8922a, #f0cc60, #d6ad3f, #f0cc60, #b8922a);
+  bottom: 0;
+  height: 3.5px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  z-index: 3;
+}
+
+/* ── Rewards Card ── */
+.vue-rwd-card {
+  background: #faf9f4;
+  border: 2px solid #d6ad3f;
+  color: #101413;
+  display: flex;
+  flex-direction: column;
+}
+.vue-rwd-header {
+  background: linear-gradient(135deg, #062f22 0%, #0f4f36 100%);
+  padding: 11px 18px 9px;
+  position: relative;
+  z-index: 2;
+}
+.vue-rwd-header-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+.vue-rwd-brand {
+  color: #d6ad3f;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+}
+.vue-rwd-badge {
+  background: #d6ad3f;
+  border-radius: 999px;
+  color: #062f22;
+  font-size: 6.5px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+}
+.vue-rwd-stars {
+  color: rgba(214,173,63,0.7);
+  font-size: 12px;
+  letter-spacing: 5px;
+  margin-top: 5px;
+}
+.vue-rwd-body {
+  flex: 1;
+  padding: 11px 18px 6px;
+  position: relative;
+  z-index: 2;
+}
+.vue-rwd-label {
+  color: #5d6862;
+  font-size: 6.5px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.vue-rwd-name {
+  color: #101413;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+.vue-rwd-cardno {
+  color: #0f4f36;
+  font-family: 'Courier New', monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-top: 9px;
+}
+.vue-rwd-footer {
+  align-items: center;
+  border-top: 1px solid rgba(16,20,19,0.1);
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: 6px 18px 8px;
+  position: relative;
+  z-index: 2;
+}
+.vue-rwd-footer span {
+  color: #5d6862;
+  font-size: 6.5px;
+  font-weight: 600;
+}
+
+@media print {
+  .vue-card {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 .stf-btn {
   background: var(--green-dark);
 }

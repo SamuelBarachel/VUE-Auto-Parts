@@ -392,6 +392,20 @@
                 <strong>Pay Request</strong>
                 <span>End of month</span>
               </button>
+              <button class="stf-action-card" data-action="biz-card" type="button">
+                <span class="stf-action-icon stf-icon-biz" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </span>
+                <strong>Business Card</strong>
+                <span>Print yours</span>
+              </button>
+              <button class="stf-action-card" data-action="rewards-card" type="button">
+                <span class="stf-action-icon stf-icon-rwd" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </span>
+                <strong>Rewards Card</strong>
+                <span>For a customer</span>
+              </button>
             </div>
 
             <!-- Conditional: Event fields -->
@@ -445,6 +459,21 @@
               </div>
             </div>
 
+            <!-- Conditional: Business Card info -->
+            <div class="stf-context" id="stfCtx_biz-card" hidden>
+              <div class="stf-card-info-notice">
+                Your verified name and role will be printed on the card. Confirm they are correct before previewing.
+              </div>
+            </div>
+
+            <!-- Conditional: Rewards Card — customer name -->
+            <div class="stf-context" id="stfCtx_rewards-card" hidden>
+              <div class="enq-field">
+                <label for="stfRwdCustomer">Customer's full name</label>
+                <input type="text" id="stfRwdCustomer" class="stf-input" maxlength="60" placeholder="e.g. Tendai Moyo" autocomplete="off">
+              </div>
+            </div>
+
             <!-- Always visible notes (shown when action is selected) -->
             <div id="stfNotesWrap" class="stf-context" hidden>
               <div class="enq-field">
@@ -487,6 +516,27 @@
             <h3 class="enq-title">Report sent!</h3>
             <p class="enq-subtitle">Management has been notified. You can also reach us on WhatsApp for urgent matters.</p>
             <a class="enq-btn-primary stf-btn" href="https://wa.me/16038662272" target="_blank" rel="noopener">Open WhatsApp</a>
+          </div>
+
+          <!-- Panel 5: Card Preview -->
+          <div class="enq-panel" id="stfPanel5" hidden>
+            <h3 class="enq-title" id="stfCardTitle">Card Preview</h3>
+            <p class="enq-subtitle">Resize to compare — Print / Save PDF for the full-size print-ready version.</p>
+            <div class="stf-card-size-row">
+              <span class="stf-card-size-label">Preview size:</span>
+              <button class="stf-size-btn active" data-scale="1" type="button">Full</button>
+              <button class="stf-size-btn" data-scale="0.75" type="button">75%</button>
+              <button class="stf-size-btn" data-scale="0.5" type="button">50%</button>
+            </div>
+            <div class="stf-card-stage" id="stfCardStage">
+              <div id="stfCardScaler" class="stf-card-scaler">
+                <div id="stfCardPreview"></div>
+              </div>
+            </div>
+            <div class="enq-foot" style="margin-top:16px">
+              <button class="enq-btn-ghost" id="stfCardBack" type="button">← Back</button>
+              <button class="enq-btn-primary stf-btn" id="stfPrintBtn" type="button">🖨 Print / Save PDF</button>
+            </div>
           </div>
 
         </div>
