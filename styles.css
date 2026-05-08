@@ -90,6 +90,7 @@ nav {
   align-items: center;
   display: flex;
   gap: clamp(10px, 1.2vw, 20px);
+  justify-content: center;
   order: 3;
   width: 100%;
 }
@@ -97,7 +98,7 @@ nav {
 nav a,
 .header-action,
 .ai-trigger {
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   font-weight: 800;
   text-decoration: none;
 }
