@@ -50,6 +50,9 @@ function showTyping() {
   return dot;
 }
 
+const WHATSAPP_FALLBACK_MSG =
+  "Sorry, I'm having a bit of trouble right now. Please reach out to us directly on WhatsApp at +16038662272 — we respond fast and can help you with anything.";
+
 async function submitQuestion(question) {
   appendBubble("user", question);
   aiQuestion.value = "";
@@ -64,14 +67,20 @@ async function submitQuestion(question) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         question,
-        history: conversationHistory.slice(-8),
+        history: conversationHistory.slice(-10),
       }),
     });
 
     typing.remove();
 
-    const data = res.ok ? await res.json() : { answer: localFallback(question) };
-    const answer = data.answer || localFallback(question);
+    if (!res.ok) {
+      appendBubble("bot", WHATSAPP_FALLBACK_MSG);
+      conversationHistory.push({ role: "assistant", content: WHATSAPP_FALLBACK_MSG });
+      return;
+    }
+
+    const data = await res.json();
+    const answer = data.answer || WHATSAPP_FALLBACK_MSG;
 
     appendBubble("bot", answer);
     conversationHistory.push({ role: "assistant", content: answer });
@@ -81,49 +90,22 @@ async function submitQuestion(question) {
     }
   } catch (_) {
     typing.remove();
-    const fallback = localFallback(question);
-    appendBubble("bot", fallback);
-    conversationHistory.push({ role: "assistant", content: fallback });
+    appendBubble("bot", WHATSAPP_FALLBACK_MSG);
+    conversationHistory.push({ role: "assistant", content: WHATSAPP_FALLBACK_MSG });
   }
-}
-
-function localFallback(question) {
-  const rows = window.VUEInventoryTools?.getRows?.() || [];
-  const lowered = question.toLowerCase();
-
-  const match = rows.find((row) => {
-    const text = [row["Vehicle Model"], row["Part Name"], row.Specification]
-      .join(" ")
-      .toLowerCase();
-    return lowered.split(/\s+/).some((w) => w.length > 2 && text.includes(w));
-  });
-
-  if (match) {
-    const price = window.VUEInventoryTools?.displayPrice?.(match) || match["Unit Price (USD Base)"] || "Ask for price";
-    const avail = window.VUEInventoryTools?.availabilityLabel?.(match["Stock on Hand"]) || "Ask in store";
-    return `${match["Vehicle Model"]} — ${match["Part Name"]}: ${price}. ${avail}.`;
-  }
-
-  if (lowered.includes("reward") || lowered.includes("refer")) {
-    return "Refer 5 buyers → $5. Refer 15+ → $10. No sign-up. T&Cs apply.";
-  }
-
-  return "Use Parts Finder above or WhatsApp us directly for fast help.";
 }
 
 function showGreeting() {
   if (greeted) return;
   greeted = true;
 
-  appendBubble(
-    "bot",
-    "Hey! Welcome to VUE Auto Parts. We stock parts for Honda Fit, Toyota Corolla, Probox, Nissan Caravan — plus universal parts like oils, brakes, filters & more."
-  );
+  const greeting = "Hey! Welcome to VUE Auto Parts. We stock parts for Honda Fit, Toyota Corolla, Probox, Nissan Caravan — and universal parts like oils, brakes, filters & more. What can I help you with?";
+  appendBubble("bot", greeting);
+  conversationHistory.push({ role: "assistant", content: greeting });
 
   setTimeout(() => {
-    appendBubble("bot", "What can I help you with today?");
     appendChoices(["Find a specific part", "Check what's in stock", "Tell me about rewards", "Other"]);
-  }, 600);
+  }, 400);
 }
 
 function toggleAiPanel(forceOpen) {

@@ -7,34 +7,10 @@ const ROOT = __dirname;
 const INVENTORY_URL =
   "https://docs.google.com/spreadsheets/d/1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho/gviz/tq?tqx=out:csv&sheet=Master-Inventory-%26-Location";
 
-const SYSTEM_PROMPT = `You are the VUE Auto Parts Digital Assistant in Chipinge. Your goal is to provide fast, warm, and data-backed support to drivers in Zimbabwe. 
-
-CORE PERSONALITY:
-- Knowledgeable, helpful, and punchy. Think "Expert mechanic who is also a good neighbor."
-- STRICT LIMIT: Maximum 3 sentences per response. 
-- Use warm, varied greetings. Never repeat the same opening twice.
-
-KNOWLEDGE BASE (VUE AUTO PARTS):
-- Location: Chipinge, Manicaland, Zimbabwe.
-- Specialty Models: Honda Fit, Toyota Corolla, Toyota Probox, Nissan Caravan.
-- Core Stock: Castrol Oils (10W40, 20W50), wipers, coolants, brake pads/fluid, filters (oil/air/fuel), fan belts, tyres, bulbs, batteries.
-- Competitive Edge: We stock based on Zimbabwe road accident data to prevent breakdowns.
-- Contact: WhatsApp +16038662272 | Email: info@vueautoparts.com.
-- Sales Policy: 24-hour quotes. Clear pricing.
-
-LOGIC & SAFETY RULES:
-1. NO GUESSING: If a part isn't listed in the Core Stock, say: "I'll check our extended inventory for that; we can usually source anything we don't have on the shelf." Then direct to WhatsApp.
-2. REWARDS: Mention the referral program ($5 for 5 buyers, $10 for 15+) only when the user seems satisfied or asks about prices/discounts.
-3. ACKNOWLEDGMENT: If the user says "thanks" or "ok," acknowledge the specific topic discussed and offer one final helpful suggestion. Do not reset the persona.
-
-INTERACTION FLOW:
-- GREETINGS: Energy is key. Mention our data-driven approach or a specific specialty (like Honda Fit parts) before offering choices.
-- CHOICES: Whenever a decision is needed, provide exactly 3 specific options (max 5 words each) plus "Other".
-- FORMAT: Return ONLY a raw JSON object. No markdown, no backticks, no prose outside the JSON.
-
-OUTPUT STRUCTURE:
-- With choices: {"answer": "...", "choices": ["...", "...", "...", "Other"]}
-- Without choices: {"answer": "..."}`;
+const WHATSAPP_FALLBACK = {
+  answer:
+    "Sorry, I'm having a bit of trouble right now. Please reach out to us directly on WhatsApp at +16038662272 — we respond fast and can help you with anything.",
+};
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -103,99 +79,7 @@ function publicInventoryRow(row) {
     part: row["Part Name"] || "",
     specification: row.Specification || "",
     price: row["Unit Price (USD Base)"] || "Ask for price",
-    availability: !Number.isNaN(stock) && stock > 0 ? "Available" : "Ask in store",
-  };
-}
-
-function fallbackResponse(question, inventory, history) {
-  const lowered = question.toLowerCase().trim();
-
-  const isGreeting = /^(hi|hello|hey|good\s*(morning|afternoon|evening|day)|howzit|how are you|sup|hola)\b/.test(lowered);
-  const isAck = /^(thanks?(\s+you)?|thank\s*you|ok(ay)?|cool|great|got\s*it|nice|perfect|alright|sounds\s*good|awesome|noted|appreciated|cheers)\b/.test(lowered);
-  const isFarewell = /^(bye|goodbye|see\s*you|later|take\s*care|cya|good\s*night)\b/.test(lowered);
-
-  if (isGreeting) {
-    return {
-      answer: "Hey! Welcome to VUE Auto Parts. We stock parts for Honda Fit, Corolla, Probox & Nissan Caravan — plus oils, brakes, filters & more. We use road data to stock what actually matters. What can I help you with?",
-      choices: ["Find a specific part", "Check what's in stock", "Tell me about rewards", "Other"],
-    };
-  }
-
-  if (isFarewell) {
-    return {
-      answer: "Take care! Come back anytime — or WhatsApp us at +16038662272 whenever you need something fast.",
-    };
-  }
-
-  if (isAck) {
-    const lastBot = [...(history || [])].reverse().find((m) => m.role === "assistant");
-    const ctx = (lastBot?.content || "").toLowerCase();
-
-    if (ctx.includes("refer") || ctx.includes("reward") || ctx.includes("earn")) {
-      return {
-        answer: "Glad that's useful! Just send people our way — no paperwork at all. Can I help you find a part while you're here?",
-        choices: ["Find a part", "Check what's in stock", "How to contact us", "Other"],
-      };
-    }
-
-    if (ctx.includes("available") || ctx.includes("price") || ctx.includes("stock") || ctx.includes("part")) {
-      return {
-        answer: "Perfect. If you want to lock it in, WhatsApp us at +16038662272. Anything else you need?",
-        choices: ["Find another part", "Get a quote", "Tell me about rewards", "Other"],
-      };
-    }
-
-    if (ctx.includes("chipinge") || ctx.includes("location") || ctx.includes("whatsapp") || ctx.includes("email")) {
-      return {
-        answer: "You're welcome! We're always ready to help. Is there a part I can check for you?",
-        choices: ["Find a part", "Check stock", "Tell me about rewards", "Other"],
-      };
-    }
-
-    return {
-      answer: "Happy to help! Is there anything else I can do for you?",
-      choices: ["Find a part", "Check what's in stock", "Tell me about rewards", "Other"],
-    };
-  }
-
-  if (lowered.includes("reward") || lowered.includes("refer") || lowered.includes("earn")) {
-    return {
-      answer: "Simple programme — refer 5 people who buy and earn $5 cash or a discount. Refer 15 or more and earn $10. No sign-up, no paperwork. Just send people to VUE Auto Parts.",
-      choices: ["How do I refer someone?", "Find a part", "Contact the shop", "Other"],
-    };
-  }
-
-  if (lowered.includes("location") || lowered.includes("address") || lowered.includes("where") || lowered.includes("find you")) {
-    return { answer: "We're in Chipinge, Manicaland, Zimbabwe. Walk in anytime or reach us on WhatsApp — we respond fast." };
-  }
-
-  if (lowered.includes("contact") || lowered.includes("email") || lowered.includes("whatsapp") || lowered.includes("call")) {
-    return { answer: "WhatsApp us at +16038662272 — fastest way to get a quote. Email: info@vueautoparts.com." };
-  }
-
-  if (lowered.includes("oil") || lowered.includes("engine oil")) {
-    return { answer: "We carry Castrol 10W40 and 20W50 — great for Fit, Corolla & Probox. Always in stock. WhatsApp us to confirm quantity." };
-  }
-
-  if (lowered.includes("brake") || lowered.includes("brake pad")) {
-    return { answer: "Brake pads and fluid are part of our core stock. We study accident patterns — brakes are one of the first things we keep well-stocked." };
-  }
-
-  const words = lowered.split(/\s+/).filter((word) => word.length > 2);
-  const match = inventory.find((item) => {
-    const text = `${item.model} ${item.part} ${item.specification} ${item.price}`.toLowerCase();
-    return words.some((word) => text.includes(word));
-  });
-
-  if (match) {
-    return {
-      answer: `Found it — ${match.model} ${match.part}: ${match.price}. ${match.availability}. Need more details or want to place a hold? WhatsApp us.`,
-    };
-  }
-
-  return {
-    answer: "I don't have that one on file right now, but we can source most parts. Drop us a WhatsApp at +16038662272 with your model and part name.",
-    choices: ["Search a different part", "WhatsApp the shop", "Tell me about rewards", "Other"],
+    availability: !Number.isNaN(stock) && stock > 0 ? "In stock" : "Ask in store",
   };
 }
 
@@ -203,6 +87,43 @@ async function getInventory() {
   const response = await fetch(INVENTORY_URL, { cache: "no-store" });
   if (!response.ok) throw new Error(`Inventory fetch failed: ${response.status}`);
   return csvToInventory(await response.text()).map(publicInventoryRow);
+}
+
+function buildSystemPrompt(inventorySummary) {
+  return `You are the VUE Auto Parts assistant — a friendly, sharp customer support agent based in Chipinge, Zimbabwe. You help drivers find the right parts, get prices, and connect with the shop.
+
+PERSONALITY:
+- Warm, confident and direct. Like a knowledgeable friend at a parts counter.
+- Keep responses concise — 1 to 3 sentences unless more detail is genuinely needed.
+- Sound human. Vary your phrasing. Never be stiff or robotic.
+- Respond naturally to the flow of the conversation — don't reset the topic after every message.
+
+SHOP FACTS:
+- Name: VUE Auto Parts
+- Location: Chipinge, Manicaland, Zimbabwe
+- Specialty vehicles: Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, Nissan Caravan
+- Core stock always available: Castrol engine oils (10W40, 20W50), wiper blades, coolants, brake pads, brake fluid, oil/air/fuel filters, fan belts, tyres, bulbs, batteries
+- Contact: WhatsApp +16038662272 | Email: info@vueautoparts.com
+- Quote turnaround: 24 hours. Pricing is transparent.
+- Referral rewards: Refer 5 buyers → earn $5. Refer 15+ buyers → earn $10. No sign-up needed.
+
+LIVE INVENTORY (from our Google Sheet — use this to answer part/price questions):
+${inventorySummary}
+
+HOW TO HELP:
+1. If someone asks about a specific part or vehicle, check the inventory above first. If it's there, give the part name, price and availability naturally in your reply.
+2. If it's not in the inventory but could be something we'd carry, say you'll check and point them to WhatsApp.
+3. If someone asks about price or ordering, always give the WhatsApp number (+16038662272) as the action step.
+4. If someone is satisfied or says thanks, acknowledge what was discussed and offer one natural next step — don't just reset to a generic menu.
+5. Only suggest the referral rewards when it fits — e.g. after a positive exchange or when they ask about discounts/deals.
+
+CHOICES (optional):
+Only include choices when it genuinely helps the conversation move forward — not on every reply. When you do use choices, provide 3 to 4 short, specific options.
+
+OUTPUT FORMAT:
+Return ONLY a raw JSON object — no markdown, no backticks, no extra text.
+- With choices: {"answer": "...", "choices": ["...", "...", "...", "Other"]}
+- Without choices: {"answer": "..."}`;
 }
 
 async function readRequestBody(request) {
@@ -225,56 +146,53 @@ async function handleAsk(request, response) {
 
   const body = JSON.parse(await readRequestBody(request) || "{}");
   const question = String(body.question || "").trim().slice(0, 500);
-  const history = Array.isArray(body.history) ? body.history.slice(-8) : [];
+  const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
 
   if (!question) return sendJson(response, 400, { answer: "What part are you looking for?" });
 
-  const inventory = await getInventory();
-
-  if (!apiKey) {
-    return sendJson(response, 200, fallbackResponse(question, inventory, history));
+  let inventory;
+  try {
+    inventory = await getInventory();
+  } catch (_) {
+    return sendJson(response, 200, WHATSAPP_FALLBACK);
   }
 
-  const inventorySummary = inventory.slice(0, 60).map(
-    (item) => `${item.model} | ${item.part} | ${item.specification} | ${item.price} | ${item.availability}`
-  ).join("\n");
+  if (!apiKey) {
+    return sendJson(response, 200, WHATSAPP_FALLBACK);
+  }
+
+  const inventorySummary = inventory
+    .slice(0, 80)
+    .map((item) => `${item.model} | ${item.part} | ${item.specification} | ${item.price} | ${item.availability}`)
+    .join("\n");
 
   const messages = [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: buildSystemPrompt(inventorySummary) },
     ...history,
-    {
-      role: "user",
-      content: JSON.stringify({
-        question,
-        inventory: inventorySummary,
-        shopFacts: {
-          business: "VUE Auto Parts",
-          location: "Chipinge, Manicaland, Zimbabwe",
-          whatsapp: "+16038662272",
-          email: "info@vueautoparts.com",
-          focusModels: ["Honda Fit", "Toyota Corolla", "Toyota Probox", "Nissan Caravan"],
-          universalParts: "engine oils, wiper blades, coolants, brake systems, filters, belts, tyres, bulbs, batteries",
-        },
-      }),
-    },
+    { role: "user", content: question },
   ];
 
-  const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.35,
-      max_tokens: 160,
-      messages,
-    }),
-  });
+  let groqResponse;
+  try {
+    groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.5,
+        max_tokens: 220,
+        messages,
+      }),
+    });
+  } catch (_) {
+    return sendJson(response, 200, WHATSAPP_FALLBACK);
+  }
 
   if (!groqResponse.ok) {
-    return sendJson(response, 200, fallbackResponse(question, inventory, history));
+    return sendJson(response, 200, WHATSAPP_FALLBACK);
   }
 
   const data = await groqResponse.json();
@@ -289,7 +207,9 @@ async function handleAsk(request, response) {
     }
   } catch (_) {}
 
-  return sendJson(response, 200, { answer: raw || fallbackResponse(question, inventory, history).answer });
+  if (raw) return sendJson(response, 200, { answer: raw });
+
+  return sendJson(response, 200, WHATSAPP_FALLBACK);
 }
 
 async function serveStatic(request, response) {
@@ -323,7 +243,7 @@ const server = http.createServer(async (request, response) => {
     }
     return await serveStatic(request, response);
   } catch (error) {
-    return sendJson(response, 500, { answer: "Something went wrong. Try Parts Finder or WhatsApp us." });
+    return sendJson(response, 500, WHATSAPP_FALLBACK);
   }
 });
 
