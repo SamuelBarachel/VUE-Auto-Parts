@@ -130,6 +130,10 @@ Return ONLY a raw JSON object — no markdown, no backticks, no extra text.
 - Without choices: {"answer": "..."}`;
 }
 
+function normalizeId(id) {
+  return id.replace(/-/g, "").toLowerCase();
+}
+
 async function readRequestBody(request) {
   const chunks = [];
   for await (const chunk of request) chunks.push(chunk);
@@ -523,7 +527,7 @@ async function handleStaffVerify(request, response) {
 
   const firstName = String(body.firstName || "").trim().toLowerCase();
   const lastName  = String(body.lastName  || "").trim().toLowerCase();
-  const id        = String(body.id        || "").trim().toLowerCase();
+  const id        = normalizeId(String(body.id || "").trim());
   const role      = String(body.role      || "").trim().toLowerCase();
 
   if (!firstName || !lastName || !id || !role) {
@@ -555,10 +559,10 @@ async function handleStaffVerify(request, response) {
   }
 
   const match = staffList.find(s =>
-    s.firstName.toLowerCase() === firstName &&
-    s.lastName.toLowerCase()  === lastName  &&
-    s.id.toLowerCase()        === id        &&
-    s.role.toLowerCase()      === role
+    s.firstName.toLowerCase()  === firstName &&
+    s.lastName.toLowerCase()   === lastName  &&
+    normalizeId(s.id)          === id        &&
+    s.role.toLowerCase()       === role
   );
 
   if (!match) {
