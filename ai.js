@@ -121,11 +121,11 @@ function toggleAiPanel(forceOpen) {
   aiTrigger.setAttribute("aria-expanded", String(isOpen));
 
   if (isOpen) {
-    if (isMobile()) document.body.style.overflow = "hidden";
+    if (isMobile()) document.body.style.overflowY = "hidden";
     showGreeting();
     setTimeout(() => aiQuestion.focus(), 50);
   } else {
-    document.body.style.overflow = "";
+    document.body.style.overflowY = "";
   }
 }
 

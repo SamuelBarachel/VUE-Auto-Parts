@@ -27,7 +27,7 @@
 
   function openModal() {
     overlay.hidden = false;
-    document.body.style.overflow = "hidden";
+    document.body.style.overflowY = "hidden";
     showPanel(1);
     setTimeout(() => overlay.classList.add("visible"), 10);
     document.getElementById("rwdName").focus();
@@ -37,7 +37,7 @@
     overlay.classList.remove("visible");
     setTimeout(() => {
       overlay.hidden = true;
-      document.body.style.overflow = "";
+      document.body.style.overflowY = "";
       resetModal();
     }, 280);
   }
