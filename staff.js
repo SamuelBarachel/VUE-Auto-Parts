@@ -285,38 +285,62 @@
   });
 
   if (printBtn) {
-    printBtn.addEventListener("click", () => {
-      if (!cardPreview || !cardPreview.innerHTML) return;
-      const isRwd  = selectedAction === "rewards-card";
-      const base   = window.location.origin;
-      const win    = window.open("", "_blank", "width=620,height=520,menubar=no,toolbar=no,scrollbars=no");
-      if (!win) { alert("Allow pop-ups for this site to print cards."); return; }
-      const backHtml = isRwd ? buildRwdBackHtml() : "";
-      const pgSize   = isRwd ? "85.6mm 120mm" : "85.6mm 54mm";
-      win.document.write(`<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8">
-<title>VUE Card — Print</title>
-<link rel="stylesheet" href="${base}/styles.css">
-<style>
-*{box-sizing:border-box}
-body{margin:0;padding:32px 20px;background:#d0cfc7;display:flex;flex-direction:column;align-items:center;gap:14px}
-.vue-card-print-label{font-family:sans-serif;font-size:10px;font-weight:700;color:#888;letter-spacing:2px;text-transform:uppercase}
-@media print{
-  @page{size:${pgSize};margin:0}
-  html,body{background:white;padding:0;gap:0;min-height:0}
-  .vue-card-print-label{display:none}
-  .vue-card{width:85.6mm!important;height:54mm!important;border-radius:3mm!important;box-shadow:none!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  .vue-card+.vue-card{margin-top:3mm}
-}
-<\/style>
-</head><body>
-${isRwd ? '<div class="vue-card-print-label">FRONT</div>' : ""}
-${cardPreview.innerHTML}
-${isRwd ? `<div class="vue-card-print-label">BACK</div>${backHtml}` : ""}
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},500);});<\/script>
-</body></html>`);
-      win.document.close();
+    printBtn.addEventListener("click", async () => {
+      if (!cardPreview || !cardPreview.querySelector(".vue-card")) return;
+      const isRwd   = selectedAction === "rewards-card";
+      const cardEl  = cardPreview.querySelector(".vue-card");
+      const origTxt = printBtn.textContent;
+      printBtn.disabled = true;
+      printBtn.textContent = "Generating…";
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const CARD_W_MM = 85.6;
+        const CARD_H_MM = 54;
+        const SCALE     = 4;
+
+        const frontCanvas = await html2canvas(cardEl, {
+          scale: SCALE,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false,
+        });
+
+        const pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "mm",
+          format: [CARD_W_MM, CARD_H_MM],
+        });
+        pdf.addImage(frontCanvas.toDataURL("image/png"), "PNG", 0, 0, CARD_W_MM, CARD_H_MM);
+
+        if (isRwd) {
+          const backWrap = document.createElement("div");
+          backWrap.style.cssText = "position:fixed;top:-9999px;left:0;z-index:-999;width:340px;";
+          backWrap.innerHTML = buildRwdBackHtml();
+          document.body.appendChild(backWrap);
+          const backEl = backWrap.querySelector(".vue-card");
+          const backCanvas = await html2canvas(backEl, {
+            scale: SCALE,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            logging: false,
+          });
+          document.body.removeChild(backWrap);
+          pdf.addPage([CARD_W_MM, CARD_H_MM], "landscape");
+          pdf.addImage(backCanvas.toDataURL("image/png"), "PNG", 0, 0, CARD_W_MM, CARD_H_MM);
+          pdf.save("VUE_Card_—_Rewards.pdf");
+        } else {
+          pdf.save("VUE_Card_—_Print.pdf");
+        }
+      } catch (err) {
+        console.error("[printBtn] PDF generation failed:", err);
+        alert("Could not generate PDF. Please try again.");
+      } finally {
+        printBtn.disabled = false;
+        printBtn.textContent = origTxt;
+      }
     });
   }
 
