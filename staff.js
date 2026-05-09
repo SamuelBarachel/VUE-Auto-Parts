@@ -28,6 +28,7 @@
   const cardStage     = document.getElementById("stfCardStage");
   const cardTitle     = document.getElementById("stfCardTitle");
   const printBtn      = document.getElementById("stfPrintBtn");
+  const copyBtn       = document.getElementById("stfCopyBtn");
   const cardBack      = document.getElementById("stfCardBack");
   const rwdResults    = document.getElementById("stfRwdResults");
   const rwdResultCt   = document.getElementById("stfRwdResultCount");
@@ -340,6 +341,42 @@
       } finally {
         printBtn.disabled = false;
         printBtn.textContent = origTxt;
+      }
+    });
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      if (!cardPreview || !cardPreview.querySelector(".vue-card")) return;
+      const cardEl  = cardPreview.querySelector(".vue-card");
+      const origTxt = copyBtn.textContent;
+      copyBtn.disabled = true;
+      copyBtn.textContent = "Copying…";
+
+      try {
+        const canvas = await html2canvas(cardEl, {
+          scale: 4,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false,
+        });
+        canvas.toBlob(async (blob) => {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob }),
+            ]);
+            copyBtn.textContent = "Copied!";
+            setTimeout(() => { copyBtn.textContent = origTxt; copyBtn.disabled = false; }, 2000);
+          } catch {
+            copyBtn.textContent = "Not supported";
+            setTimeout(() => { copyBtn.textContent = origTxt; copyBtn.disabled = false; }, 2000);
+          }
+        }, "image/png");
+      } catch (err) {
+        console.error("[copyBtn] failed:", err);
+        copyBtn.textContent = "Failed";
+        setTimeout(() => { copyBtn.textContent = origTxt; copyBtn.disabled = false; }, 2000);
       }
     });
   }
