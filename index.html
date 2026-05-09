@@ -51,20 +51,21 @@
       </div>
       <div class="earn-tiers">
         <div class="earn-tier">
-          <strong class="earn-amount">$5</strong>
-          <span>Refer <strong>5 people</strong> who buy</span>
-          <small>Cash or discount</small>
+          <strong class="earn-amount">$3</strong>
+          <span>5 referrals <em>or</em> purchases</span>
+          <small>Cash reward</small>
         </div>
         <div class="earn-tier highlight">
-          <strong class="earn-amount">$10</strong>
-          <span>Refer <strong>15+ people</strong> who buy</span>
-          <small>Cash or discount</small>
+          <strong class="earn-amount">$7</strong>
+          <span>15 referrals <em>or</em> purchases</span>
+          <small>Maximum reward</small>
         </div>
       </div>
-      <p class="earn-note">Direct friends to VUE Auto Parts. When they buy, you earn. Simple.</p>
-      <button class="button primary earn-cta" id="rwdOpen" type="button">
-        Click here to learn more
-      </button>
+      <p class="earn-note">Refer friends or make purchases. Track your balance anytime.</p>
+      <div class="earn-cta-row">
+        <button class="button primary earn-cta-btn" id="rwdCheckOpen" type="button">Check my card</button>
+        <button class="earn-cta-ghost" id="rwdRegOpen" type="button">New? Register →</button>
+      </div>
       <p class="earn-tc">Terms &amp; conditions apply.</p>
     </section>
 
@@ -575,73 +576,108 @@
       </div>
 
       <!-- Rewards registration modal -->
-      <div id="rwdOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Register for rewards" hidden>
+      <div id="rwdOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Rewards" hidden>
         <div class="enq-modal">
-          <div class="enq-modal-header">
-            <div class="enq-steps">
-              <span class="enq-step active" data-step="1" id="rwdStep1">1</span>
-              <span class="enq-step-line"></span>
-              <span class="enq-step" data-step="2" id="rwdStep2">2</span>
+          <div class="enq-modal-header rwd-modal-header">
+            <div class="rwd-tabs" role="tablist">
+              <button class="rwd-tab active" id="rwdTabLookup" role="tab" aria-selected="true" type="button">My Card</button>
+              <button class="rwd-tab" id="rwdTabRegister" role="tab" aria-selected="false" type="button">New? Register</button>
             </div>
             <button class="enq-close" id="rwdClose" aria-label="Close">&times;</button>
           </div>
 
-          <!-- Step 1: Details -->
-          <div class="enq-panel" id="rwdPanel1">
-            <h3 class="enq-title">Register for rewards</h3>
-            <p class="enq-subtitle">We need a few details to register you. Your information is kept safe and used only for the programme.</p>
-            <div class="rwd-notice">
-              <span class="rwd-notice-icon">🔒</span>
-              <span>Your ID is required to verify payouts. We take your privacy seriously.</span>
-            </div>
-            <div class="enq-fields">
+          <!-- ── Tab: My Card (lookup) ── -->
+          <div id="rwdLookupSection">
+            <!-- Lookup input -->
+            <div class="enq-panel" id="rwdLookupPanel">
+              <h3 class="enq-title">Check my card</h3>
+              <p class="enq-subtitle">Enter the phone number you registered with to see your balance and reward status.</p>
               <div class="enq-field">
-                <label for="rwdName">Full name</label>
-                <input id="rwdName" type="text" placeholder="e.g. Tendai Moyo" maxlength="100" autocomplete="name">
+                <label for="rwdLookupPhone">Your phone number</label>
+                <input id="rwdLookupPhone" type="tel" placeholder="e.g. +263 77 123 4567" maxlength="30" autocomplete="tel">
               </div>
-              <div class="enq-field">
-                <label for="rwdLocation">Where you live</label>
-                <input id="rwdLocation" type="text" placeholder="e.g. Chipinge, Manicaland" maxlength="100" autocomplete="address-level2">
-              </div>
-              <div class="enq-field">
-                <label for="rwdPhone">Phone number</label>
-                <input id="rwdPhone" type="tel" placeholder="e.g. +263 77 123 4567" maxlength="30" autocomplete="tel">
-              </div>
-              <div class="enq-field">
-                <label for="rwdId">National ID number</label>
-                <input id="rwdId" type="text" placeholder="e.g. 63-123456A78" maxlength="50">
+              <div class="enq-foot" style="margin-top:16px">
+                <span class="enq-err" id="rwdLookupErr" aria-live="polite"></span>
+                <button class="enq-btn-primary" id="rwdLookupBtn" type="button">Check →</button>
               </div>
             </div>
-            <div class="enq-foot">
-              <span class="enq-err" id="rwdErr1" aria-live="polite"></span>
-              <button class="enq-btn-primary" id="rwdNextBtn" type="button">Draft my message →</button>
+
+            <!-- Card status result -->
+            <div class="enq-panel" id="rwdStatusPanel" hidden>
+              <h3 class="enq-title">Your rewards</h3>
+              <div id="rwdCardStatus"></div>
+              <div style="margin-top:16px">
+                <button class="enq-btn-ghost" id="rwdStatusBack" type="button">← Back</button>
+              </div>
             </div>
           </div>
 
-          <!-- Step 2: Review & Send -->
-          <div class="enq-panel" id="rwdPanel2" hidden>
-            <h3 class="enq-title">Review &amp; send</h3>
-            <p class="enq-subtitle">AI-drafted for you — edit anything you like.</p>
-            <div class="enq-draft-wrap">
-              <div class="enq-draft-loading" id="rwdDraftLoading">
-                <span class="enq-spinner"></span> Drafting your message…
-              </div>
-              <textarea id="rwdDraft" class="enq-draft" rows="7" maxlength="1000" hidden></textarea>
+          <!-- ── Tab: Register ── -->
+          <div id="rwdRegisterSection" hidden>
+            <div class="rwd-reg-steps">
+              <span class="enq-step active" id="rwdStep1">1</span>
+              <span class="enq-step-line"></span>
+              <span class="enq-step" id="rwdStep2">2</span>
             </div>
-            <div class="enq-foot">
-              <button class="enq-btn-ghost" id="rwdBackBtn" type="button">← Back</button>
-              <span class="enq-err" id="rwdErr2" aria-live="polite"></span>
-              <button class="enq-btn-primary" id="rwdSendBtn" type="button" disabled>Send</button>
+
+            <!-- Panel 1: Details -->
+            <div class="enq-panel" id="rwdPanel1">
+              <h3 class="enq-title">Register for rewards</h3>
+              <p class="enq-subtitle">We need a few details to register you. Your information is kept safe and used only for the programme.</p>
+              <div class="rwd-notice">
+                <span class="rwd-notice-icon">🔒</span>
+                <span>Your ID is required to verify payouts. We take your privacy seriously.</span>
+              </div>
+              <div class="enq-fields">
+                <div class="enq-field">
+                  <label for="rwdName">Full name</label>
+                  <input id="rwdName" type="text" placeholder="e.g. Tendai Moyo" maxlength="100" autocomplete="name">
+                </div>
+                <div class="enq-field">
+                  <label for="rwdLocation">Where you live</label>
+                  <input id="rwdLocation" type="text" placeholder="e.g. Chipinge, Manicaland" maxlength="100" autocomplete="address-level2">
+                </div>
+                <div class="enq-field">
+                  <label for="rwdPhone">Phone number</label>
+                  <input id="rwdPhone" type="tel" placeholder="e.g. +263 77 123 4567" maxlength="30" autocomplete="tel">
+                </div>
+                <div class="enq-field">
+                  <label for="rwdId">National ID number</label>
+                  <input id="rwdId" type="text" placeholder="e.g. 63-123456A78" maxlength="50">
+                </div>
+              </div>
+              <div class="enq-foot">
+                <span class="enq-err" id="rwdErr1" aria-live="polite"></span>
+                <button class="enq-btn-primary" id="rwdNextBtn" type="button">Draft my message →</button>
+              </div>
+            </div>
+
+            <!-- Panel 2: Review & Send -->
+            <div class="enq-panel" id="rwdPanel2" hidden>
+              <h3 class="enq-title">Review &amp; send</h3>
+              <p class="enq-subtitle">AI-drafted for you — edit anything you like.</p>
+              <div class="enq-draft-wrap">
+                <div class="enq-draft-loading" id="rwdDraftLoading">
+                  <span class="enq-spinner"></span> Drafting your message…
+                </div>
+                <textarea id="rwdDraft" class="enq-draft" rows="7" maxlength="1000" hidden></textarea>
+              </div>
+              <div class="enq-foot">
+                <button class="enq-btn-ghost" id="rwdBackBtn" type="button">← Back</button>
+                <span class="enq-err" id="rwdErr2" aria-live="polite"></span>
+                <button class="enq-btn-primary" id="rwdSendBtn" type="button" disabled>Send</button>
+              </div>
+            </div>
+
+            <!-- Panel 3: Success -->
+            <div class="enq-panel enq-success" id="rwdPanel3" hidden>
+              <div class="enq-success-icon">✓</div>
+              <h3 class="enq-title">Registration sent!</h3>
+              <p class="enq-subtitle">We'll be in touch to confirm your rewards account. You can also reach us on WhatsApp.</p>
+              <a class="enq-btn-primary" href="https://wa.me/16038662272" target="_blank" rel="noopener">Open WhatsApp</a>
             </div>
           </div>
 
-          <!-- Step 3: Success -->
-          <div class="enq-panel enq-success" id="rwdPanel3" hidden>
-            <div class="enq-success-icon">✓</div>
-            <h3 class="enq-title">Registration sent!</h3>
-            <p class="enq-subtitle">We'll be in touch to confirm your rewards account. You can also reach us on WhatsApp.</p>
-            <a class="enq-btn-primary" href="https://wa.me/16038662272" target="_blank" rel="noopener">Open WhatsApp</a>
-          </div>
         </div>
       </div>
 

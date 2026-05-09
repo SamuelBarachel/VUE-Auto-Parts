@@ -326,12 +326,34 @@ nav a:hover::after {
   margin: 0 0 12px;
 }
 
-.earn-cta {
+.earn-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.earn-cta-btn {
   display: flex;
   font-size: 0.88rem;
+  flex: 1;
   justify-content: center;
-  width: 100%;
 }
+
+.earn-cta-ghost {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.78);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.earn-cta-ghost:hover { color: #fff; }
 
 .earn-tc {
   color: rgba(255,255,255,0.4);
@@ -2284,6 +2306,172 @@ h2 {
   flex-shrink: 0;
   font-size: 1rem;
   line-height: 1.5;
+}
+
+/* ── Rewards modal — tab bar ── */
+.rwd-modal-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0;
+}
+.rwd-tabs {
+  display: flex;
+  gap: 4px;
+}
+.rwd-tab {
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 8px 12px 6px;
+  transition: color 140ms, border-color 140ms;
+}
+.rwd-tab:hover { color: var(--ink); }
+.rwd-tab.active {
+  border-bottom-color: var(--green);
+  color: var(--green-dark);
+}
+
+/* ── Register section mini-steps ── */
+.rwd-reg-steps {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 -4px;
+  padding: 0 4px;
+}
+
+/* ── Card status display ── */
+.rwd-cs-card {
+  background: #f7f7f4;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px 12px;
+}
+.rwd-cs-head {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.rwd-cs-name {
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.rwd-cs-serial {
+  color: var(--muted);
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+.rwd-cs-date {
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-top: 1px;
+}
+.rwd-cs-badge {
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  padding: 3px 10px;
+  text-transform: uppercase;
+}
+.rwd-cs-badge-active  { background: #d1fae5; color: #065f46; }
+.rwd-cs-badge-revoked { background: #fee2e2; color: #991b1b; }
+.rwd-cs-badge-paid    { background: #fef3c7; color: #92400e; }
+
+.rwd-cs-stats {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 12px;
+}
+.rwd-cs-stat {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 6px 6px;
+  text-align: center;
+}
+.rwd-cs-stat + .rwd-cs-stat { border-left: 1px solid var(--line); }
+.rwd-cs-stat-val {
+  color: var(--ink);
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.rwd-cs-stat-lbl {
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.rwd-cs-stat-lit .rwd-cs-stat-val { color: #b45309; }
+.rwd-cs-stat-lit { background: #fef9ee; border-color: #fde68a; }
+
+.rwd-cs-progress { margin-bottom: 10px; }
+.rwd-cs-prog-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.rwd-cs-prog-label strong { color: var(--ink); }
+.rwd-cs-bar-wrap {
+  background: #e5e4dc;
+  border-radius: 999px;
+  height: 7px;
+  overflow: hidden;
+}
+.rwd-cs-bar {
+  background: var(--green);
+  border-radius: 999px;
+  height: 100%;
+  min-width: 4px;
+  transition: width 600ms cubic-bezier(.22,1,.36,1);
+}
+
+.rwd-cs-notice {
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-top: 8px;
+  padding: 9px 12px;
+}
+.rwd-cs-notice-reward { background: #fef9ee; border: 1px solid #fcd34d; color: #78350f; }
+.rwd-cs-notice-warn   { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+.rwd-cs-notice-info   { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+
+.rwd-cs-empty {
+  padding: 12px 0;
+  text-align: center;
+}
+.rwd-cs-empty-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+.rwd-cs-empty p { color: var(--ink); font-size: 0.95rem; margin: 0; }
+.rwd-cs-empty-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 6px !important;
 }
 
 .contact-card {
