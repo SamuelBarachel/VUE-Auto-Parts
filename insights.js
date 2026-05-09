@@ -213,7 +213,7 @@ async function callGroq(messages) {
     body: JSON.stringify({
       model: ANALYTICS_MODEL,
       temperature: 0.25,
-      max_tokens: 2500,
+      max_tokens: 1600,
       messages,
     }),
   });
@@ -235,48 +235,36 @@ function buildDailyPrompt(m) {
     `${c}: $${d.revenue.toFixed(2)} revenue, ${d.units} units`
   ).join("\n");
 
-  return `You are the AI business advisor for VUE Auto Parts — a small auto parts shop in Chipinge, Manicaland, Zimbabwe. You are brilliant, direct, and financially wise. You think like a seasoned CFO and operations expert who deeply understands small business survival in Zimbabwe's economic context.
+  return `You are the CFO of VUE Auto Parts, Chipinge, Zimbabwe. Be brutal, specific, and brief. No waffle.
 
-TODAY'S DATA (Zimbabwe time: ${m.todayKey}):
-- Today's revenue so far: $${m.todayData.revenue.toFixed(2)} (${m.todayData.txns} transactions, ${m.todayData.units} units)
-- All-time total revenue: $${m.totalRevenue.toFixed(2)} across ${m.totalDays} trading days
-- Average daily revenue: $${m.avgDailyRevenue.toFixed(2)}
-- Best day ever: ${m.bestDay || "N/A"} at $${m.bestDayRevenue.toFixed(2)}
-- Week-over-week change: ${m.wow !== null ? (m.wow >= 0 ? "+" : "") + m.wow + "%" : "Insufficient data"} (last 7 days: $${m.rev7} vs prev 7 days: $${m.revP7})
+DATA (${m.todayKey}):
+Revenue today: $${m.todayData.revenue.toFixed(2)} (${m.todayData.txns} txns) | Daily avg: $${m.avgDailyRevenue.toFixed(2)} | WoW: ${m.wow !== null ? (m.wow >= 0 ? "+" : "") + m.wow + "%" : "N/A"}
+Inventory value: $${m.totalInventoryValue.toFixed(2)} | Dead stock: $${m.deadStockValue.toFixed(2)} | Overstock: $${m.overstockedValue.toFixed(2)}
+Critical (<3 days): ${m.critical.length ? m.critical.map(s => `${s.name} (${s.daysLeft}d)`).join(", ") : "None"}
+Low (3–7 days): ${m.low.length ? m.low.map(s => `${s.name} (${s.daysLeft}d)`).join(", ") : "None"}
+Dead stock: ${m.dead.length ? m.dead.map(s => `${s.name} $${s.stockValue.toFixed(2)}`).join(", ") : "None"}
+Top sellers: ${topTable || "No data"}
+By category: ${catTable || "No data"}
+Full stock: ${stockTable}
 
-INVENTORY VALUE:
-- Total inventory on hand: $${m.totalInventoryValue.toFixed(2)}
-- Dead stock (never sold): $${m.deadStockValue.toFixed(2)} tied up with no return
-- Overstocked items (>60 days supply): $${m.overstockedValue.toFixed(2)}
-
-CRITICAL ALERTS (< 3 days of stock):
-${m.critical.length ? m.critical.map(s => `• ${s.name} (${s.id}): ${s.stock} units left, ${s.daysLeft} days at current velocity`).join("\n") : "None"}
-
-LOW STOCK (3–7 days):
-${m.low.length ? m.low.map(s => `• ${s.name} (${s.id}): ${s.stock} units, ~${s.daysLeft} days left`).join("\n") : "None"}
-
-DEAD STOCK (in inventory, never sold):
-${m.dead.length ? m.dead.map(s => `• ${s.name} (${s.model}): ${s.stock} units × $${s.price} = $${s.stockValue.toFixed(2)}`).join("\n") : "None"}
-
-TOP SELLERS (by revenue):
-${topTable || "No sales data yet"}
-
-REVENUE BY CATEGORY:
-${catTable || "No category data yet"}
-
-FULL STOCK SNAPSHOT:
-${stockTable}
-
-Your task: Generate a daily business intelligence report. Return a JSON object ONLY — no markdown, no backticks. Use this exact structure:
+Return a JSON object ONLY — no markdown, no backticks:
 {
-  "headline": "One punchy sentence summarising the business health right now",
+  "headline": "One brutal sentence on business health right now — use real numbers",
   "status": "ON TRACK" or "WATCH OUT" or "NEEDS ATTENTION",
-  "insights": [
-    {"icon": "🔥", "title": "Section title", "body": "2-3 sentences. Be specific, use numbers, be direct."},
-    ... (6 to 8 insights total covering: stock emergencies, demand signals, dead stock cost, pricing opportunity, cash flow, operations, one wildcard)
+  "actions": [
+    "Verb-first, specific, doable today — include a name or number where possible",
+    "Action 2",
+    "Action 3",
+    "Action 4",
+    "Action 5"
   ],
-  "actions": ["Specific action #1", "Specific action #2", "Specific action #3", "Specific action #4", "Specific action #5"],
-  "bold_move": "One bold, unconventional but financially sound recommendation for this week."
+  "insights": [
+    {"icon": "🔥", "title": "Short title", "body": "One sentence. Specific number. Direct verdict."},
+    {"icon": "📦", "title": "Short title", "body": "One sentence. Specific number. Direct verdict."},
+    {"icon": "💰", "title": "Short title", "body": "One sentence. Specific number. Direct verdict."},
+    {"icon": "⚡", "title": "Short title", "body": "One sentence. Specific number. Direct verdict."}
+  ],
+  "bold_move": "One bold, unconventional move for this week — specific and financially grounded."
 }`;
 }
 
@@ -365,137 +353,149 @@ function statusBg(status) {
 }
 
 function buildDailyEmailHtml(m, ai) {
-  const now      = zweNow();
-  const dateLabel = now.toLocaleDateString("en-ZW", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const now       = zweNow();
+  const dayName   = now.toLocaleDateString("en-ZW", { weekday: "long" });
+  const dateFull  = now.toLocaleDateString("en-ZW", { day: "numeric", month: "long", year: "numeric" });
   const sc        = statusColor(ai.status);
   const sbg       = statusBg(ai.status);
+  const wowLabel  = m.wow !== null ? `${m.wow >= 0 ? "+" : ""}${m.wow}% WoW` : "";
+  const wowColor  = m.wow !== null ? (m.wow >= 0 ? "#16a34a" : "#dc2626") : "#888";
 
-  const alertRows = m.critical.length
-    ? m.critical.map(s => `
-      <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #fecaca;font-size:13px;font-weight:700;color:#991b1b">${s.name}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #fecaca;font-size:13px;color:#dc2626;text-align:center">${s.stock} left</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #fecaca;font-size:13px;color:#dc2626;text-align:center">${s.daysLeft} days</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #fecaca;font-size:13px;font-weight:700;color:#991b1b;text-align:center">ORDER NOW</td>
-      </tr>`).join("")
-    : `<tr><td colspan="4" style="padding:12px;text-align:center;color:#16a34a;font-size:13px">✅ No critical stock issues today</td></tr>`;
-
-  const topRows = m.topSellers.slice(0, 5).map((s, i) => `
-    <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f9fafb"}">
-      <td style="padding:8px 12px;font-size:13px;font-weight:700;color:#111">${s.name}</td>
-      <td style="padding:8px 12px;font-size:13px;color:#555">${s.model}</td>
-      <td style="padding:8px 12px;font-size:13px;font-weight:700;color:#0f4f36;text-align:center">$${s.revenue.toFixed(2)}</td>
-      <td style="padding:8px 12px;font-size:13px;text-align:center;color:#555">${s.units}</td>
-      <td style="padding:8px 12px;font-size:13px;text-align:center;color:${s.currentStock <= 5 ? "#dc2626" : "#555"};font-weight:${s.currentStock <= 5 ? "700" : "400"}">${s.currentStock}</td>
+  // ── Action items (hero section) ──
+  const actionItems = (ai.actions || []).map((a, i) => `
+    <tr>
+      <td style="width:32px;padding:11px 0 11px 20px;vertical-align:top">
+        <div style="width:26px;height:26px;background:#0f4f36;color:#fff;border-radius:50%;font-size:12px;font-weight:800;text-align:center;line-height:26px;flex-shrink:0">${i + 1}</div>
+      </td>
+      <td style="padding:11px 20px 11px 10px;font-size:14px;color:#111;line-height:1.5;font-weight:${i === 0 ? "700" : "400"};border-bottom:1px solid #f0f0f0">${a}</td>
     </tr>`).join("");
 
-  const insightCards = (ai.insights || []).map(ins => `
-    <div style="background:#f9fafb;border-left:4px solid #0f4f36;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px">
-      <div style="font-size:15px;font-weight:800;color:#0f4f36;margin-bottom:4px">${ins.icon || "📌"} ${ins.title || ""}</div>
-      <div style="font-size:14px;color:#333;line-height:1.6">${ins.body || ""}</div>
-    </div>`).join("");
+  // ── Critical alerts ──
+  const hasAlerts = m.critical.length > 0 || m.low.length > 0;
+  const critRows  = m.critical.map(s => `
+    <tr>
+      <td style="padding:9px 14px;border-bottom:1px solid #fecaca;font-size:13px;font-weight:700;color:#991b1b">${s.name}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid #fecaca;font-size:13px;color:#dc2626;text-align:center;white-space:nowrap">${s.stock} left</td>
+      <td style="padding:9px 14px;border-bottom:1px solid #fecaca;font-size:13px;font-weight:800;color:#fff;background:#dc2626;text-align:center;white-space:nowrap;border-radius:4px">${s.daysLeft}d — ORDER</td>
+    </tr>`).join("");
 
-  const actionItems = (ai.actions || []).map((a, i) => `
-    <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0">
-      <div style="min-width:24px;height:24px;background:#0f4f36;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;padding-top:1px;text-align:center;line-height:24px">${i+1}</div>
-      <div style="font-size:13px;color:#333;line-height:1.5;padding-top:3px">${a}</div>
-    </div>`).join("");
+  // ── Insights ──
+  const insightCards = (ai.insights || []).map(ins => `
+    <tr>
+      <td style="padding:12px 20px;border-bottom:1px solid #f3f4f6;vertical-align:top">
+        <span style="font-size:16px;margin-right:8px">${ins.icon || "📌"}</span>
+        <span style="font-size:13px;font-weight:800;color:#0f4f36">${ins.title || ""}</span>
+        <div style="font-size:13px;color:#444;line-height:1.55;margin-top:3px;padding-left:24px">${ins.body || ""}</div>
+      </td>
+    </tr>`).join("");
+
+  // ── Top sellers (compact) ──
+  const topRows = m.topSellers.slice(0, 5).map((s, i) => `
+    <tr style="background:${i % 2 === 0 ? "#fff" : "#f9fafb"}">
+      <td style="padding:8px 14px;font-size:12px;font-weight:700;color:#111;max-width:160px">${s.name}</td>
+      <td style="padding:8px 14px;font-size:12px;color:#555">${s.model}</td>
+      <td style="padding:8px 14px;font-size:12px;font-weight:800;color:#0f4f36;text-align:right">$${s.revenue.toFixed(2)}</td>
+      <td style="padding:8px 14px;font-size:12px;text-align:right;color:${s.currentStock <= 3 ? "#dc2626" : s.currentStock <= 7 ? "#d97706" : "#555"};font-weight:${s.currentStock <= 7 ? "700" : "400"}">${s.currentStock} left</td>
+    </tr>`).join("");
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-<div style="max-width:620px;margin:24px auto;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10)">
+<body style="margin:0;padding:0;background:#eeeee8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="max-width:600px;margin:20px auto;border-radius:10px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,0.12)">
 
   <!-- Header -->
-  <div style="background:linear-gradient(135deg,#0f4f36 0%,#1a6b4a 100%);padding:28px 32px 24px">
-    <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS · CHIPINGE, ZWE</div>
-    <div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:4px">Daily Business Intelligence</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.7)">${dateLabel}</div>
-    <div style="margin-top:16px;display:inline-block;background:${sc};color:#fff;font-size:12px;font-weight:800;letter-spacing:1px;padding:5px 14px;border-radius:999px;text-transform:uppercase">${ai.status || "REPORT READY"}</div>
+  <div style="background:linear-gradient(160deg,#0a3526 0%,#0f4f36 55%,#1a6b4a 100%);padding:24px 28px 20px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:10px">VUE AUTO PARTS &nbsp;·&nbsp; CHIPINGE, ZIMBABWE</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.2">${dayName}'s Report</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:3px">${dateFull}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="display:inline-block;background:${sc};color:#fff;font-size:11px;font-weight:800;letter-spacing:1px;padding:5px 13px;border-radius:999px;text-transform:uppercase">${ai.status || "READY"}</div>
+        ${wowLabel ? `<div style="font-size:11px;font-weight:700;color:${wowColor};margin-top:5px">${wowLabel}</div>` : ""}
+      </div>
+    </div>
+    ${ai.headline ? `<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.08);border-radius:6px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.5;font-style:italic">"${ai.headline}"</div>` : ""}
   </div>
 
-  <!-- Headline -->
-  <div style="background:${sbg};border-bottom:1px solid #e5e7eb;padding:18px 32px">
-    <div style="font-size:15px;font-style:italic;color:#333;line-height:1.5">"${ai.headline || ""}"</div>
-  </div>
-
-  <!-- Stats row -->
-  <div style="background:#fff;padding:20px 32px;display:flex;gap:0;border-bottom:1px solid #f0f0f0">
-    <div style="flex:1;text-align:center;border-right:1px solid #f0f0f0;padding-right:12px">
-      <div style="font-size:24px;font-weight:800;color:#0f4f36">$${m.todayData.revenue.toFixed(2)}</div>
-      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Today's Revenue</div>
-    </div>
-    <div style="flex:1;text-align:center;border-right:1px solid #f0f0f0;padding:0 12px">
-      <div style="font-size:24px;font-weight:800;color:#0f4f36">$${m.avgDailyRevenue.toFixed(2)}</div>
-      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Daily Average</div>
-    </div>
-    <div style="flex:1;text-align:center;border-right:1px solid #f0f0f0;padding:0 12px">
-      <div style="font-size:24px;font-weight:800;color:#0f4f36">$${m.totalInventoryValue.toFixed(2)}</div>
-      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Inventory Value</div>
-    </div>
-    <div style="flex:1;text-align:center;padding-left:12px">
-      <div style="font-size:24px;font-weight:800;color:${m.critical.length > 0 ? "#dc2626" : "#16a34a"}">${m.critical.length}</div>
-      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Critical Alerts</div>
-    </div>
-  </div>
-
-  <!-- Critical Stock Alerts -->
-  <div style="background:#fff;padding:20px 32px 24px;border-bottom:1px solid #f0f0f0">
-    <div style="font-size:13px;font-weight:800;letter-spacing:1.5px;color:#dc2626;text-transform:uppercase;margin-bottom:12px">🚨 Critical Stock Alerts</div>
-    <table style="width:100%;border-collapse:collapse;background:#fff5f5;border-radius:8px;overflow:hidden;border:1px solid #fecaca">
-      <thead>
-        <tr style="background:#fee2e2">
-          <th style="padding:8px 12px;text-align:left;font-size:12px;color:#991b1b;font-weight:700">Part</th>
-          <th style="padding:8px 12px;text-align:center;font-size:12px;color:#991b1b;font-weight:700">Stock</th>
-          <th style="padding:8px 12px;text-align:center;font-size:12px;color:#991b1b;font-weight:700">Days Left</th>
-          <th style="padding:8px 12px;text-align:center;font-size:12px;color:#991b1b;font-weight:700">Action</th>
-        </tr>
-      </thead>
-      <tbody>${alertRows}</tbody>
+  <!-- Numbers strip -->
+  <div style="background:#fff;border-bottom:2px solid #f0f0f0">
+    <table style="width:100%;border-collapse:collapse">
+      <tr>
+        <td style="padding:16px 0;text-align:center;border-right:1px solid #f0f0f0">
+          <div style="font-size:22px;font-weight:800;color:#0f4f36">$${m.todayData.revenue.toFixed(2)}</div>
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Today</div>
+        </td>
+        <td style="padding:16px 0;text-align:center;border-right:1px solid #f0f0f0">
+          <div style="font-size:22px;font-weight:800;color:#374151">$${m.avgDailyRevenue.toFixed(2)}</div>
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Daily Avg</div>
+        </td>
+        <td style="padding:16px 0;text-align:center;border-right:1px solid #f0f0f0">
+          <div style="font-size:22px;font-weight:800;color:#374151">$${m.totalInventoryValue.toFixed(0)}</div>
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Stock Value</div>
+        </td>
+        <td style="padding:16px 0;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:${m.critical.length > 0 ? "#dc2626" : "#16a34a"}">${m.critical.length}</div>
+          <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Alerts</div>
+        </td>
+      </tr>
     </table>
-    ${m.low.length ? `<div style="margin-top:10px;padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e">
-      ⚠️ <strong>Low Stock (3–7 days):</strong> ${m.low.map(s => `${s.name} (${s.daysLeft} days)`).join(", ")}
+  </div>
+
+  <!-- ⚡ ACTIONS — FIRST -->
+  <div style="background:#0f4f36;padding:20px 0 8px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;padding:0 20px;margin-bottom:10px">⚡ Do This Today</div>
+    <table style="width:100%;border-collapse:collapse;background:#fff">
+      ${actionItems || '<tr><td style="padding:14px 20px;font-size:13px;color:#888">No actions generated</td></tr>'}
+    </table>
+  </div>
+
+  <!-- 🚨 Stock alerts (only shown if any) -->
+  ${hasAlerts ? `<div style="background:#fff;padding:18px 20px 20px;border-top:3px solid #dc2626">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#dc2626;text-transform:uppercase;margin-bottom:10px">🚨 Stock Alerts</div>
+    ${m.critical.length ? `<table style="width:100%;border-collapse:collapse;border:1px solid #fecaca;border-radius:6px;overflow:hidden;margin-bottom:10px">
+      <thead><tr style="background:#fef2f2">
+        <th style="padding:7px 14px;text-align:left;font-size:11px;color:#991b1b;font-weight:700">Part</th>
+        <th style="padding:7px 14px;text-align:center;font-size:11px;color:#991b1b;font-weight:700">Stock</th>
+        <th style="padding:7px 14px;text-align:center;font-size:11px;color:#991b1b;font-weight:700">Status</th>
+      </tr></thead>
+      <tbody>${critRows}</tbody>
+    </table>` : ""}
+    ${m.low.length ? `<div style="padding:9px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:5px;font-size:12px;color:#92400e;line-height:1.5">
+      <strong>⚠ Running Low:</strong> ${m.low.map(s => `${s.name} (${s.daysLeft}d left)`).join(" &nbsp;·&nbsp; ")}
     </div>` : ""}
-  </div>
+  </div>` : ""}
 
-  <!-- Top Sellers -->
-  <div style="background:#fff;padding:20px 32px 24px;border-bottom:1px solid #f0f0f0">
-    <div style="font-size:13px;font-weight:800;letter-spacing:1.5px;color:#0f4f36;text-transform:uppercase;margin-bottom:12px">📊 Top Sellers (All Time)</div>
-    <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
-      <thead>
-        <tr style="background:#f0fdf4">
-          <th style="padding:8px 12px;text-align:left;font-size:12px;color:#166534;font-weight:700">Part</th>
-          <th style="padding:8px 12px;text-align:left;font-size:12px;color:#166534;font-weight:700">Vehicle</th>
-          <th style="padding:8px 12px;text-align:center;font-size:12px;color:#166534;font-weight:700">Revenue</th>
-          <th style="padding:8px 12px;text-align:center;font-size:12px;color:#166534;font-weight:700">Units</th>
-          <th style="padding:8px 12px;text-align:center;font-size:12px;color:#166534;font-weight:700">In Stock</th>
-        </tr>
-      </thead>
-      <tbody>${topRows || '<tr><td colspan="5" style="padding:12px;text-align:center;color:#888;font-size:13px">No sales data yet</td></tr>'}</tbody>
+  <!-- 🧠 Insights -->
+  ${insightCards ? `<div style="background:#fff;border-top:1px solid #f0f0f0;padding-top:4px;padding-bottom:4px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;padding:14px 20px 6px">🧠 Advisor Notes</div>
+    <table style="width:100%;border-collapse:collapse">${insightCards}</table>
+  </div>` : ""}
+
+  <!-- 📊 Top sellers -->
+  ${topRows ? `<div style="background:#fff;border-top:1px solid #f0f0f0">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;padding:16px 20px 8px">📊 Top Sellers</div>
+    <table style="width:100%;border-collapse:collapse;border-top:1px solid #f3f4f6">
+      <thead><tr style="background:#f9fafb">
+        <th style="padding:7px 14px;text-align:left;font-size:11px;color:#6b7280;font-weight:700">Part</th>
+        <th style="padding:7px 14px;text-align:left;font-size:11px;color:#6b7280;font-weight:700">Vehicle</th>
+        <th style="padding:7px 14px;text-align:right;font-size:11px;color:#6b7280;font-weight:700">Revenue</th>
+        <th style="padding:7px 14px;text-align:right;font-size:11px;color:#6b7280;font-weight:700">In Stock</th>
+      </tr></thead>
+      <tbody>${topRows}</tbody>
     </table>
-  </div>
+  </div>` : ""}
 
-  <!-- AI Insights -->
-  <div style="background:#fff;padding:20px 32px 24px;border-bottom:1px solid #f0f0f0">
-    <div style="font-size:13px;font-weight:800;letter-spacing:1.5px;color:#0f4f36;text-transform:uppercase;margin-bottom:14px">🧠 AI Business Advisor</div>
-    ${insightCards}
-  </div>
-
-  <!-- Action Items -->
-  <div style="background:#fff;padding:20px 32px 24px;border-bottom:1px solid #f0f0f0">
-    <div style="font-size:13px;font-weight:800;letter-spacing:1.5px;color:#0f4f36;text-transform:uppercase;margin-bottom:12px">⚡ Action Items for Today</div>
-    ${actionItems}
-  </div>
-
-  <!-- Bold Move -->
-  ${ai.bold_move ? `<div style="background:linear-gradient(135deg,#0f4f36,#1a6b4a);padding:20px 32px;border-bottom:1px solid #f0f0f0">
-    <div style="font-size:12px;font-weight:800;letter-spacing:1.5px;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:8px">💡 Bold Move This Week</div>
-    <div style="font-size:14px;color:#fff;line-height:1.6">${ai.bold_move}</div>
+  <!-- 💡 Bold move -->
+  ${ai.bold_move ? `<div style="background:linear-gradient(135deg,#0a3526,#0f4f36);padding:18px 22px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:7px">💡 Bold Move This Week</div>
+    <div style="font-size:13px;color:#e2ffe8;line-height:1.6;font-weight:500">${ai.bold_move}</div>
   </div>` : ""}
 
   <!-- Footer -->
-  <div style="background:#1a1a1a;padding:18px 32px;text-align:center">
-    <div style="font-size:12px;color:#888">VUE Auto Parts · Chipinge, Zimbabwe · <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
-    <div style="font-size:11px;color:#555;margin-top:4px">This report is generated automatically every day at 7:00 AM. Powered by AI.</div>
+  <div style="background:#111;padding:14px 22px;text-align:center">
+    <div style="font-size:11px;color:#555">VUE Auto Parts &nbsp;·&nbsp; Chipinge, ZWE &nbsp;·&nbsp; <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
+    <div style="font-size:10px;color:#3a3a3a;margin-top:3px">Auto-generated daily at 7:00 AM &nbsp;·&nbsp; Powered by AI</div>
   </div>
 
 </div>
