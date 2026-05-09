@@ -8,7 +8,8 @@ const STATE_PATH     = path.join(__dirname, "insights-state.json");
 const ANALYTICS_MODEL = "llama-3.3-70b-versatile";
 const EMAIL_TO       = "info@vueautoparts.com";
 const ZWE_UTC_OFFSET = 2;   // Zimbabwe is UTC+2 (no DST)
-const DAILY_HOUR_UTC = 18;  // 8 PM Zimbabwe = 6 PM UTC
+const DAILY_HOUR_UTC  = 18; // 8 PM Zimbabwe = 6 PM UTC
+const WEEKLY_HOUR_UTC = 6;  // 8 AM Zimbabwe = 6 AM UTC (Monday mornings)
 
 // ── CSV / Sheet helpers ──────────────────────────────────────────────────────
 
@@ -727,13 +728,209 @@ async function runMonthlyInsights() {
   return { ok: true, type: "monthly", month: monthLabel };
 }
 
+// ── Weekly digest ─────────────────────────────────────────────────────────────
+
+function buildWeeklyPrompt(weekDays, m) {
+  const dayLines = weekDays.map(d =>
+    `${d.label}: $${d.revenue.toFixed(2)} (${d.txns} txns)`
+  ).join("\n");
+  const weekTotal  = weekDays.reduce((s, d) => s + d.revenue, 0);
+  const prevTotal  = m.revP7;
+  const wowPct     = prevTotal > 0 ? (((weekTotal - prevTotal) / prevTotal) * 100).toFixed(1) : null;
+  const topSellers = m.topSellers.slice(0, 5).map(s =>
+    `${s.name}: $${s.revenue.toFixed(2)}, ${s.units} units`).join("; ");
+  const alerts     = [...m.critical, ...m.low].map(s =>
+    `${s.name} (${s.daysLeft}d left)`).join(", ") || "None";
+
+  return `You are the CFO of VUE Auto Parts, Chipinge, Zimbabwe. Weekly review — Monday morning, 8 AM. Be direct. One sentence per point. No filler.
+
+LAST 7 DAYS:
+${dayLines}
+Week total: $${weekTotal.toFixed(2)} | Prev week: $${prevTotal.toFixed(2)} | WoW: ${wowPct !== null ? (wowPct >= 0 ? "+" : "") + wowPct + "%" : "N/A"}
+Top sellers: ${topSellers || "No data"}
+Stock alerts: ${alerts}
+Dead stock value: $${m.deadStockValue.toFixed(2)}
+
+Return JSON ONLY — no markdown, no backticks:
+{
+  "verdict": "One sentence: was this a good or bad week and why — use the numbers",
+  "top_fix": "The single most important thing to fix or act on this week — be specific",
+  "wins": ["Best thing that happened this week with a number", "Second win"],
+  "watch": ["One risk or warning worth watching", "Second if relevant"],
+  "actions": [
+    "Monday: specific task",
+    "Mid-week: specific task",
+    "Before Friday: specific task"
+  ]
+}`;
+}
+
+function buildWeeklyEmailHtml(weekDays, m, ai) {
+  const zwe      = zweNow();
+  const dateFull = zwe.toLocaleDateString("en-ZW", { day: "numeric", month: "long", year: "numeric" });
+  const weekTotal = weekDays.reduce((s, d) => s + d.revenue, 0);
+  const prevTotal = m.revP7;
+  const wowPct    = prevTotal > 0 ? (((weekTotal - prevTotal) / prevTotal) * 100).toFixed(1) : null;
+  const wowUp     = wowPct !== null && parseFloat(wowPct) >= 0;
+  const wowColor  = wowPct !== null ? (wowUp ? "#16a34a" : "#dc2626") : "#888";
+  const wowLabel  = wowPct !== null ? `${wowUp ? "▲" : "▼"} ${Math.abs(wowPct)}% vs last week` : "";
+
+  // Bar chart — inline HTML table
+  const maxRev = Math.max(...weekDays.map(d => d.revenue), 1);
+  const bars = weekDays.map(d => {
+    const pct  = Math.round((d.revenue / maxRev) * 80);
+    const isTop = d.revenue === maxRev;
+    return `
+    <td style="text-align:center;vertical-align:bottom;padding:0 4px;width:${100/weekDays.length}%">
+      <div style="font-size:10px;font-weight:700;color:${isTop ? "#0f4f36" : "#555"};margin-bottom:3px">$${d.revenue >= 100 ? Math.round(d.revenue) : d.revenue.toFixed(1)}</div>
+      <div style="background:${isTop ? "#0f4f36" : "#c8dfd6"};height:${pct + 8}px;border-radius:3px 3px 0 0;min-height:8px"></div>
+      <div style="font-size:10px;color:#888;margin-top:4px;font-weight:${isTop ? "800" : "400"}">${d.shortLabel}</div>
+    </td>`;
+  }).join("");
+
+  // Actions
+  const actionLabels = ["MON", "MID", "FRI"];
+  const actions = (ai.actions || []).map((a, i) => `
+    <tr>
+      <td style="padding:10px 0 10px 18px;vertical-align:top;width:38px">
+        <div style="background:#0f4f36;color:#fff;font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 6px;border-radius:3px;text-align:center;white-space:nowrap">${actionLabels[i] || i + 1}</div>
+      </td>
+      <td style="padding:10px 18px 10px 8px;font-size:13px;color:#111;line-height:1.45;border-bottom:1px solid #f0f0f0;font-weight:${i === 0 ? "700" : "400"}">${a}</td>
+    </tr>`).join("");
+
+  // Wins & Watch
+  const wins  = (ai.wins  || []).map(w => `<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #f0fdf4"><span style="color:#16a34a;flex-shrink:0">✓</span><span style="font-size:13px;color:#333;line-height:1.4">${w}</span></div>`).join("");
+  const watch = (ai.watch || []).map(w => `<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #fef9f0"><span style="color:#d97706;flex-shrink:0">⚠</span><span style="font-size:13px;color:#333;line-height:1.4">${w}</span></div>`).join("");
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#eeeee8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="max-width:600px;margin:20px auto;border-radius:10px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,0.12)">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(160deg,#0a3526 0%,#0f4f36 55%,#1a6b4a 100%);padding:22px 26px 18px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:10px">VUE AUTO PARTS &nbsp;·&nbsp; WEEKLY DIGEST</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.2">Week in Review</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:3px">Monday ${dateFull}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:20px;font-weight:800;color:#fff">$${weekTotal.toFixed(2)}</div>
+        <div style="font-size:11px;font-weight:700;color:${wowColor};margin-top:2px">${wowLabel}</div>
+      </div>
+    </div>
+    ${ai.verdict ? `<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.08);border-radius:6px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.5;font-style:italic">"${ai.verdict}"</div>` : ""}
+  </div>
+
+  <!-- 7-day bar chart -->
+  <div style="background:#fff;padding:18px 18px 14px;border-bottom:2px solid #f0f0f0">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#9ca3af;text-transform:uppercase;margin-bottom:12px">📈 Revenue — Last 7 Days</div>
+    <table style="width:100%;border-collapse:collapse">
+      <tr style="vertical-align:bottom">${bars}</tr>
+    </table>
+    <div style="margin-top:10px;height:2px;background:#f0f0f0;border-radius:1px"></div>
+  </div>
+
+  <!-- #1 thing to fix — prominent -->
+  ${ai.top_fix ? `<div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:16px 20px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#92400e;text-transform:uppercase;margin-bottom:6px">🎯 #1 Priority This Week</div>
+    <div style="font-size:15px;font-weight:700;color:#111;line-height:1.5">${ai.top_fix}</div>
+  </div>` : ""}
+
+  <!-- Actions for the week -->
+  <div style="background:#0f4f36;padding:14px 0 6px">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.45);text-transform:uppercase;padding:0 18px;margin-bottom:8px">⚡ This Week's Actions</div>
+    <table style="width:100%;border-collapse:collapse;background:#fff">${actions || '<tr><td style="padding:12px 18px;font-size:13px;color:#888">No actions generated</td></tr>'}</table>
+  </div>
+
+  <!-- Wins & Watch -->
+  <div style="background:#fff;padding:0">
+    <table style="width:100%;border-collapse:collapse">
+      <tr>
+        <td style="padding:16px 18px;vertical-align:top;border-right:1px solid #f0f0f0;width:50%">
+          <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#16a34a;text-transform:uppercase;margin-bottom:8px">✓ Wins</div>
+          ${wins || '<div style="font-size:12px;color:#888">No data</div>'}
+        </td>
+        <td style="padding:16px 18px;vertical-align:top;width:50%">
+          <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#d97706;text-transform:uppercase;margin-bottom:8px">⚠ Watch</div>
+          ${watch || '<div style="font-size:12px;color:#888">No warnings</div>'}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Stock strip (only if alerts) -->
+  ${(m.critical.length || m.low.length) ? `<div style="padding:12px 18px;background:#fef2f2;border-top:2px solid #fecaca">
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#dc2626;text-transform:uppercase;margin-bottom:6px">🚨 Stock to Order</div>
+    <div style="font-size:13px;color:#991b1b;line-height:1.6">
+      ${m.critical.map(s => `<strong>${s.name}</strong> — ${s.daysLeft}d left`).join(" &nbsp;·&nbsp; ")}
+      ${m.low.map(s => `${s.name} — ${s.daysLeft}d`).join(" &nbsp;·&nbsp; ")}
+    </div>
+  </div>` : ""}
+
+  <!-- Footer -->
+  <div style="background:#111;padding:13px 20px;text-align:center">
+    <div style="font-size:11px;color:#555">VUE Auto Parts &nbsp;·&nbsp; Chipinge, ZWE &nbsp;·&nbsp; <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
+    <div style="font-size:10px;color:#3a3a3a;margin-top:3px">Weekly digest — every Monday at 8:00 AM &nbsp;·&nbsp; Powered by AI</div>
+  </div>
+
+</div>
+</body></html>`;
+}
+
+async function runWeeklyInsights() {
+  console.log("[insights] Running weekly digest…");
+  const { sales, inventory } = await fetchAllData();
+  const m = computeMetrics(sales, inventory, null);
+
+  // Build the last-7-days breakdown (day by day, oldest → newest)
+  const zwe = zweNow();
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(zwe.getTime() - (6 - i) * 86400000);
+    const key = d.toISOString().slice(0, 10);
+    const data = m.byDate[key] || { revenue: 0, txns: 0, units: 0 };
+    return {
+      key,
+      label:      d.toLocaleDateString("en-ZW", { weekday: "short", day: "numeric", month: "short" }),
+      shortLabel: d.toLocaleDateString("en-ZW", { weekday: "short" }).slice(0, 3),
+      revenue:    data.revenue,
+      txns:       data.txns,
+      units:      data.units,
+    };
+  });
+
+  const raw = await callGroq([
+    { role: "system", content: "You are a world-class CFO and business advisor. You always return valid JSON only, no markdown, no code blocks." },
+    { role: "user",   content: buildWeeklyPrompt(weekDays, m) },
+  ]);
+
+  let ai = {};
+  try {
+    const start = raw.indexOf("{"), end = raw.lastIndexOf("}");
+    if (start !== -1 && end !== -1) ai = JSON.parse(raw.slice(start, end + 1));
+  } catch (e) {
+    console.error("[insights] Failed to parse AI weekly response:", e.message);
+    ai = { verdict: "Weekly digest ready.", top_fix: "", wins: [], watch: [], actions: [] };
+  }
+
+  const html = buildWeeklyEmailHtml(weekDays, m, ai);
+  const weekTotal = weekDays.reduce((s, d) => s + d.revenue, 0);
+  await sendEmail(
+    `📅 Weekly Digest — w/e ${weekDays[6].label} | $${weekTotal.toFixed(2)} | VUE Auto Parts`,
+    html,
+    `Weekly digest for the week ending ${weekDays[6].label}`
+  );
+  console.log("[insights] Weekly digest sent ✓");
+  return { ok: true, type: "weekly" };
+}
+
 // ── State management ──────────────────────────────────────────────────────────
 
 function loadState() {
   try {
     if (fsSync.existsSync(STATE_PATH)) return JSON.parse(fsSync.readFileSync(STATE_PATH, "utf8"));
   } catch {}
-  return { lastDailySent: null, lastMonthlySent: null };
+  return { lastDailySent: null, lastMonthlySent: null, lastWeeklySent: null };
 }
 
 function saveState(state) {
@@ -743,42 +940,54 @@ function saveState(state) {
 // ── Scheduler ─────────────────────────────────────────────────────────────────
 
 function startScheduler() {
-  console.log("[insights] Scheduler started — daily at 7 AM ZWE, monthly on the 1st.");
+  console.log("[insights] Scheduler started — daily 8 PM ZWE, weekly Mon 8 AM ZWE, monthly 1st.");
 
   setInterval(async () => {
-    const now   = new Date(); // UTC
-    const utcH  = now.getUTCHours();
-    const utcM  = now.getUTCMinutes();
-    if (utcH !== DAILY_HOUR_UTC || utcM !== 0) return;
-
-    const zwe   = zweNow();
+    const nowUtc = new Date();
+    const utcH   = nowUtc.getUTCHours();
+    const utcM   = nowUtc.getUTCMinutes();
+    const state  = loadState();
+    const zwe    = zweNow();
     const todayKey  = zwe.toISOString().slice(0, 10);
     const monthKey  = todayKey.slice(0, 7);
     const isFirst   = zwe.getUTCDate() === 1;
-    const state     = loadState();
+    const isMonday  = zwe.getUTCDay() === 1;
 
-    // Monthly report on the 1st
-    if (isFirst && state.lastMonthlySent !== monthKey) {
+    // Weekly digest — Monday at 8 AM Zimbabwe
+    if (isMonday && utcH === WEEKLY_HOUR_UTC && utcM === 0 && state.lastWeeklySent !== todayKey) {
       try {
-        await runMonthlyInsights();
-        state.lastMonthlySent = monthKey;
+        await runWeeklyInsights();
+        state.lastWeeklySent = todayKey;
         saveState(state);
       } catch (err) {
-        console.error("[insights] Monthly report failed:", err.message);
+        console.error("[insights] Weekly digest failed:", err.message);
       }
     }
 
-    // Daily report
-    if (state.lastDailySent !== todayKey) {
-      try {
-        await runDailyInsights();
-        state.lastDailySent = todayKey;
-        saveState(state);
-      } catch (err) {
-        console.error("[insights] Daily report failed:", err.message);
+    // Daily + monthly — 8 PM Zimbabwe
+    if (utcH === DAILY_HOUR_UTC && utcM === 0) {
+      // Monthly on the 1st
+      if (isFirst && state.lastMonthlySent !== monthKey) {
+        try {
+          await runMonthlyInsights();
+          state.lastMonthlySent = monthKey;
+          saveState(state);
+        } catch (err) {
+          console.error("[insights] Monthly report failed:", err.message);
+        }
+      }
+      // Daily
+      if (state.lastDailySent !== todayKey) {
+        try {
+          await runDailyInsights();
+          state.lastDailySent = todayKey;
+          saveState(state);
+        } catch (err) {
+          console.error("[insights] Daily report failed:", err.message);
+        }
       }
     }
   }, 60 * 1000);
 }
 
-module.exports = { startScheduler, runDailyInsights, runMonthlyInsights };
+module.exports = { startScheduler, runDailyInsights, runMonthlyInsights, runWeeklyInsights };

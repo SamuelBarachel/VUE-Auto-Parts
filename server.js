@@ -960,6 +960,8 @@ async function handleInsightsRun(request, response) {
   try {
     const result = type === "monthly"
       ? await insights.runMonthlyInsights()
+      : type === "weekly"
+      ? await insights.runWeeklyInsights()
       : await insights.runDailyInsights();
     return sendJson(response, 200, result);
   } catch (err) {
