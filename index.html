@@ -414,6 +414,13 @@
                 <strong>Manage Rewards</strong>
                 <span>Look up, update, revoke or renew a card</span>
               </button>
+              <button class="stf-action-card stf-card-full stf-action-insights" data-action="insights" type="button">
+                <span class="stf-action-icon stf-icon-insights" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </span>
+                <strong>Business Intelligence</strong>
+                <span>Send AI-powered daily or monthly report to your email</span>
+              </button>
             </div>
 
             <!-- Conditional: Event fields -->
@@ -483,6 +490,24 @@
               <div class="enq-field" style="margin-top:10px">
                 <label for="stfRwdPhone">Customer's phone number <span class="enq-opt">(internal ID — not printed)</span></label>
                 <input type="tel" id="stfRwdPhone" class="stf-input" maxlength="20" placeholder="e.g. +263771234567" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Conditional: Business Intelligence -->
+            <div class="stf-context" id="stfCtx_insights" hidden>
+              <div class="stf-insights-info">
+                <div class="stf-insights-info-title">🧠 AI Business Intelligence</div>
+                <p class="stf-insights-info-desc">Analyses your Sales, Inventory &amp; performance data using AI, then sends a detailed report to <strong>info@vueautoparts.com</strong>. Reports are also sent automatically — daily at 7 AM.</p>
+                <div class="stf-insights-type-row">
+                  <label class="stf-insights-type-label">
+                    <input type="radio" name="stfInsightType" value="daily" checked> Daily Report
+                    <span class="stf-insights-type-hint">Today's data, stock alerts, AI recommendations &amp; action items</span>
+                  </label>
+                  <label class="stf-insights-type-label">
+                    <input type="radio" name="stfInsightType" value="monthly"> Monthly Review
+                    <span class="stf-insights-type-hint">Full financial analysis, wins/losses, cost-cutting &amp; strategy</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -765,6 +790,6 @@
     <script src="ai.js?v=2"></script>
     <script src="earn.js?v=1"></script>
     <script src="rewards.js?v=1"></script>
-    <script src="staff.js?v=4"></script>
+    <script src="staff.js?v=5"></script>
   </body>
 </html>

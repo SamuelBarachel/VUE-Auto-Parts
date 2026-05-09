@@ -2164,6 +2164,60 @@ h2 {
 .stf-icon-manage { background: #e6f0fb; color: #1a6bc4; }
 .stf-icon-manage:where(.stf-action-card.selected *) { background: rgba(255,255,255,0.18); color: #fff; }
 
+.stf-action-insights { border-color: #0f4f36; }
+.stf-action-insights:hover { background: #f0fdf4; }
+.stf-action-insights.selected { background: linear-gradient(135deg,#0f4f36,#1a6b4a) !important; border-color: #0f4f36 !important; color: #fff !important; }
+.stf-icon-insights { background: #dcfce7; color: #0f4f36; }
+.stf-icon-insights:where(.stf-action-card.selected *) { background: rgba(255,255,255,0.18); color: #fff; }
+
+.stf-insights-info {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.stf-insights-info-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f4f36;
+  margin-bottom: 6px;
+}
+.stf-insights-info-desc {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.stf-insights-type-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stf-insights-type-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #fff;
+  border: 1.5px solid #d1fae5;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f4f36;
+  transition: border-color 140ms, background 140ms;
+}
+.stf-insights-type-label:has(input:checked) {
+  border-color: #0f4f36;
+  background: #f0fdf4;
+}
+.stf-insights-type-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: #666;
+  margin-left: 20px;
+}
+
 /* ── Manage Rewards Panel 6 ── */
 .stf-rwd-results {
   display: flex;

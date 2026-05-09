@@ -49,7 +49,7 @@
   let verifiedStaff     = null;
   let currentCardSerial = null;
 
-  const CARD_ACTIONS = ["biz-card", "rewards-card", "manage-rewards"];
+  const CARD_ACTIONS = ["biz-card", "rewards-card", "manage-rewards", "insights"];
 
   function setStep(n) {
     steps.forEach((s, i) => s.classList.toggle("active", i < n));
@@ -139,9 +139,10 @@
       const isCard = CARD_ACTIONS.includes(selectedAction);
       document.getElementById("stfNotesWrap").hidden = isCard;
 
-      if (selectedAction === "manage-rewards")  draftBtn.textContent = "Search →";
-      else if (selectedAction === "biz-card")   draftBtn.textContent = "Preview Card →";
+      if (selectedAction === "manage-rewards")    draftBtn.textContent = "Search →";
+      else if (selectedAction === "biz-card")     draftBtn.textContent = "Preview Card →";
       else if (selectedAction === "rewards-card") draftBtn.textContent = "Register & Preview →";
+      else if (selectedAction === "insights")     draftBtn.textContent = "Send Report →";
       else { draftBtn.textContent = "Draft my message →"; document.getElementById("stfNotesWrap").hidden = false; }
 
       const ctx = document.getElementById("stfCtx_" + selectedAction);
@@ -213,6 +214,32 @@
       currentCardSerial = null;
       renderBizCardPreview();
       showPanel(5);
+      return;
+    }
+
+    if (selectedAction === "insights") {
+      const type = document.querySelector("input[name='stfInsightType']:checked")?.value || "daily";
+      err2.textContent = "";
+      draftBtn.disabled = true;
+      draftBtn.textContent = "Generating…";
+      try {
+        const res  = await fetch("/api/insights-run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+          showInsightsSuccess(type);
+        } else {
+          err2.textContent = data.error || "Could not generate report. Please try again.";
+        }
+      } catch {
+        err2.textContent = "Connection error. Please try again.";
+      } finally {
+        draftBtn.disabled = false;
+        draftBtn.textContent = "Send Report →";
+      }
       return;
     }
 
@@ -621,6 +648,23 @@
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     const rand  = n => Array.from({length: n}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
     return `${prefix}-${new Date().getFullYear()}-${rand(4)}-${rand(4)}`;
+  }
+
+  function showInsightsSuccess(type) {
+    const label = type === "monthly" ? "Monthly Intelligence Brief" : "Daily Business Report";
+    if (cardPreview) cardPreview.innerHTML = `
+      <div style="text-align:center;padding:32px 16px">
+        <div style="font-size:48px;margin-bottom:12px">📬</div>
+        <div style="font-size:17px;font-weight:800;color:#0f4f36;margin-bottom:6px">${label} Sent!</div>
+        <div style="font-size:13px;color:#666;line-height:1.5">Check <strong>info@vueautoparts.com</strong><br>for your AI-powered report.</div>
+      </div>`;
+    if (cardTitle) cardTitle.textContent = "Report Sent";
+    if (cardScaler) cardScaler.style.transform = "scale(1)";
+    if (cardStage)  cardStage.style.minHeight  = "200px";
+    document.getElementById("stfCopyBtn").hidden = true;
+    document.getElementById("stfWaBtn").hidden   = true;
+    document.getElementById("stfPrintBtn").hidden = true;
+    showPanel(5);
   }
 
   function buildWatermarkRows() {

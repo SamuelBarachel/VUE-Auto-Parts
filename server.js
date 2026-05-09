@@ -1,7 +1,8 @@
-const http   = require("node:http");
-const fs     = require("node:fs/promises");
-const fsSync = require("node:fs");
-const path   = require("node:path");
+const http     = require("node:http");
+const fs       = require("node:fs/promises");
+const fsSync   = require("node:fs");
+const path     = require("node:path");
+const insights = require("./insights");
 
 const PORT = process.env.PORT || 5000;
 const ROOT = __dirname;
@@ -928,6 +929,22 @@ async function handleRewardsPay(request, response) {
   return sendJson(response, 200, { ok: true, amount });
 }
 
+async function handleInsightsRun(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  const type = String(body.type || "daily");
+  try {
+    const result = type === "monthly"
+      ? await insights.runMonthlyInsights()
+      : await insights.runDailyInsights();
+    return sendJson(response, 200, result);
+  } catch (err) {
+    console.error("[insights-run] error:", err.message);
+    return sendJson(response, 500, { ok: false, error: err.message });
+  }
+}
+
 const server = http.createServer(async (request, response) => {
   try {
     if (request.method === "POST" && request.url === "/api/ask") {
@@ -972,6 +989,9 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && request.url === "/api/rewards-pay") {
       return await handleRewardsPay(request, response);
     }
+    if (request.method === "POST" && request.url === "/api/insights-run") {
+      return await handleInsightsRun(request, response);
+    }
     return await serveStatic(request, response);
   } catch (error) {
     return sendJson(response, 500, WHATSAPP_FALLBACK);
@@ -980,4 +1000,5 @@ const server = http.createServer(async (request, response) => {
 
 server.listen(PORT, () => {
   console.log(`VUE Auto Parts listening on ${PORT}`);
+  insights.startScheduler();
 });
