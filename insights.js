@@ -8,7 +8,7 @@ const STATE_PATH     = path.join(__dirname, "insights-state.json");
 const ANALYTICS_MODEL = "llama-3.3-70b-versatile";
 const EMAIL_TO       = "info@vueautoparts.com";
 const ZWE_UTC_OFFSET = 2;   // Zimbabwe is UTC+2 (no DST)
-const DAILY_HOUR_UTC = 5;   // 7 AM Zimbabwe = 5 AM UTC
+const DAILY_HOUR_UTC = 18;  // 8 PM Zimbabwe = 6 PM UTC
 
 // ── CSV / Sheet helpers ──────────────────────────────────────────────────────
 
