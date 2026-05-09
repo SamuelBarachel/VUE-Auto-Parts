@@ -1401,6 +1401,16 @@ h2 {
   color: var(--ink);
 }
 
+.stf-wa-btn {
+  border-color: #25d366;
+  color: #128c3e;
+}
+.stf-wa-btn:hover {
+  background: #25d366;
+  border-color: #25d366;
+  color: #fff;
+}
+
 /* ── Success panel ── */
 .enq-success {
   align-items: center;

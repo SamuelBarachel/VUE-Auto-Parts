@@ -29,6 +29,7 @@
   const cardTitle     = document.getElementById("stfCardTitle");
   const printBtn      = document.getElementById("stfPrintBtn");
   const copyBtn       = document.getElementById("stfCopyBtn");
+  const waBtn         = document.getElementById("stfWaBtn");
   const cardBack      = document.getElementById("stfCardBack");
   const rwdResults    = document.getElementById("stfRwdResults");
   const rwdResultCt   = document.getElementById("stfRwdResultCount");
@@ -377,6 +378,58 @@
         console.error("[copyBtn] failed:", err);
         copyBtn.textContent = "Failed";
         setTimeout(() => { copyBtn.textContent = origTxt; copyBtn.disabled = false; }, 2000);
+      }
+    });
+  }
+
+  if (waBtn) {
+    waBtn.addEventListener("click", async () => {
+      if (!cardPreview || !cardPreview.querySelector(".vue-card")) return;
+      const cardEl  = cardPreview.querySelector(".vue-card");
+      const origTxt = waBtn.textContent;
+      waBtn.disabled = true;
+      waBtn.textContent = "Preparing…";
+
+      try {
+        const canvas = await html2canvas(cardEl, {
+          scale: 4,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false,
+        });
+        canvas.toBlob(async (blob) => {
+          const cardName = verifiedStaff
+            ? `${verifiedStaff.firstName} ${verifiedStaff.lastName}`
+            : "Customer";
+          const fileName = selectedAction === "rewards-card"
+            ? "VUE_Rewards_Card.png"
+            : "VUE_Business_Card.png";
+          const file = new File([blob], fileName, { type: "image/png" });
+
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: "VUE Auto Parts Card",
+                text: `Here is the VUE Auto Parts card for ${cardName}. Please forward to the customer.`,
+              });
+            } catch (err) {
+              if (err.name !== "AbortError") {
+                window.open("https://wa.me/16038662272?text=" + encodeURIComponent(`Card for ${cardName} — please forward to customer. (Attach card image manually)`), "_blank");
+              }
+            }
+          } else {
+            window.open("https://wa.me/16038662272?text=" + encodeURIComponent(`Card ready for ${cardName} — open the website to download and forward.`), "_blank");
+          }
+
+          waBtn.textContent = origTxt;
+          waBtn.disabled = false;
+        }, "image/png");
+      } catch (err) {
+        console.error("[waBtn] failed:", err);
+        waBtn.textContent = origTxt;
+        waBtn.disabled = false;
       }
     });
   }
