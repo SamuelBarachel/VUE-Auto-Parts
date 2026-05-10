@@ -1017,6 +1017,12 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && request.url === "/api/insights-run") {
       return await handleInsightsRun(request, response);
     }
+    if (request.method === "POST" && request.url === "/api/jobs-draft") {
+      return await handleJobsDraft(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/jobs-apply") {
+      return await handleJobsApply(request, response);
+    }
     return await serveStatic(request, response);
   } catch (error) {
     return sendJson(response, 500, WHATSAPP_FALLBACK);

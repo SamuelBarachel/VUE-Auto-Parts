@@ -275,6 +275,7 @@
           <h2>Tell us the part, model &amp; quantity.</h2>
           <p>We'll draft a message for you — just review and send. No email account needed.</p>
           <button class="enq-trigger" id="enqOpen" type="button">Send an enquiry</button>
+          <button class="enq-trigger job-trigger" id="jobOpen" type="button">Jobs</button>
         </div>
         <div class="contact-card">
           <img src="vueauto-logo.jpeg" alt="VUE Auto Parts">
@@ -710,6 +711,346 @@
         </div>
       </div>
 
+      <!-- Jobs modal -->
+      <div id="jobOverlay" class="enq-overlay job-overlay" role="dialog" aria-modal="true" aria-label="Apply for a job at VUE Auto Parts" hidden>
+        <div class="enq-modal job-modal">
+
+          <!-- Header -->
+          <div class="job-modal-head">
+            <div class="job-head-left">
+              <span class="job-head-icon" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              </span>
+              <span class="job-head-title">Careers at VUE Auto Parts</span>
+            </div>
+            <button class="stf-close" id="jobClose" aria-label="Close">&times;</button>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="job-progress-wrap" id="jobProgressWrap" hidden>
+            <div class="job-progress-track">
+              <div class="job-progress-fill" id="jobProgressFill"></div>
+            </div>
+            <span class="job-progress-label" id="jobProgressLabel"></span>
+          </div>
+
+          <!-- ── Step 0: ID photo pre-check ── -->
+          <div class="job-step" id="jobStep0">
+            <div class="job-step-icon">📋</div>
+            <h3 class="job-step-title">Before you begin</h3>
+            <p class="job-step-desc">To complete this application you will need a <strong>clear photo of your National ID</strong> (front side). This is required to verify your identity.</p>
+            <p class="job-step-desc">Do you already have this photo saved on your device and ready to upload?</p>
+            <div class="job-yn-row">
+              <button class="job-yn-btn job-yn-yes" id="jobIdReady" type="button">
+                <span class="job-yn-icon">✓</span> Yes, I have it ready
+              </button>
+              <button class="job-yn-btn job-yn-no" id="jobIdNotReady" type="button">
+                <span class="job-yn-icon">✗</span> Not yet
+              </button>
+            </div>
+            <div class="job-id-hint" id="jobIdNotReadyHint" hidden>
+              <span class="job-id-hint-icon">📷</span>
+              <span>Please take or locate a photo of your National ID first, then come back to apply. We look forward to hearing from you!</span>
+            </div>
+          </div>
+
+          <!-- ── Step 1: Role selection ── -->
+          <div class="job-step" id="jobStep1" hidden>
+            <h3 class="job-step-title">Which role are you applying for?</h3>
+            <p class="job-step-desc">Choose the position that best suits you.</p>
+            <div class="job-role-cards">
+              <button class="job-role-card" data-role="Shopkeeper" type="button">
+                <span class="job-role-icon">🏪</span>
+                <div class="job-role-body">
+                  <strong>Shop Keeper</strong>
+                  <span class="job-role-salary">$100.00 / month</span>
+                  <span class="job-role-type">Full-time · 7 AM – 6 PM</span>
+                  <p class="job-role-desc">Serve customers, manage stock, handle sales and maintain the shop floor.</p>
+                </div>
+              </button>
+              <button class="job-role-card" data-role="Shop Hygienist" type="button">
+                <span class="job-role-icon">🧹</span>
+                <div class="job-role-body">
+                  <strong>Shop Hygienist</strong>
+                  <span class="job-role-salary">$20.00 / month</span>
+                  <span class="job-role-type">Part-time · Less frequent</span>
+                  <p class="job-role-desc">Keep the shop and surroundings clean and well-presented at all times.</p>
+                </div>
+              </button>
+            </div>
+            <div class="job-foot">
+              <span class="job-err" id="jobErr1" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext1" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 2: First Name ── -->
+          <div class="job-step" id="jobStep2" hidden>
+            <h3 class="job-step-title">What is your first name?</h3>
+            <p class="job-step-desc">Enter your first name exactly as it appears on your ID.</p>
+            <div class="enq-field job-solo-field">
+              <label for="jobFirstName">First name</label>
+              <input id="jobFirstName" type="text" placeholder="e.g. Tendai" maxlength="60" autocomplete="given-name">
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="1" type="button">← Back</button>
+              <span class="job-err" id="jobErr2" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext2" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 3: Last Name ── -->
+          <div class="job-step" id="jobStep3" hidden>
+            <h3 class="job-step-title">What is your last name?</h3>
+            <p class="job-step-desc">Enter your surname exactly as it appears on your ID.</p>
+            <div class="enq-field job-solo-field">
+              <label for="jobLastName">Last name</label>
+              <input id="jobLastName" type="text" placeholder="e.g. Moyo" maxlength="60" autocomplete="family-name">
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="2" type="button">← Back</button>
+              <span class="job-err" id="jobErr3" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext3" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 4: Date of Birth ── -->
+          <div class="job-step" id="jobStep4" hidden>
+            <h3 class="job-step-title">When were you born?</h3>
+            <p class="job-step-desc">Select your date of birth. Applicants must be <strong>16 years or older</strong>.</p>
+            <div class="job-dob-row">
+              <div class="enq-field">
+                <label for="jobDobMonth">Month</label>
+                <select id="jobDobMonth" class="stf-select">
+                  <option value="">Month</option>
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+              <div class="enq-field">
+                <label for="jobDobDay">Day</label>
+                <select id="jobDobDay" class="stf-select">
+                  <option value="">Day</option>
+                </select>
+              </div>
+              <div class="enq-field">
+                <label for="jobDobYear">Year</label>
+                <select id="jobDobYear" class="stf-select">
+                  <option value="">Year</option>
+                </select>
+              </div>
+            </div>
+            <div class="job-age-result" id="jobAgeResult" hidden></div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="3" type="button">← Back</button>
+              <span class="job-err" id="jobErr4" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext4" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 5: Sex ── -->
+          <div class="job-step" id="jobStep5" hidden>
+            <h3 class="job-step-title">What is your sex?</h3>
+            <p class="job-step-desc">We do not discriminate based on sex, race, colour, creed, or any other personal characteristic.</p>
+            <div class="job-choice-list" id="jobSexList">
+              <button class="job-choice-btn" data-val="Male" type="button">Male</button>
+              <button class="job-choice-btn" data-val="Female" type="button">Female</button>
+              <button class="job-choice-btn" data-val="Prefer not to say" type="button">Prefer not to say</button>
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="4" type="button">← Back</button>
+              <span class="job-err" id="jobErr5" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext5" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 6: Town/Locality ── -->
+          <div class="job-step" id="jobStep6" hidden>
+            <h3 class="job-step-title">Where do you currently live?</h3>
+            <p class="job-step-desc">Enter the name of your town or locality.</p>
+            <div class="enq-field job-solo-field">
+              <label for="jobLocation">Town or locality</label>
+              <input id="jobLocation" type="text" placeholder="e.g. Chipinge, Chibuwe" maxlength="100" autocomplete="address-level2">
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="5" type="button">← Back</button>
+              <span class="job-err" id="jobErr6" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext6" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 7: Phone Number ── -->
+          <div class="job-step" id="jobStep7" hidden>
+            <h3 class="job-step-title">What is your phone number?</h3>
+            <p class="job-step-desc">We will use this to contact you if your application is successful.</p>
+            <div class="enq-field job-solo-field">
+              <label for="jobPhone">Phone number</label>
+              <input id="jobPhone" type="tel" placeholder="e.g. +263 77 123 4567" maxlength="30" autocomplete="tel">
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="6" type="button">← Back</button>
+              <span class="job-err" id="jobErr7" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext7" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 8: National ID Number ── -->
+          <div class="job-step" id="jobStep8" hidden>
+            <h3 class="job-step-title">What is your National ID number?</h3>
+            <p class="job-step-desc">Enter the ID number exactly as it appears on your National ID card.</p>
+            <div class="enq-field job-solo-field">
+              <label for="jobIdNumber">National ID number</label>
+              <input id="jobIdNumber" type="text" placeholder="e.g. 63-123456A78" maxlength="50">
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="7" type="button">← Back</button>
+              <span class="job-err" id="jobErr8" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext8" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 9: Computer Skills ── -->
+          <div class="job-step" id="jobStep9" hidden>
+            <h3 class="job-step-title">Can you operate a computer?</h3>
+            <p class="job-step-desc">Basic computer skills are helpful, but a willingness to learn is equally valued.</p>
+            <div class="job-choice-list" id="jobComputerList">
+              <button class="job-choice-btn" data-val="Yes" type="button">Yes, I can</button>
+              <button class="job-choice-btn" data-val="Learning" type="button">I'm willing to learn</button>
+              <button class="job-choice-btn" data-val="No" type="button">Not yet</button>
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="8" type="button">← Back</button>
+              <span class="job-err" id="jobErr9" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext9" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 10: Medical Conditions ── -->
+          <div class="job-step" id="jobStep10" hidden>
+            <h3 class="job-step-title">Any medical conditions we should know about?</h3>
+            <p class="job-step-desc">This role involves light physical activity in an auto parts environment. Please share anything that may affect your ability to work — <strong>we do not discriminate</strong> based on health, disability, or any personal characteristic. This helps us support you better.</p>
+            <div class="enq-field job-solo-field">
+              <label for="jobMedical">Medical conditions <span class="enq-opt">(optional — leave blank if none)</span></label>
+              <textarea id="jobMedical" class="stf-textarea" rows="3" maxlength="500" placeholder="e.g. I have a mild dust allergy…"></textarea>
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="9" type="button">← Back</button>
+              <button class="enq-btn-primary job-next-btn" id="jobNext10" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 11: Affirmations ── -->
+          <div class="job-step" id="jobStep11" hidden>
+            <h3 class="job-step-title">A few things to confirm</h3>
+            <p class="job-step-desc">Please read and tick each statement carefully before proceeding.</p>
+            <div class="job-affirm-list">
+              <label class="job-affirm-item" id="jobAffirmAge">
+                <input type="checkbox" id="jobChkAge">
+                <span class="job-affirm-box"></span>
+                <span class="job-affirm-text">I confirm that I am <strong>16 years of age or older</strong>.</span>
+              </label>
+              <label class="job-affirm-item">
+                <input type="checkbox" id="jobChkHours">
+                <span class="job-affirm-box"></span>
+                <span class="job-affirm-text">I am willing to work from <strong>7 AM to 6 PM</strong>. I understand I will receive <strong>additional pay for weekend work</strong>, calculated based on my skills and role.</span>
+              </label>
+              <label class="job-affirm-item">
+                <input type="checkbox" id="jobChkBenefits">
+                <span class="job-affirm-box"></span>
+                <span class="job-affirm-text">I am happy for VUE Auto Parts to <strong>subsidise my daily transport and food</strong>. I understand that as the company grows, so will my salary and benefits.</span>
+              </label>
+            </div>
+            <div class="job-foot" style="margin-top:20px">
+              <button class="enq-btn-ghost" data-back="10" type="button">← Back</button>
+              <span class="job-err" id="jobErr11" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext11" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 12: Upload ID Photo ── -->
+          <div class="job-step" id="jobStep12" hidden>
+            <h3 class="job-step-title">Upload your National ID photo</h3>
+            <p class="job-step-desc">Please attach the photo of your National ID you prepared earlier. Make sure it is clear and readable.</p>
+            <div class="job-upload-area" id="jobUploadArea">
+              <input type="file" id="jobIdPhoto" accept="image/*" class="job-file-input">
+              <label for="jobIdPhoto" class="job-upload-label" id="jobUploadLabel">
+                <span class="job-upload-icon">📎</span>
+                <span class="job-upload-text">Click to choose your ID photo</span>
+                <span class="job-upload-hint">JPG, PNG, or WEBP · max 5 MB</span>
+              </label>
+              <div class="job-upload-preview" id="jobUploadPreview" hidden>
+                <img id="jobIdPreviewImg" src="" alt="ID preview">
+                <button class="job-upload-remove" id="jobRemovePhoto" type="button" aria-label="Remove photo">✕</button>
+              </div>
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="11" type="button">← Back</button>
+              <span class="job-err" id="jobErr12" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext12" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 13: AI Draft ── -->
+          <div class="job-step" id="jobStep13" hidden>
+            <h3 class="job-step-title">Your application message</h3>
+            <p class="job-step-desc">Our AI has drafted a brief, structured message based on your answers. Review and edit it if you wish.</p>
+            <div class="enq-draft-wrap" style="min-height:120px">
+              <div class="enq-draft-loading" id="jobDraftLoading">
+                <span class="enq-spinner"></span> Drafting your message…
+              </div>
+              <textarea id="jobDraft" class="enq-draft" rows="8" maxlength="2000" hidden></textarea>
+            </div>
+            <div class="job-foot">
+              <button class="enq-btn-ghost" data-back="12" type="button">← Back</button>
+              <span class="job-err" id="jobErr13" aria-live="polite"></span>
+              <button class="enq-btn-primary job-next-btn" id="jobNext13" type="button" disabled>Next →</button>
+            </div>
+          </div>
+
+          <!-- ── Step 14: Signature ── -->
+          <div class="job-step" id="jobStep14" hidden>
+            <h3 class="job-step-title">Sign your application</h3>
+            <p class="job-step-desc">By entering your full name below and submitting, you are <strong>electronically signing</strong> this application. Use your name exactly as it appears on your National ID or passport.</p>
+            <div class="enq-field job-solo-field">
+              <label for="jobSignature">Full name (as on your ID)</label>
+              <input id="jobSignature" type="text" placeholder="e.g. Tendai Blessing Moyo" maxlength="100">
+            </div>
+            <div class="stf-esign-notice" style="margin-top:16px">
+              <span class="stf-esign-icon">🔏</span>
+              <span>This electronic signature is legally equivalent to your handwritten signature. Your details and ID will be submitted to VUE Auto Parts management.</span>
+            </div>
+            <div class="job-foot" style="margin-top:16px">
+              <button class="enq-btn-ghost" data-back="13" type="button">← Back</button>
+              <span class="job-err" id="jobErr14" aria-live="polite"></span>
+              <button class="enq-btn-primary" id="jobSubmitBtn" type="button">Submit Application</button>
+            </div>
+          </div>
+
+          <!-- ── Step 15: Success ── -->
+          <div class="job-step enq-success" id="jobStep15" hidden>
+            <div class="enq-success-icon" style="background:#d1fae5;color:#065f46;font-size:1.6rem;width:64px;height:64px">✓</div>
+            <h3 class="enq-title" style="margin-top:4px">Application submitted!</h3>
+            <p class="enq-subtitle">Thank you for applying. We have received your application and will be in touch. We look forward to the possibility of working together.</p>
+            <div class="job-success-note">
+              <span>💬</span>
+              <span>You can also follow up with us on <a href="https://wa.me/16038662272" target="_blank" rel="noopener">WhatsApp</a> if you have any questions.</span>
+            </div>
+            <button class="enq-btn-ghost" id="jobDone" type="button" style="margin-top:8px">Close</button>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Enquiry modal -->
       <div id="enqOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Send an enquiry" hidden>
         <div class="enq-modal">
@@ -795,5 +1136,6 @@
     <script src="earn.js?v=1"></script>
     <script src="rewards.js?v=1"></script>
     <script src="staff.js?v=5"></script>
+    <script src="jobs.js?v=1"></script>
   </body>
 </html>

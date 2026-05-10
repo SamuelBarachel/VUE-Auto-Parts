@@ -1,0 +1,40 @@
+. User Interface & Entry
+Placement: Add a new "Jobs" button immediately adjacent to the final "Send an Enquiry" button at the bottom of the page.
+
+Design Aesthetic: The UI must be high-end and elegant, mimicking a formal professional report. It should utilize a minimalist, clean layout with a Progress Bar at the top.
+
+Interaction Model: A multi-step modal (popup) with an "X" close button in the top right. To ensure focus, show only one question per screen with "Back" and "Next" navigation buttons.
+
+II. Roles & Compensation
+Shop Keeper: Base salary of $100.00 per month.
+
+Shop Hygienist: Part-time, less frequent role with a salary of $20.00 per month.
+
+Incentives: Include a note that weekend work earns extra pay at a rate based on the applicant's specific skills. Mention that VUE Autoparts subsidizes transport and food, and salaries grow as the company excels.
+
+III. Initial Screening & Logic
+Pre-Check: Before starting, the user must affirm they have a photo of their National ID ready to upload. If they select "No," they are prompted to find it before proceeding.
+
+Eligibility Logic: The Date of Birth must be collected via three specific dropdowns (Month, Day, Year) to standardize formatting. The system must automatically calculate age; the user must be at least 16 years old to proceed.
+
+IV. Data Collection Steps
+Identity: Collect First Name and Last Name.
+
+Location: Name of town or locality.
+
+Digital Literacy: A Yes/No question regarding the ability to operate a computer (or willingness to learn).
+
+Identification: A field for National ID Number and a mandatory file upload for the ID photo.
+
+Commitment: Affirmation of the 7 AM to 6 PM work schedule.
+
+Medical Disclosure: An open text field for medical conditions that may affect work in a car parts shop. Include a clear disclaimer: “We do not discriminate based on medical conditions, sex, color, creed, or race.”
+
+Final Signature: The user signs the application by typing their Full Name exactly as it appears on their ID/Passport.
+
+V. Backend & Automation
+Google Sheets Integration: Data must be sent to a tab named "Applicants." Required columns: First Name, Last Name, ID, Date of Birth, Phone, and Sex.
+
+AI Message Generation: The AI will take the raw data and generate a very brief, structured application summary.
+
+Email Notification: The system will email the company the AI-structured message along with the uploaded National ID image.
