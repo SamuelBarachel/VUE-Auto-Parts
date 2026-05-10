@@ -276,6 +276,7 @@
           <p>We'll draft a message for you — just review and send. No email account needed.</p>
           <button class="enq-trigger" id="enqOpen" type="button">Send an enquiry</button>
           <button class="enq-trigger job-trigger" id="jobOpen" type="button">Jobs</button>
+          <button class="job-status-trigger" id="jobStatusOpen" type="button">Check application status</button>
         </div>
         <div class="contact-card">
           <img src="vueauto-logo.jpeg" alt="VUE Auto Parts">
@@ -414,6 +415,13 @@
                 </span>
                 <strong>Manage Rewards</strong>
                 <span>Look up, update, revoke or renew a card</span>
+              </button>
+              <button class="stf-action-card stf-card-full stf-action-apps" data-action="manage-applications" id="stfAppsCard" type="button" hidden>
+                <span class="stf-action-icon stf-icon-apps" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </span>
+                <strong>Manage Applications</strong>
+                <span>Review, approve or deny job applications</span>
               </button>
               <button class="stf-action-card stf-card-full stf-action-insights" data-action="insights" type="button">
                 <span class="stf-action-icon stf-icon-insights" aria-hidden="true">
@@ -599,6 +607,17 @@
             <div class="enq-err" id="stfRwdManageErr" aria-live="polite" style="margin-top:10px"></div>
             <div style="margin-top:18px">
               <button class="enq-btn-ghost" id="stfRwdManageBack" type="button">← New Search</button>
+            </div>
+          </div>
+
+          <!-- Panel 7: Manage Applications (Director only) -->
+          <div class="enq-panel" id="stfPanel7" hidden>
+            <h3 class="enq-title">Job Applications</h3>
+            <p class="enq-subtitle" id="stfAppsStats">Loading…</p>
+            <div id="stfAppsResults" class="apps-results"></div>
+            <div class="enq-err" id="stfAppsErr" aria-live="polite" style="margin-top:10px"></div>
+            <div style="margin-top:18px">
+              <button class="enq-btn-ghost" id="stfAppsBack" type="button">← Back</button>
             </div>
           </div>
 
@@ -1051,6 +1070,70 @@
         </div>
       </div>
 
+      <!-- Job Status modal -->
+      <div id="jobStatusOverlay" class="enq-overlay job-overlay" role="dialog" aria-modal="true" aria-label="Check your application status" hidden>
+        <div class="enq-modal job-modal">
+          <div class="job-modal-head">
+            <div class="job-head-left">
+              <span class="job-head-icon" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </span>
+              <span class="job-head-title">Application Status</span>
+            </div>
+            <button class="stf-close" id="jobStatusClose" aria-label="Close">&times;</button>
+          </div>
+          <div id="jobStatusPanelSearch" class="enq-panel">
+            <h3 class="enq-title">Check your application</h3>
+            <p class="enq-subtitle">Enter the details you applied with to see your current status.</p>
+            <div class="enq-fields">
+              <div class="enq-field">
+                <label for="jsFirstName">First name</label>
+                <input id="jsFirstName" type="text" placeholder="e.g. Tendai" maxlength="60" autocomplete="given-name">
+              </div>
+              <div class="enq-field">
+                <label for="jsLastName">Last name</label>
+                <input id="jsLastName" type="text" placeholder="e.g. Moyo" maxlength="60" autocomplete="family-name">
+              </div>
+              <div class="enq-field">
+                <label for="jsIdNumber">National ID number</label>
+                <input id="jsIdNumber" type="text" placeholder="e.g. 63-123456A78" maxlength="50">
+              </div>
+              <div class="enq-field">
+                <label>Date of birth</label>
+                <div class="job-dob-row">
+                  <select id="jsDobMonth" class="stf-select">
+                    <option value="">Month</option>
+                    <option value="1">January</option><option value="2">February</option>
+                    <option value="3">March</option><option value="4">April</option>
+                    <option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option>
+                    <option value="9">September</option><option value="10">October</option>
+                    <option value="11">November</option><option value="12">December</option>
+                  </select>
+                  <select id="jsDobDay" class="stf-select">
+                    <option value="">Day</option>
+                  </select>
+                  <select id="jsDobYear" class="stf-select">
+                    <option value="">Year</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="enq-foot" style="margin-top:16px">
+              <span class="enq-err" id="jsErr" aria-live="polite"></span>
+              <button class="enq-btn-primary" id="jsCheckBtn" type="button">Check Status →</button>
+            </div>
+          </div>
+
+          <div id="jobStatusPanelResult" class="enq-panel" hidden>
+            <div id="jsResultContent"></div>
+            <div style="margin-top:20px">
+              <button class="enq-btn-ghost" id="jsBackBtn" type="button">← Search again</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Enquiry modal -->
       <div id="enqOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Send an enquiry" hidden>
         <div class="enq-modal">
@@ -1135,7 +1218,9 @@
     <script src="ai.js?v=2"></script>
     <script src="earn.js?v=1"></script>
     <script src="rewards.js?v=1"></script>
-    <script src="staff.js?v=5"></script>
+    <script src="staff.js?v=6"></script>
     <script src="jobs.js?v=1"></script>
+    <script src="applications.js?v=1"></script>
+    <script src="job-status.js?v=1"></script>
   </body>
 </html>

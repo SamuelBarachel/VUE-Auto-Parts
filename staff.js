@@ -35,6 +35,8 @@
   const rwdResultCt   = document.getElementById("stfRwdResultCount");
   const rwdManageErr  = document.getElementById("stfRwdManageErr");
   const rwdManageBack = document.getElementById("stfRwdManageBack");
+  const panel7        = document.getElementById("stfPanel7");
+  const appsCard      = document.getElementById("stfAppsCard");
 
   const steps = [
     document.getElementById("stfStep1"),
@@ -49,7 +51,7 @@
   let verifiedStaff     = null;
   let currentCardSerial = null;
 
-  const CARD_ACTIONS = ["biz-card", "rewards-card", "manage-rewards", "insights"];
+  const CARD_ACTIONS = ["biz-card", "rewards-card", "manage-rewards", "insights", "manage-applications"];
 
   function setStep(n) {
     steps.forEach((s, i) => s.classList.toggle("active", i < n));
@@ -62,8 +64,10 @@
     panel4.hidden = n !== 4;
     if (panel5) panel5.hidden = n !== 5;
     if (panel6) panel6.hidden = n !== 6;
+    if (panel7) panel7.hidden = n !== 7;
     setStep(n <= 4 ? n : 3);
   }
+  window._stfShowPanel = showPanel;
 
   function openModal() {
     overlay.hidden = false;
@@ -104,6 +108,7 @@
     currentCardSerial = null;
     actionCards.forEach(c => c.classList.remove("selected"));
     contextSections.forEach(s => s.hidden = true);
+    if (appsCard) appsCard.hidden = true;
     document.getElementById("stfNotesWrap").hidden = true;
     draftBtn.disabled = true;
     draftBtn.textContent = "Draft my message →";
@@ -139,10 +144,11 @@
       const isCard = CARD_ACTIONS.includes(selectedAction);
       document.getElementById("stfNotesWrap").hidden = isCard;
 
-      if (selectedAction === "manage-rewards")    draftBtn.textContent = "Search →";
-      else if (selectedAction === "biz-card")     draftBtn.textContent = "Preview Card →";
-      else if (selectedAction === "rewards-card") draftBtn.textContent = "Register & Preview →";
-      else if (selectedAction === "insights")     draftBtn.textContent = "Send Report →";
+      if (selectedAction === "manage-rewards")         draftBtn.textContent = "Search →";
+      else if (selectedAction === "biz-card")          draftBtn.textContent = "Preview Card →";
+      else if (selectedAction === "rewards-card")      draftBtn.textContent = "Register & Preview →";
+      else if (selectedAction === "insights")          draftBtn.textContent = "Send Report →";
+      else if (selectedAction === "manage-applications") draftBtn.textContent = "View Applications →";
       else { draftBtn.textContent = "Draft my message →"; document.getElementById("stfNotesWrap").hidden = false; }
 
       const ctx = document.getElementById("stfCtx_" + selectedAction);
@@ -175,6 +181,10 @@
         verifiedStaff = data.staff;
         confirmedName.textContent = data.staff.firstName + " " + data.staff.lastName;
         confirmedRole.textContent = data.staff.role;
+        if (appsCard) {
+          const isDirector = ["director", "admin", "manager"].includes((data.staff.role || "").toLowerCase());
+          appsCard.hidden = !isDirector;
+        }
         showPanel(2);
       } else {
         err1.textContent = data.error || "Details not found. Please check and try again.";
@@ -190,6 +200,13 @@
 
   draftBtn.addEventListener("click", async () => {
     if (!selectedAction) { err2.textContent = "Please choose an action."; return; }
+
+    if (selectedAction === "manage-applications") {
+      if (!verifiedStaff) { err2.textContent = "Not verified."; return; }
+      err2.textContent = "";
+      if (window.VUEApps) window.VUEApps.open(verifiedStaff, showPanel);
+      return;
+    }
 
     if (selectedAction === "manage-rewards") {
       await doSearchRewards();

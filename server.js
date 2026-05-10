@@ -1,9 +1,10 @@
-const http     = require("node:http");
-const fs       = require("node:fs/promises");
-const fsSync   = require("node:fs");
-const path     = require("node:path");
-const { Pool } = require("pg");
-const insights = require("./insights");
+const http        = require("node:http");
+const fs          = require("node:fs/promises");
+const fsSync      = require("node:fs");
+const path        = require("node:path");
+const { Pool }    = require("pg");
+const PDFDocument = require("pdfkit");
+const insights    = require("./insights");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
@@ -707,6 +708,34 @@ async function handleJobsApply(request, response) {
     }
 
     console.log("[jobs-apply] sent:", firstName, lastName, "|", role, "|", phone);
+
+    const dobStr = `${dobMonth}/${dobDay}/${dobYear}`;
+    try {
+      await pool.query(
+        `INSERT INTO job_applications
+         (first_name, last_name, id_number, dob, dob_month, dob_day, dob_year, age,
+          phone, sex, location, role, computer_skills, medical, signature, draft, id_photo_name)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+        [
+          firstName, lastName,
+          String(idNumber || "").trim(),
+          dobStr, String(dobMonth||""), String(dobDay||""), String(dobYear||""),
+          age ? parseInt(age) : null,
+          String(phone || "").trim(),
+          String(sex || "").trim(),
+          String(location || "").trim(),
+          String(role).trim(),
+          String(computer || "").trim(),
+          String(medical || "").trim(),
+          String(signature || "").trim(),
+          String(draft || "").trim().slice(0, 3000),
+          String(idPhotoName || "").trim(),
+        ]
+      );
+    } catch (dbErr) {
+      console.error("[jobs-apply] DB save error:", dbErr.message);
+    }
+
     return sendJson(response, 200, { ok: true });
   } catch (err) {
     console.error("[jobs-apply] fetch error:", err.message);
@@ -1117,6 +1146,347 @@ async function handleRewardsPay(request, response) {
   return sendJson(response, 200, { ok: true, amount });
 }
 
+async function verifyDirector(body) {
+  const firstName = String(body.directorFirst || "").trim().toLowerCase();
+  const lastName  = String(body.directorLast  || "").trim().toLowerCase();
+  const id        = normalizeId(String(body.directorId   || "").trim());
+  const role      = String(body.directorRole  || "").trim().toLowerCase();
+  if (!firstName || !lastName || !id) return null;
+  try {
+    const res = await fetch(STAFF_URL, { cache: "no-store" });
+    if (!res.ok) return null;
+    const csv  = await res.text();
+    const rows = parseCsv(csv);
+    const hdrs = rows[0] || [];
+    const idx  = {
+      firstName: hdrs.findIndex(h => h.trim().toLowerCase() === "first name"),
+      lastName:  hdrs.findIndex(h => h.trim().toLowerCase() === "last name"),
+      id:        hdrs.findIndex(h => h.trim().toLowerCase() === "id"),
+      role:      hdrs.findIndex(h => h.trim().toLowerCase() === "role"),
+    };
+    const list = rows.slice(1).map(r => ({
+      firstName: (r[idx.firstName] || "").trim(),
+      lastName:  (r[idx.lastName]  || "").trim(),
+      id:        (r[idx.id]        || "").trim(),
+      role:      (r[idx.role]      || "").trim(),
+    })).filter(s => s.firstName || s.lastName);
+    const match = list.find(s =>
+      s.firstName.toLowerCase() === firstName &&
+      s.lastName.toLowerCase()  === lastName  &&
+      normalizeId(s.id)         === id        &&
+      s.role.toLowerCase()      === role
+    );
+    if (!match) return null;
+    if (!["director", "admin", "manager"].includes(match.role.toLowerCase())) return null;
+    return match;
+  } catch { return null; }
+}
+
+function generateLetterPdf(app, type) {
+  return new Promise((resolve, reject) => {
+    const doc    = new PDFDocument({ size: "A4", margins: { top: 72, bottom: 72, left: 72, right: 72 } });
+    const chunks = [];
+    doc.on("data",  c => chunks.push(c));
+    doc.on("end",   ()  => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+
+    const GREEN = "#0f4f36";
+    const GOLD  = "#b8902a";
+    const GREY  = "#555555";
+    const W     = 595 - 144;
+
+    doc.rect(72, 72, W, 4).fill(GREEN);
+    doc.moveDown(0.6);
+    doc.fontSize(18).font("Helvetica-Bold").fillColor(GREEN).text("VUE AUTO PARTS", { align: "center" });
+    doc.fontSize(9).font("Helvetica").fillColor(GREY)
+       .text("Chipinge, Manicaland, Zimbabwe  ·  info@vueautoparts.com  ·  vueautoparts.com", { align: "center" });
+    doc.moveDown(0.4);
+    doc.rect(72, doc.y, W, 1).fill(GOLD);
+    doc.moveDown(1.2);
+
+    const dateStr = new Date().toLocaleDateString("en-ZW", { day: "numeric", month: "long", year: "numeric" });
+    doc.fontSize(10).font("Helvetica").fillColor("#000").text(dateStr, { align: "right" });
+    doc.moveDown(0.8);
+
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#000")
+       .text(`${app.first_name} ${app.last_name}`);
+    doc.font("Helvetica").fillColor(GREY)
+       .text(app.location || "Zimbabwe");
+    doc.moveDown(1);
+
+    const isApproved = type === "approved";
+    const refLine    = `RE: Job Application — ${app.role}`;
+
+    doc.fontSize(10).font("Helvetica-Bold").fillColor(GREEN).text(refLine);
+    doc.moveDown(0.6);
+    doc.fontSize(10).font("Helvetica").fillColor("#000").text(`Dear ${app.first_name},`);
+    doc.moveDown(0.6);
+
+    if (isApproved) {
+      doc.text(
+        `We are pleased to inform you that your application for the position of ${app.role} at VUE Auto Parts ` +
+        `has been reviewed and, after careful consideration, we are delighted to offer you this role.`,
+        { lineGap: 3 }
+      );
+      doc.moveDown(0.6);
+      doc.text(
+        `We were impressed by your commitment to joining our team and by the information provided in your application. ` +
+        `A member of our team will be in contact with you shortly to confirm your start date and any further arrangements. ` +
+        `Please bring your original National ID and any relevant documents on your first day of work.`,
+        { lineGap: 3 }
+      );
+      doc.moveDown(0.6);
+      doc.text(
+        `Salaries at VUE Auto Parts grow with the company's performance, and we look forward to building something great together. ` +
+        `Congratulations, and welcome to the VUE Auto Parts family.`,
+        { lineGap: 3 }
+      );
+    } else {
+      doc.text(
+        `Thank you sincerely for taking the time to apply for the position of ${app.role} at VUE Auto Parts. ` +
+        `We genuinely appreciate your interest in joining our team and the effort you put into your application.`,
+        { lineGap: 3 }
+      );
+      doc.moveDown(0.6);
+      doc.text(
+        `After careful consideration of all applications received, we regret to inform you that we are unable to offer ` +
+        `you this particular position at this time. Please know that this decision was not made lightly, and it does not ` +
+        `reflect negatively on your character or potential.`,
+        { lineGap: 3 }
+      );
+      doc.moveDown(0.6);
+      doc.text(
+        `We encourage you to continue pursuing your aspirations with confidence. Should further opportunities arise at ` +
+        `VUE Auto Parts, we sincerely hope you will consider applying again. We wish you every success in your future endeavours.`,
+        { lineGap: 3 }
+      );
+    }
+
+    doc.moveDown(1);
+    doc.text("Yours " + (isApproved ? "sincerely" : "respectfully") + ",");
+    doc.moveDown(0.4);
+    doc.rect(72, doc.y, 120, 1).fill(GREY); doc.moveDown(0.4);
+    doc.font("Helvetica-Bold").fillColor("#000").text("Samuel Takwirira");
+    doc.font("Helvetica").fillColor(GREY).fontSize(9).text("Director");
+    doc.text("VUE Auto Parts, Chipinge, Zimbabwe");
+
+    const footerY = 595 + 72 + 4;
+    doc.rect(72, footerY, W, 1).fill(GREEN);
+
+    doc.end();
+  });
+}
+
+async function handleJobsStatus(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const { firstName, lastName, idNumber, dobMonth, dobDay, dobYear } = body;
+  if (!firstName || !lastName || !idNumber || !dobMonth || !dobDay || !dobYear) {
+    return sendJson(response, 400, { ok: false, error: "All fields are required." });
+  }
+
+  const res = await pool.query(
+    `SELECT id, first_name, last_name, role, status, letter_published, created_at
+     FROM job_applications
+     WHERE LOWER(first_name) = LOWER($1)
+       AND LOWER(last_name)  = LOWER($2)
+       AND LOWER(REPLACE(id_number, '-', '')) = LOWER(REPLACE($3, '-', ''))
+       AND dob_month = $4 AND dob_day = $5 AND dob_year = $6
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [firstName.trim(), lastName.trim(), idNumber.trim(),
+     String(dobMonth), String(dobDay), String(dobYear)]
+  );
+
+  if (res.rowCount === 0) {
+    return sendJson(response, 200, { ok: false, error: "No application found matching those details. Please check your information and try again." });
+  }
+
+  const row = res.rows[0];
+  return sendJson(response, 200, {
+    ok: true,
+    applicationId:    row.id,
+    status:           row.status,
+    role:             row.role,
+    submittedAt:      row.created_at,
+    letterAvailable:  row.letter_published && (row.status === "approved" || row.status === "denied"),
+  });
+}
+
+async function handleJobsLetter(request, response) {
+  const url    = new URL(request.url, "http://localhost");
+  const appId  = parseInt(url.searchParams.get("id") || "0");
+  const fn     = (url.searchParams.get("fn")  || "").trim().toLowerCase();
+  const ln     = (url.searchParams.get("ln")  || "").trim().toLowerCase();
+  const idn    = (url.searchParams.get("idn") || "").trim().replace(/-/g, "").toLowerCase();
+
+  if (!appId || !fn || !ln || !idn) {
+    response.writeHead(400, { "Content-Type": "text/plain" });
+    return response.end("Bad request.");
+  }
+
+  const res = await pool.query(
+    `SELECT * FROM job_applications WHERE id = $1`, [appId]
+  );
+  if (res.rowCount === 0) {
+    response.writeHead(404, { "Content-Type": "text/plain" });
+    return response.end("Application not found.");
+  }
+
+  const app = res.rows[0];
+  const ok  =
+    app.first_name.toLowerCase() === fn &&
+    app.last_name.toLowerCase()  === ln &&
+    app.id_number.replace(/-/g, "").toLowerCase() === idn;
+
+  if (!ok) {
+    response.writeHead(403, { "Content-Type": "text/plain" });
+    return response.end("Verification failed.");
+  }
+  if (!app.letter_published) {
+    response.writeHead(403, { "Content-Type": "text/plain" });
+    return response.end("Letter not yet available.");
+  }
+  if (app.status !== "approved" && app.status !== "denied") {
+    response.writeHead(403, { "Content-Type": "text/plain" });
+    return response.end("No letter available.");
+  }
+
+  try {
+    const pdf      = await generateLetterPdf(app, app.status);
+    const safeName = `${app.first_name}_${app.last_name}`.replace(/[^a-zA-Z_]/g, "_");
+    const type     = app.status === "approved" ? "Offer_Letter" : "Outcome_Letter";
+    response.writeHead(200, {
+      "Content-Type":        "application/pdf",
+      "Content-Disposition": `attachment; filename="VUE_${type}_${safeName}.pdf"`,
+      "Content-Length":      pdf.length,
+      "Cache-Control":       "no-store",
+    });
+    return response.end(pdf);
+  } catch (err) {
+    console.error("[jobs-letter] PDF error:", err.message);
+    response.writeHead(500, { "Content-Type": "text/plain" });
+    return response.end("Could not generate letter.");
+  }
+}
+
+async function handleStaffApplicationsList(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const res = await pool.query(
+    `SELECT id, first_name, last_name, id_number, dob, age, phone, sex, location,
+            role, computer_skills, medical, signature, draft, id_photo_name,
+            status, decision_notes, decided_by, decided_at, letter_published, published_at, created_at
+     FROM job_applications
+     ORDER BY created_at DESC`
+  );
+
+  return sendJson(response, 200, { ok: true, applications: res.rows });
+}
+
+async function handleStaffApplicationsDecide(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const { applicationId, decision, notes } = body;
+  if (!applicationId || !decision) return sendJson(response, 400, { ok: false, error: "Application ID and decision required." });
+  if (!["approved", "denied"].includes(decision)) return sendJson(response, 400, { ok: false, error: "Decision must be 'approved' or 'denied'." });
+
+  const directorName = `${director.firstName} ${director.lastName}`;
+  const res = await pool.query(
+    `UPDATE job_applications
+     SET status = $1, decision_notes = $2, decided_by = $3, decided_at = NOW(), letter_published = false
+     WHERE id = $4
+     RETURNING id, status, first_name, last_name`,
+    [decision, String(notes || "").trim(), directorName, parseInt(applicationId)]
+  );
+
+  if (res.rowCount === 0) return sendJson(response, 404, { ok: false, error: "Application not found." });
+  console.log(`[apps-decide] ${decision}: ${res.rows[0].first_name} ${res.rows[0].last_name} by ${directorName}`);
+  return sendJson(response, 200, { ok: true, application: res.rows[0] });
+}
+
+async function handleStaffApplicationsPublish(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const { applicationId } = body;
+  if (!applicationId) return sendJson(response, 400, { ok: false, error: "Application ID required." });
+
+  const check = await pool.query("SELECT * FROM job_applications WHERE id = $1", [parseInt(applicationId)]);
+  if (check.rowCount === 0) return sendJson(response, 404, { ok: false, error: "Application not found." });
+
+  const app = check.rows[0];
+  if (app.status !== "approved" && app.status !== "denied") {
+    return sendJson(response, 400, { ok: false, error: "Application must be decided before publishing the letter." });
+  }
+
+  try {
+    const pdf = await generateLetterPdf(app, app.status);
+    const preview = {
+      size:     pdf.length,
+      filename: `VUE_${app.status === "approved" ? "Offer" : "Outcome"}_Letter_${app.first_name}_${app.last_name}.pdf`,
+    };
+    await pool.query(
+      `UPDATE job_applications SET letter_published = true, published_at = NOW() WHERE id = $1`,
+      [parseInt(applicationId)]
+    );
+    console.log(`[apps-publish] letter published for app ${applicationId} by ${director.firstName} ${director.lastName}`);
+    return sendJson(response, 200, { ok: true, preview });
+  } catch (err) {
+    console.error("[apps-publish] PDF error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not generate letter preview." });
+  }
+}
+
+async function handleStaffApplicationsPreviewPdf(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const { applicationId } = body;
+  if (!applicationId) return sendJson(response, 400, { ok: false, error: "Application ID required." });
+
+  const res = await pool.query("SELECT * FROM job_applications WHERE id = $1", [parseInt(applicationId)]);
+  if (res.rowCount === 0) {
+    response.writeHead(404, { "Content-Type": "text/plain" }); return response.end("Not found.");
+  }
+  const app = res.rows[0];
+  if (app.status !== "approved" && app.status !== "denied") {
+    response.writeHead(400, { "Content-Type": "text/plain" }); return response.end("Not decided yet.");
+  }
+  try {
+    const pdf = await generateLetterPdf(app, app.status);
+    response.writeHead(200, {
+      "Content-Type":        "application/pdf",
+      "Content-Disposition": "inline",
+      "Content-Length":      pdf.length,
+      "Cache-Control":       "no-store",
+    });
+    return response.end(pdf);
+  } catch (err) {
+    response.writeHead(500, { "Content-Type": "text/plain" }); return response.end("PDF error.");
+  }
+}
+
 async function handleInsightsRun(request, response) {
   let body;
   try { body = JSON.parse(await readRequestBody(request) || "{}"); }
@@ -1188,13 +1558,64 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && request.url === "/api/jobs-apply") {
       return await handleJobsApply(request, response);
     }
+    if (request.method === "POST" && request.url === "/api/jobs-status") {
+      return await handleJobsStatus(request, response);
+    }
+    if (request.method === "GET" && request.url.startsWith("/api/jobs/letter")) {
+      return await handleJobsLetter(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff/applications") {
+      return await handleStaffApplicationsList(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff/applications/decide") {
+      return await handleStaffApplicationsDecide(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff/applications/publish") {
+      return await handleStaffApplicationsPublish(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff/applications/preview-pdf") {
+      return await handleStaffApplicationsPreviewPdf(request, response);
+    }
     return await serveStatic(request, response);
   } catch (error) {
     return sendJson(response, 500, WHATSAPP_FALLBACK);
   }
 });
 
-server.listen(PORT, () => {
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS job_applications (
+      id              SERIAL PRIMARY KEY,
+      first_name      TEXT NOT NULL,
+      last_name       TEXT NOT NULL,
+      id_number       TEXT NOT NULL,
+      dob             TEXT NOT NULL,
+      dob_month       TEXT,
+      dob_day         TEXT,
+      dob_year        TEXT,
+      age             INTEGER,
+      phone           TEXT,
+      sex             TEXT,
+      location        TEXT,
+      role            TEXT NOT NULL,
+      computer_skills TEXT,
+      medical         TEXT,
+      signature       TEXT,
+      draft           TEXT,
+      id_photo_name   TEXT,
+      status          TEXT DEFAULT 'pending',
+      decision_notes  TEXT,
+      decided_by      TEXT,
+      decided_at      TIMESTAMPTZ,
+      letter_published BOOLEAN DEFAULT false,
+      published_at    TIMESTAMPTZ,
+      created_at      TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+}
+
+server.listen(PORT, async () => {
   console.log(`VUE Auto Parts listening on ${PORT}`);
+  await initDb().catch(err => console.error("[initDb] error:", err.message));
   insights.startScheduler();
 });
