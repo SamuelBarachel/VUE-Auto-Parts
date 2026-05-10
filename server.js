@@ -549,6 +549,171 @@ async function handleRewardEnquiry(request, response) {
   }
 }
 
+async function handleJobsDraft(request, response) {
+  const apiKey = process.env.GROQ_API_KEY;
+  const model  = (process.env.GROQ_MODEL || "llama-3.1-8b-instant").toLowerCase();
+
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const { role, firstName, lastName, dobMonth, dobDay, dobYear, age,
+          sex, location, phone, idNumber, computer, medical } = body;
+
+  const dobStr = `${dobMonth}/${dobDay}/${dobYear}`;
+  const fallback =
+    `Dear VUE Auto Parts Management,\n\n` +
+    `I, ${firstName} ${lastName}, would like to apply for the position of ${role} at VUE Auto Parts, Chipinge.\n\n` +
+    `Personal Details:\n` +
+    `• Date of Birth: ${dobStr} (Age: ${age})\n` +
+    `• Sex: ${sex}\n` +
+    `• Location: ${location}\n` +
+    `• Phone: ${phone}\n` +
+    `• National ID: ${idNumber}\n` +
+    `• Computer Skills: ${computer}\n` +
+    (medical ? `• Health notes: ${medical}\n` : "") +
+    `\nI confirm I am willing to work from 7 AM to 6 PM and I am happy with the transport and food subsidy. ` +
+    `I am excited about the opportunity to grow with VUE Auto Parts.\n\n` +
+    `Regards,\n${firstName} ${lastName}`;
+
+  if (!apiKey) return sendJson(response, 200, { ok: true, draft: fallback });
+
+  const prompt = `You are helping a job applicant write a short, professional application message for VUE Auto Parts, an auto parts shop in Chipinge, Zimbabwe. The message should be warm, genuine, and brief — 3 to 5 sentences. Do not include subject lines or greetings like "Dear Sir/Madam". Just the message body. Use the applicant's real details naturally.
+
+Applicant details:
+- Role applied for: ${role}
+- Full name: ${firstName} ${lastName}
+- Date of birth: ${dobStr} (Age: ${age})
+- Sex: ${sex}
+- Location: ${location}
+- Phone: ${phone}
+- National ID: ${idNumber}
+- Computer skills: ${computer}
+- Medical notes: ${medical || "None"}
+
+The message should confirm they are available 7 AM–6 PM, are happy with transport and food subsidy, and are eager to grow with the company. Return ONLY the message body, no subject, no sign-off label.`;
+
+  try {
+    const gr = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, temperature: 0.6, max_tokens: 250,
+        messages: [{ role: "user", content: prompt }] }),
+    });
+    if (!gr.ok) return sendJson(response, 200, { ok: true, draft: fallback });
+    const data = await gr.json();
+    const text = data.choices?.[0]?.message?.content?.trim() || "";
+    const full = (text || fallback) + `\n\nSigned: ${firstName} ${lastName} | ID: ${idNumber} | Phone: ${phone}`;
+    return sendJson(response, 200, { ok: true, draft: full });
+  } catch (err) {
+    console.error("[jobs-draft] error:", err.message);
+    return sendJson(response, 200, { ok: true, draft: fallback });
+  }
+}
+
+async function handleJobsApply(request, response) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[jobs-apply] RESEND_API_KEY not set");
+    return sendJson(response, 500, { ok: false, error: "Email service not configured." });
+  }
+
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const {
+    role, firstName, lastName, dobMonth, dobDay, dobYear, age,
+    sex, location, phone, idNumber, computer, medical,
+    signature, draft, idPhotoBase64, idPhotoName,
+  } = body;
+
+  if (!firstName || !lastName || !role || !signature) {
+    return sendJson(response, 400, { ok: false, error: "Required fields missing." });
+  }
+
+  const dobStr = `${dobMonth}/${dobDay}/${dobYear}`;
+  const computerLabel = computer === "Yes" ? "Yes" : computer === "Learning" ? "Willing to learn" : "Not yet";
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:8px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+        <h2 style="color:#fff;margin:0;font-size:20px;font-weight:900">New Job Application</h2>
+        <p style="color:rgba(255,255,255,0.55);margin:4px 0 0;font-size:13px">Received via the VUE Auto Parts website</p>
+      </div>
+      <div style="background:#f9f9f9;padding:20px 28px;border-left:1px solid #eee;border-right:1px solid #eee">
+        <div style="display:inline-block;background:#d1fae5;color:#065f46;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 12px;border-radius:999px;text-transform:uppercase;margin-bottom:16px">${role}</div>
+        <table style="border-collapse:collapse;width:100%;font-size:14px">
+          <tr><td style="padding:7px 0;color:#666;width:140px;font-weight:600;vertical-align:top">Full Name</td><td style="padding:7px 0;font-weight:700">${firstName} ${lastName}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Date of Birth</td><td style="padding:7px 0;font-weight:700">${dobStr} &nbsp;<span style="color:#888;font-weight:500">(Age ${age})</span></td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Sex</td><td style="padding:7px 0;font-weight:700">${sex}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Location</td><td style="padding:7px 0;font-weight:700">${location}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Phone</td><td style="padding:7px 0;font-weight:700">${phone}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">National ID</td><td style="padding:7px 0;font-weight:700;font-family:'Courier New',monospace">${idNumber}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Computer Skills</td><td style="padding:7px 0;font-weight:700">${computerLabel}</td></tr>
+          ${medical ? `<tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Health Notes</td><td style="padding:7px 0;font-weight:700">${medical}</td></tr>` : ""}
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Signed By</td><td style="padding:7px 0;font-weight:700;color:#0f4f36">${signature}</td></tr>
+        </table>
+      </div>
+      <div style="background:#fff;padding:20px 28px;border:1px solid #eee;border-top:none">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:10px">Application Message</div>
+        <p style="color:#333;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap">${draft}</p>
+      </div>
+      ${idPhotoBase64 ? `<div style="background:#f9f9f9;padding:16px 28px 20px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:10px">National ID Photo</div>
+        <p style="color:#888;font-size:12px;margin:0">The ID photo is attached to this email.</p>
+      </div>` : ""}
+    </div>
+  `;
+
+  const text = `New Job Application\n\nRole: ${role}\nName: ${firstName} ${lastName}\nDOB: ${dobStr} (Age ${age})\nSex: ${sex}\nLocation: ${location}\nPhone: ${phone}\nID: ${idNumber}\nComputer: ${computerLabel}\n${medical ? "Health: " + medical + "\n" : ""}Signed: ${signature}\n\n${draft}`;
+
+  const emailBody = {
+    from: "VUE Auto Parts <onboarding@resend.dev>",
+    to: ["info@vueautoparts.com"],
+    subject: `Job Application: ${role} — ${firstName} ${lastName}`,
+    html,
+    text,
+  };
+
+  if (idPhotoBase64 && idPhotoName) {
+    const ext = (idPhotoName.split(".").pop() || "jpg").toLowerCase();
+    const mimeMap = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
+    emailBody.attachments = [{
+      filename: `national-id-${firstName.toLowerCase()}-${lastName.toLowerCase()}.${ext}`,
+      content: idPhotoBase64,
+    }];
+  }
+
+  // Also log to Google Sheets Applicants tab via append (best-effort)
+  try {
+    const SHEET_ID = "1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho";
+    const appendUrl = `https://docs.google.com/forms/d/e/dummy/formResponse`; // placeholder
+    void appendUrl; // Google Sheets public write not available without OAuth — email is primary record
+  } catch (_) {}
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(emailBody),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error("[jobs-apply] Resend error:", res.status, errText);
+      return sendJson(response, 500, { ok: false, error: "Could not send application. Please try WhatsApp." });
+    }
+
+    console.log("[jobs-apply] sent:", firstName, lastName, "|", role, "|", phone);
+    return sendJson(response, 200, { ok: true });
+  } catch (err) {
+    console.error("[jobs-apply] fetch error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Network error. Please try WhatsApp." });
+  }
+}
+
 async function handleStaffVerify(request, response) {
   let body;
   try {

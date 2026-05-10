@@ -2931,14 +2931,16 @@ dd {
    ════════════════════════════════════════ */
 
 .job-trigger {
-  background: none;
-  border: 2px solid var(--green);
-  color: var(--green-dark);
+  background: rgba(255,255,255,0.10);
+  border: 2px solid rgba(255,255,255,0.45);
+  color: #fff;
+  font-family: inherit;
   margin-left: 10px;
 }
 .job-trigger:hover {
-  background: var(--green);
-  color: #fff;
+  background: rgba(255,255,255,0.20);
+  border-color: rgba(255,255,255,0.75);
+  opacity: 1;
 }
 
 .job-modal {
