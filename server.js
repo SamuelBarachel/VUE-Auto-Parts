@@ -737,6 +737,50 @@ async function handleJobsApply(request, response) {
       console.error("[jobs-apply] DB save error:", dbErr.message);
     }
 
+    // Fire-and-forget confirmation email to the applicant
+    const applicantEmail = String(body.email || "").trim().toLowerCase();
+    if (applicantEmail && apiKey) {
+      const statusUrl = "https://vueautoparts.com";
+      const confirmHtml = `
+        <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+          <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
+            <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+            <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">We received your application</h2>
+          </div>
+          <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
+            <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${firstName},</p>
+            <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
+              Thank you for applying for the <strong>${role}</strong> position at VUE Auto Parts. We have received your application and it is now under review. Our director will make a decision and we will be in touch.
+            </p>
+            <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 22px">
+              You can check the status of your application at any time by visiting our website and clicking <strong>"Check application status"</strong>.
+            </p>
+            <a href="${statusUrl}" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 22px;border-radius:8px;text-decoration:none">Check My Application Status →</a>
+          </div>
+          <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+            <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
+              VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
+              Questions? WhatsApp us at <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a> &nbsp;·&nbsp; info@vueautoparts.com
+            </p>
+          </div>
+        </div>`;
+      const confirmText = `Hi ${firstName},\n\nThank you for applying for the ${role} position at VUE Auto Parts. We have received your application and it is now under review.\n\nTo check your application status, visit:\n${statusUrl}\n\nScroll down to the careers section and click "Check application status".\n\n— VUE Auto Parts, Chipinge, Zimbabwe`;
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "VUE Auto Parts <onboarding@resend.dev>",
+          to: [applicantEmail],
+          subject: `Application received — ${role} at VUE Auto Parts`,
+          html: confirmHtml,
+          text: confirmText,
+        }),
+      }).then(r => {
+        if (r.ok) console.log(`[jobs-apply] confirmation sent to ${applicantEmail}`);
+        else r.text().then(t => console.error("[jobs-apply] confirm email error:", r.status, t));
+      }).catch(e => console.error("[jobs-apply] confirm email fetch error:", e.message));
+    }
+
     return sendJson(response, 200, { ok: true });
   } catch (err) {
     console.error("[jobs-apply] fetch error:", err.message);
@@ -1409,13 +1453,61 @@ async function handleStaffApplicationsDecide(request, response) {
     `UPDATE job_applications
      SET status = $1, decision_notes = $2, decided_by = $3, decided_at = NOW(), letter_published = false
      WHERE id = $4
-     RETURNING id, status, first_name, last_name`,
+     RETURNING id, status, first_name, last_name, email, role`,
     [decision, String(notes || "").trim(), directorName, parseInt(applicationId)]
   );
 
   if (res.rowCount === 0) return sendJson(response, 404, { ok: false, error: "Application not found." });
-  console.log(`[apps-decide] ${decision}: ${res.rows[0].first_name} ${res.rows[0].last_name} by ${directorName}`);
-  return sendJson(response, 200, { ok: true, application: res.rows[0] });
+
+  const app = res.rows[0];
+  console.log(`[apps-decide] ${decision}: ${app.first_name} ${app.last_name} by ${directorName}`);
+
+  // Fire-and-forget decision notification to the applicant
+  const resendKey = process.env.RESEND_API_KEY;
+  if (app.email && resendKey) {
+    const statusUrl = "https://vueautoparts.com";
+    const decisionHtml = `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+        <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
+          <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+          <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">Your application has been reviewed</h2>
+        </div>
+        <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
+          <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${app.first_name},</p>
+          <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
+            A decision has been made on your application for the <strong>${app.role}</strong> position at VUE Auto Parts.
+            Visit our website to see your full status and, once it is ready, download your official letter.
+          </p>
+          <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 22px">
+            On the website, click <strong>"Check application status"</strong> and enter the details you applied with.
+          </p>
+          <a href="${statusUrl}" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 22px;border-radius:8px;text-decoration:none">Check My Status →</a>
+        </div>
+        <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+          <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
+            VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
+            Questions? WhatsApp us at <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a> &nbsp;·&nbsp; info@vueautoparts.com
+          </p>
+        </div>
+      </div>`;
+    const decisionText = `Hi ${app.first_name},\n\nA decision has been made on your application for the ${app.role} position at VUE Auto Parts.\n\nTo see your full status and download your letter when it is ready, visit:\n${statusUrl}\n\nClick "Check application status" and enter your name, ID number and date of birth.\n\n— VUE Auto Parts, Chipinge, Zimbabwe`;
+    fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "VUE Auto Parts <onboarding@resend.dev>",
+        to: [app.email],
+        subject: `Your ${app.role} application has been reviewed — VUE Auto Parts`,
+        html: decisionHtml,
+        text: decisionText,
+      }),
+    }).then(r => {
+      if (r.ok) console.log(`[apps-decide] notification sent to ${app.email}`);
+      else r.text().then(t => console.error("[apps-decide] notify error:", r.status, t));
+    }).catch(e => console.error("[apps-decide] notify fetch error:", e.message));
+  }
+
+  return sendJson(response, 200, { ok: true, application: app });
 }
 
 async function handleStaffApplicationsPublish(request, response) {
