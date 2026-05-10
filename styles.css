@@ -3957,8 +3957,13 @@ dd {
 .apps-fs-btn.active[data-status="approved"] { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
 .apps-fs-btn.active[data-status="denied"]   { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
 
-.apps-filter-role-wrap { margin-left: auto; }
-.apps-filter-role {
+.apps-filter-right {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.apps-filter-select {
   padding: 5px 28px 5px 10px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -3972,7 +3977,7 @@ dd {
   cursor: pointer;
   transition: border-color 0.12s;
 }
-.apps-filter-role:focus { border-color: #0f4f36; }
+.apps-filter-select:focus { border-color: #0f4f36; }
 
 .apps-filter-count {
   font-size: 11px;

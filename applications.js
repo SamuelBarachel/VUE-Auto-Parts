@@ -8,7 +8,7 @@
 
   let _creds   = null;
   let _allApps = [];
-  let _filter  = { status: "all", role: "all", name: "" };
+  let _filter  = { status: "all", role: "all", name: "", sort: "newest" };
 
   window.VUEApps = {
     open: function (verifiedStaff, showPanelFn) {
@@ -126,10 +126,16 @@
               ${s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
             </button>`).join("")}
         </div>
-        <div class="apps-filter-role-wrap">
-          <select id="appsRoleSelect" class="apps-filter-role">
+        <div class="apps-filter-right">
+          <select id="appsRoleSelect" class="apps-filter-select">
             <option value="all">All roles</option>
             ${roles.map(r => `<option value="${escHtml(r)}"${_filter.role === r ? " selected" : ""}>${escHtml(r)}</option>`).join("")}
+          </select>
+          <select id="appsSortSelect" class="apps-filter-select">
+            <option value="newest"${_filter.sort === "newest" ? " selected" : ""}>Newest first</option>
+            <option value="oldest"${_filter.sort === "oldest" ? " selected" : ""}>Oldest first</option>
+            <option value="az"${_filter.sort === "az" ? " selected" : ""}>Name A → Z</option>
+            <option value="za"${_filter.sort === "za" ? " selected" : ""}>Name Z → A</option>
           </select>
         </div>
       </div>
@@ -160,6 +166,10 @@
       _filter.role = e.target.value;
       applyFilters();
     });
+    bar.querySelector("#appsSortSelect").addEventListener("change", e => {
+      _filter.sort = e.target.value;
+      applyFilters();
+    });
   }
 
   function escHtml(str) {
@@ -168,7 +178,7 @@
 
   /* ── Filter + render list ─────────────────────────────────────────── */
   function applyFilters() {
-    let filtered = _allApps;
+    let filtered = _allApps.slice();
     if (_filter.status !== "all") filtered = filtered.filter(a => a.status === _filter.status);
     if (_filter.role   !== "all") filtered = filtered.filter(a => (a.role || "Unknown") === _filter.role);
     if (_filter.name.trim()) {
@@ -176,6 +186,15 @@
       filtered = filtered.filter(a =>
         (a.first_name + " " + a.last_name).toLowerCase().includes(q)
       );
+    }
+    if (_filter.sort === "oldest") {
+      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (_filter.sort === "az") {
+      filtered.sort((a, b) => (a.last_name + a.first_name).localeCompare(b.last_name + b.first_name));
+    } else if (_filter.sort === "za") {
+      filtered.sort((a, b) => (b.last_name + b.first_name).localeCompare(a.last_name + a.first_name));
+    } else {
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
 
     const countEl = document.getElementById("appsFilterCount");
