@@ -6,7 +6,9 @@
   const appsErr     = document.getElementById("stfAppsErr");
   if (!panel7) return;
 
-  let _creds = null;
+  let _creds   = null;
+  let _allApps = [];
+  let _filter  = { status: "all", role: "all", name: "" };
 
   window.VUEApps = {
     open: function (verifiedStaff, showPanelFn) {
@@ -27,9 +29,9 @@
   }
 
   async function loadApplications(showPanelFn) {
-    if (appsStats)   appsStats.textContent   = "Loading applications…";
-    if (appsErr)     appsErr.textContent     = "";
-    if (appsResults) appsResults.innerHTML   = '<div class="enq-draft-loading"><span class="enq-spinner"></span> Loading…</div>';
+    if (appsStats)   appsStats.innerHTML  = '<p class="enq-subtitle">Loading applications…</p>';
+    if (appsErr)     appsErr.textContent  = "";
+    if (appsResults) appsResults.innerHTML = '<div class="enq-draft-loading"><span class="enq-spinner"></span> Loading…</div>';
     if (showPanelFn) showPanelFn(7);
 
     try {
@@ -40,63 +42,161 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!data.ok) {
-        if (appsErr)     appsErr.textContent   = data.error || "Could not load applications.";
-        if (appsStats)   appsStats.textContent = "Error loading.";
-        if (appsResults) appsResults.innerHTML = "";
+        if (appsErr)     appsErr.textContent    = data.error || "Could not load applications.";
+        if (appsStats)   appsStats.innerHTML    = '<p class="enq-subtitle">Error loading.</p>';
+        if (appsResults) appsResults.innerHTML  = "";
         return;
       }
-      renderApplications(data.applications || []);
+      _allApps = data.applications || [];
+      _filter  = { status: "all", role: "all", name: "" };
+      renderStats(_allApps);
+      renderFilterBar(_allApps);
+      applyFilters();
     } catch {
-      if (appsErr)     appsErr.textContent   = "Network error. Please try again.";
-      if (appsStats)   appsStats.textContent = "Error.";
-      if (appsResults) appsResults.innerHTML = "";
+      if (appsErr)     appsErr.textContent    = "Network error. Please try again.";
+      if (appsStats)   appsStats.innerHTML    = '<p class="enq-subtitle">Error.</p>';
+      if (appsResults) appsResults.innerHTML  = "";
     }
   }
 
-  function renderApplications(apps) {
+  /* ── Stats block ──────────────────────────────────────────────────── */
+  function renderStats(apps) {
+    if (!appsStats) return;
     const pending  = apps.filter(a => a.status === "pending").length;
     const approved = apps.filter(a => a.status === "approved").length;
     const denied   = apps.filter(a => a.status === "denied").length;
 
-    if (appsStats) {
-      const roleMap = {};
-      apps.forEach(a => {
-        const r = a.role || "Unknown";
-        if (!roleMap[r]) roleMap[r] = { total: 0, pending: 0, approved: 0, denied: 0 };
-        roleMap[r].total++;
-        if (roleMap[r][a.status] !== undefined) roleMap[r][a.status]++;
-      });
+    const roleMap = {};
+    apps.forEach(a => {
+      const r = a.role || "Unknown";
+      if (!roleMap[r]) roleMap[r] = { total: 0, pending: 0, approved: 0, denied: 0 };
+      roleMap[r].total++;
+      if (roleMap[r][a.status] !== undefined) roleMap[r][a.status]++;
+    });
 
-      const roleRows = Object.entries(roleMap)
-        .sort((a, b) => b[1].total - a[1].total)
-        .map(([role, c]) => `
-          <div class="apps-role-row">
-            <span class="apps-role-name">${role}</span>
-            <span class="apps-role-counts">
-              <span class="apps-rc-total">${c.total}</span>
-              ${c.pending  ? `<span class="apps-rc apps-rc-pend">${c.pending} pending</span>`   : ""}
-              ${c.approved ? `<span class="apps-rc apps-rc-appr">${c.approved} approved</span>` : ""}
-              ${c.denied   ? `<span class="apps-rc apps-rc-deny">${c.denied} denied</span>`     : ""}
-            </span>
-          </div>`).join("");
+    const roleRows = Object.entries(roleMap)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([role, c]) => `
+        <div class="apps-role-row">
+          <span class="apps-role-name">${role}</span>
+          <span class="apps-role-counts">
+            <span class="apps-rc-total">${c.total}</span>
+            ${c.pending  ? `<span class="apps-rc apps-rc-pend">${c.pending} pending</span>`   : ""}
+            ${c.approved ? `<span class="apps-rc apps-rc-appr">${c.approved} approved</span>` : ""}
+            ${c.denied   ? `<span class="apps-rc apps-rc-deny">${c.denied} denied</span>`     : ""}
+          </span>
+        </div>`).join("");
 
-      appsStats.innerHTML = `
-        <div class="apps-stat-pills">
-          <span class="apps-stat apps-stat-total"><strong>${apps.length}</strong> total</span>
-          <span class="apps-stat apps-stat-pend"><strong>${pending}</strong> pending</span>
-          <span class="apps-stat apps-stat-appr"><strong>${approved}</strong> approved</span>
-          <span class="apps-stat apps-stat-deny"><strong>${denied}</strong> denied</span>
+    appsStats.innerHTML = `
+      <div class="apps-stat-pills">
+        <span class="apps-stat apps-stat-total"><strong>${apps.length}</strong> total</span>
+        <span class="apps-stat apps-stat-pend"><strong>${pending}</strong> pending</span>
+        <span class="apps-stat apps-stat-appr"><strong>${approved}</strong> approved</span>
+        <span class="apps-stat apps-stat-deny"><strong>${denied}</strong> denied</span>
+      </div>
+      ${Object.keys(roleMap).length > 0 ? `
+      <div class="apps-role-breakdown">
+        <div class="apps-role-label">BY ROLE</div>
+        ${roleRows}
+      </div>` : ""}`;
+  }
+
+  /* ── Filter bar ───────────────────────────────────────────────────── */
+  function renderFilterBar(apps) {
+    let bar = document.getElementById("appsFilterBar");
+    if (bar) bar.remove();
+
+    const roles = [...new Set(apps.map(a => a.role || "Unknown"))].sort();
+
+    bar = document.createElement("div");
+    bar.id        = "appsFilterBar";
+    bar.className = "apps-filter-bar";
+    bar.innerHTML = `
+      <div class="apps-filter-search-wrap">
+        <svg class="apps-filter-search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="17" y2="17"/>
+        </svg>
+        <input id="appsSearchInput" class="apps-filter-search" type="text" placeholder="Search by name…" value="${escHtml(_filter.name)}" autocomplete="off">
+        <button class="apps-filter-clear" id="appsSearchClear" type="button" aria-label="Clear search" style="${_filter.name ? "" : "display:none"}">✕</button>
+      </div>
+      <div class="apps-filter-row">
+        <div class="apps-filter-status" role="group" aria-label="Filter by status">
+          ${["all","pending","approved","denied"].map(s => `
+            <button class="apps-fs-btn${_filter.status === s ? " active" : ""}" data-status="${s}" type="button">
+              ${s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>`).join("")}
         </div>
-        ${Object.keys(roleMap).length > 0 ? `
-        <div class="apps-role-breakdown">
-          <div class="apps-role-label">BY ROLE</div>
-          ${roleRows}
-        </div>` : ""}`;
+        <div class="apps-filter-role-wrap">
+          <select id="appsRoleSelect" class="apps-filter-role">
+            <option value="all">All roles</option>
+            ${roles.map(r => `<option value="${escHtml(r)}"${_filter.role === r ? " selected" : ""}>${escHtml(r)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="apps-filter-count" id="appsFilterCount"></div>`;
+
+    if (appsResults) appsResults.before(bar);
+
+    bar.querySelector("#appsSearchInput").addEventListener("input", e => {
+      _filter.name = e.target.value;
+      bar.querySelector("#appsSearchClear").style.display = _filter.name ? "" : "none";
+      applyFilters();
+    });
+    bar.querySelector("#appsSearchClear").addEventListener("click", () => {
+      _filter.name = "";
+      bar.querySelector("#appsSearchInput").value = "";
+      bar.querySelector("#appsSearchClear").style.display = "none";
+      bar.querySelector("#appsSearchInput").focus();
+      applyFilters();
+    });
+    bar.querySelectorAll(".apps-fs-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        _filter.status = btn.dataset.status;
+        bar.querySelectorAll(".apps-fs-btn").forEach(b => b.classList.toggle("active", b === btn));
+        applyFilters();
+      });
+    });
+    bar.querySelector("#appsRoleSelect").addEventListener("change", e => {
+      _filter.role = e.target.value;
+      applyFilters();
+    });
+  }
+
+  function escHtml(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ── Filter + render list ─────────────────────────────────────────── */
+  function applyFilters() {
+    let filtered = _allApps;
+    if (_filter.status !== "all") filtered = filtered.filter(a => a.status === _filter.status);
+    if (_filter.role   !== "all") filtered = filtered.filter(a => (a.role || "Unknown") === _filter.role);
+    if (_filter.name.trim()) {
+      const q = _filter.name.trim().toLowerCase();
+      filtered = filtered.filter(a =>
+        (a.first_name + " " + a.last_name).toLowerCase().includes(q)
+      );
     }
 
+    const countEl = document.getElementById("appsFilterCount");
+    if (countEl) {
+      const isFiltered = _filter.status !== "all" || _filter.role !== "all" || _filter.name.trim();
+      countEl.textContent = isFiltered
+        ? `${filtered.length} of ${_allApps.length} application${_allApps.length !== 1 ? "s" : ""}`
+        : "";
+    }
+
+    renderList(filtered);
+  }
+
+  /* ── Application list cards ───────────────────────────────────────── */
+  function renderList(apps) {
     if (!appsResults) return;
     if (apps.length === 0) {
-      appsResults.innerHTML = '<p style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0">No applications yet.</p>';
+      const isFiltered = _filter.status !== "all" || _filter.role !== "all" || _filter.name.trim();
+      appsResults.innerHTML = isFiltered
+        ? '<p class="apps-empty">No applications match your filters.</p>'
+        : '<p class="apps-empty">No applications yet.</p>';
       return;
     }
 
@@ -126,12 +226,8 @@
         <button class="app-btn app-btn-deny"    data-op="deny"    data-id="${app.id}">Deny</button>
       ` : "";
 
-      const notesRow = app.decision_notes
-        ? `<div class="app-item-notes">Director's note: ${app.decision_notes}</div>`
-        : "";
-
-      const decidedRow = decidedAt
-        ? `<tr><td>Decided</td><td>${decidedAt} by ${app.decided_by || "—"}</td></tr>` : "";
+      const notesRow   = app.decision_notes ? `<div class="app-item-notes">Director's note: ${app.decision_notes}</div>` : "";
+      const decidedRow = decidedAt ? `<tr><td>Decided</td><td>${decidedAt} by ${app.decided_by || "—"}</td></tr>` : "";
 
       return `<div class="app-item" id="app-item-${app.id}">
   <div class="app-item-head">
@@ -176,6 +272,7 @@
     });
   }
 
+  /* ── Action handlers ──────────────────────────────────────────────── */
   async function handleOp(btn) {
     const op   = btn.dataset.op;
     const id   = btn.dataset.id;
@@ -194,38 +291,25 @@
           body:    JSON.stringify({ ..._creds, applicationId: id, decision, notes }),
         });
         const data = await res.json().catch(() => ({}));
-        if (data.ok) {
-          reload();
-        } else {
-          if (appsErr) appsErr.textContent = data.error || "Could not update.";
-          btn.disabled = false; btn.textContent = orig;
-        }
+        if (data.ok) { reload(); }
+        else { if (appsErr) appsErr.textContent = data.error || "Could not update."; btn.disabled = false; btn.textContent = orig; }
       } catch {
         if (appsErr) appsErr.textContent = "Network error.";
         btn.disabled = false; btn.textContent = orig;
       }
 
     } else if (op === "preview") {
-      btn.textContent = orig;
-      btn.disabled    = false;
-      const url = `/api/staff/applications/preview-pdf`;
+      btn.textContent = orig; btn.disabled = false;
       try {
-        const res = await fetch(url, {
+        const res = await fetch("/api/staff/applications/preview-pdf", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ ..._creds, applicationId: id }),
         });
-        if (!res.ok) {
-          const t = await res.text().catch(() => "");
-          if (appsErr) appsErr.textContent = "Preview failed: " + t;
-          return;
-        }
-        const blob    = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
+        if (!res.ok) { const t = await res.text().catch(() => ""); if (appsErr) appsErr.textContent = "Preview failed: " + t; return; }
+        const blobUrl = URL.createObjectURL(await res.blob());
         window.open(blobUrl, "_blank");
-      } catch {
-        if (appsErr) appsErr.textContent = "Could not generate preview.";
-      }
+      } catch { if (appsErr) appsErr.textContent = "Could not generate preview."; }
 
     } else if (op === "publish") {
       if (!confirm("Publish this letter? The applicant will be able to download it immediately.")) {
@@ -238,12 +322,8 @@
           body:    JSON.stringify({ ..._creds, applicationId: id }),
         });
         const data = await res.json().catch(() => ({}));
-        if (data.ok) {
-          reload();
-        } else {
-          if (appsErr) appsErr.textContent = data.error || "Could not publish.";
-          btn.disabled = false; btn.textContent = orig;
-        }
+        if (data.ok) { reload(); }
+        else { if (appsErr) appsErr.textContent = data.error || "Could not publish."; btn.disabled = false; btn.textContent = orig; }
       } catch {
         if (appsErr) appsErr.textContent = "Network error.";
         btn.disabled = false; btn.textContent = orig;
@@ -251,7 +331,5 @@
     }
   }
 
-  function reload() {
-    loadApplications(null);
-  }
+  function reload() { loadApplications(null); }
 })();
