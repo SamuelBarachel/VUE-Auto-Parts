@@ -3790,3 +3790,88 @@ dd {
 .stf-icon-apps { color: #0f4f36; }
 .stf-action-apps { background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important; border-color: #86efac !important; }
 .stf-action-apps:hover { background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important; }
+
+/* ── Applications stats panel ────────────────────────────────────────────
+   ════════════════════════════════════════ */
+
+.apps-stats-wrap { margin: 0 0 18px; }
+
+.apps-stat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.apps-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  border: 1px solid transparent;
+}
+.apps-stat strong { font-size: 15px; font-weight: 900; }
+.apps-stat-total { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+.apps-stat-pend  { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+.apps-stat-appr  { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.apps-stat-deny  { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+
+.apps-role-breakdown {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px 8px;
+}
+.apps-role-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.apps-role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid #f0f0f0;
+}
+.apps-role-row:first-of-type { border-top: none; }
+.apps-role-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.apps-role-counts {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.apps-rc-total {
+  font-size: 15px;
+  font-weight: 900;
+  color: #111;
+  min-width: 20px;
+  text-align: right;
+}
+.apps-rc {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.1px;
+}
+.apps-rc-pend { background: #fef3c7; color: #92400e; }
+.apps-rc-appr { background: #d1fae5; color: #065f46; }
+.apps-rc-deny { background: #fee2e2; color: #991b1b; }

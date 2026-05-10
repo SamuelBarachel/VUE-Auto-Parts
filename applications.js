@@ -57,8 +57,41 @@
     const pending  = apps.filter(a => a.status === "pending").length;
     const approved = apps.filter(a => a.status === "approved").length;
     const denied   = apps.filter(a => a.status === "denied").length;
+
     if (appsStats) {
-      appsStats.textContent = `${apps.length} total · ${pending} pending · ${approved} approved · ${denied} denied`;
+      const roleMap = {};
+      apps.forEach(a => {
+        const r = a.role || "Unknown";
+        if (!roleMap[r]) roleMap[r] = { total: 0, pending: 0, approved: 0, denied: 0 };
+        roleMap[r].total++;
+        if (roleMap[r][a.status] !== undefined) roleMap[r][a.status]++;
+      });
+
+      const roleRows = Object.entries(roleMap)
+        .sort((a, b) => b[1].total - a[1].total)
+        .map(([role, c]) => `
+          <div class="apps-role-row">
+            <span class="apps-role-name">${role}</span>
+            <span class="apps-role-counts">
+              <span class="apps-rc-total">${c.total}</span>
+              ${c.pending  ? `<span class="apps-rc apps-rc-pend">${c.pending} pending</span>`   : ""}
+              ${c.approved ? `<span class="apps-rc apps-rc-appr">${c.approved} approved</span>` : ""}
+              ${c.denied   ? `<span class="apps-rc apps-rc-deny">${c.denied} denied</span>`     : ""}
+            </span>
+          </div>`).join("");
+
+      appsStats.innerHTML = `
+        <div class="apps-stat-pills">
+          <span class="apps-stat apps-stat-total"><strong>${apps.length}</strong> total</span>
+          <span class="apps-stat apps-stat-pend"><strong>${pending}</strong> pending</span>
+          <span class="apps-stat apps-stat-appr"><strong>${approved}</strong> approved</span>
+          <span class="apps-stat apps-stat-deny"><strong>${denied}</strong> denied</span>
+        </div>
+        ${Object.keys(roleMap).length > 0 ? `
+        <div class="apps-role-breakdown">
+          <div class="apps-role-label">BY ROLE</div>
+          ${roleRows}
+        </div>` : ""}`;
     }
 
     if (!appsResults) return;
