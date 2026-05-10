@@ -13,7 +13,7 @@
   const state = {
     role: "", firstName: "", lastName: "",
     dobMonth: "", dobDay: "", dobYear: "", dobAge: null,
-    sex: "", location: "", phone: "",
+    sex: "", location: "", phone: "", email: "",
     idNumber: "", computer: "",
     medical: "",
     idPhotoBase64: "", idPhotoName: "",
@@ -45,7 +45,7 @@
     progressWrap.hidden = true;
     document.querySelectorAll(".job-role-card").forEach(c => c.classList.remove("selected"));
     document.querySelectorAll(".job-choice-btn").forEach(c => c.classList.remove("selected"));
-    ["jobFirstName","jobLastName","jobLocation","jobPhone","jobIdNumber","jobSignature"]
+    ["jobFirstName","jobLastName","jobLocation","jobPhone","jobEmail","jobIdNumber","jobSignature"]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
     ["jobDobMonth","jobDobDay","jobDobYear"].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = "";
@@ -178,7 +178,8 @@
           role: state.role, firstName: state.firstName, lastName: state.lastName,
           dobMonth: state.dobMonth, dobDay: state.dobDay, dobYear: state.dobYear,
           age: state.dobAge, sex: state.sex, location: state.location,
-          phone: state.phone, idNumber: state.idNumber, computer: state.computer,
+          phone: state.phone, email: state.email,
+          idNumber: state.idNumber, computer: state.computer,
           medical: state.medical,
         }),
       });
@@ -231,7 +232,8 @@
           role: state.role, firstName: state.firstName, lastName: state.lastName,
           dobMonth: state.dobMonth, dobDay: state.dobDay, dobYear: state.dobYear,
           age: state.dobAge, sex: state.sex, location: state.location,
-          phone: state.phone, idNumber: state.idNumber, computer: state.computer,
+          phone: state.phone, email: state.email,
+          idNumber: state.idNumber, computer: state.computer,
           medical: state.medical, signature: state.signature, draft: state.draft,
           idPhotoBase64: state.idPhotoBase64, idPhotoName: state.idPhotoName,
         }),
@@ -333,9 +335,12 @@
   });
 
   document.getElementById("jobNext7").addEventListener("click", () => {
-    const v = document.getElementById("jobPhone").value.trim();
-    if (!v) { err(7, "Please enter your phone number."); return; }
-    state.phone = v; clearErr(7); showStep(8);
+    const phone = document.getElementById("jobPhone").value.trim();
+    const email = document.getElementById("jobEmail").value.trim();
+    if (!phone) { err(7, "Please enter your phone number."); return; }
+    if (!email) { err(7, "Please enter your email address."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err(7, "Please enter a valid email address."); return; }
+    state.phone = phone; state.email = email; clearErr(7); showStep(8);
     setTimeout(() => document.getElementById("jobIdNumber").focus(), 60);
   });
 

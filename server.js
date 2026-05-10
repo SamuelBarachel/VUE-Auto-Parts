@@ -714,14 +714,15 @@ async function handleJobsApply(request, response) {
       await pool.query(
         `INSERT INTO job_applications
          (first_name, last_name, id_number, dob, dob_month, dob_day, dob_year, age,
-          phone, sex, location, role, computer_skills, medical, signature, draft, id_photo_name)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+          phone, email, sex, location, role, computer_skills, medical, signature, draft, id_photo_name)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
         [
           firstName, lastName,
           String(idNumber || "").trim(),
           dobStr, String(dobMonth||""), String(dobDay||""), String(dobYear||""),
           age ? parseInt(age) : null,
           String(phone || "").trim(),
+          String(body.email || "").trim().toLowerCase(),
           String(sex || "").trim(),
           String(location || "").trim(),
           String(role).trim(),
@@ -1447,7 +1448,56 @@ async function handleStaffApplicationsPublish(request, response) {
       [parseInt(applicationId)]
     );
     console.log(`[apps-publish] letter published for app ${applicationId} by ${director.firstName} ${director.lastName}`);
-    return sendJson(response, 200, { ok: true, preview });
+
+    if (app.email) {
+      const resendKey = process.env.RESEND_API_KEY;
+      if (resendKey) {
+        const isApproved  = app.status === "approved";
+        const letterType  = isApproved ? "Offer Letter" : "Application Outcome";
+        const notifSubject = isApproved
+          ? `Your VUE Auto Parts Job Application — Great News!`
+          : `Your VUE Auto Parts Application — Update Available`;
+        const notifHtml = `
+          <div style="font-family:sans-serif;max-width:540px;margin:0 auto">
+            <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 100%);padding:22px 28px 18px;border-radius:8px 8px 0 0">
+              <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS · CAREERS</div>
+              <h2 style="color:#fff;margin:0;font-size:18px;font-weight:900">Your Application Letter is Ready</h2>
+            </div>
+            <div style="background:#fff;padding:22px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+              <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 16px">Dear <strong>${app.first_name}</strong>,</p>
+              <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 16px">
+                ${isApproved
+                  ? `We are delighted to let you know that your <strong>${app.role}</strong> application at VUE Auto Parts has been reviewed and your <strong>Offer Letter</strong> is now available for download.`
+                  : `Your application for the <strong>${app.role}</strong> position at VUE Auto Parts has been reviewed. Your <strong>${letterType}</strong> is now available for download.`}
+              </p>
+              <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 20px">
+                To view your letter, visit the VUE Auto Parts website, click <em>"Check application status"</em>, and enter your details.
+              </p>
+              <a href="https://vueautoparts.com" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 20px;border-radius:8px;text-decoration:none">Check My Status →</a>
+              <p style="color:#9ca3af;font-size:11px;margin-top:20px;line-height:1.6">
+                VUE Auto Parts · Chipinge, Manicaland, Zimbabwe<br>
+                info@vueautoparts.com · vueautoparts.com
+              </p>
+            </div>
+          </div>`;
+        fetch("https://api.resend.com/emails", {
+          method:  "POST",
+          headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from:    "VUE Auto Parts <onboarding@resend.dev>",
+            to:      [app.email],
+            subject: notifSubject,
+            html:    notifHtml,
+            text:    `Dear ${app.first_name},\n\nYour ${letterType} for the ${app.role} position at VUE Auto Parts is now available.\n\nVisit the website and click "Check application status" to download your letter.\n\nvueautoparts.com\n\n— VUE Auto Parts, Chipinge, Zimbabwe`,
+          }),
+        }).then(r => {
+          if (r.ok) console.log(`[apps-publish] notification sent to ${app.email}`);
+          else r.text().then(t => console.error("[apps-publish] notify error:", r.status, t));
+        }).catch(e => console.error("[apps-publish] notify fetch error:", e.message));
+      }
+    }
+
+    return sendJson(response, 200, { ok: true, preview, notified: !!app.email });
   } catch (err) {
     console.error("[apps-publish] PDF error:", err.message);
     return sendJson(response, 500, { ok: false, error: "Could not generate letter preview." });
@@ -1603,6 +1653,7 @@ async function initDb() {
       signature       TEXT,
       draft           TEXT,
       id_photo_name   TEXT,
+      email           TEXT,
       status          TEXT DEFAULT 'pending',
       decision_notes  TEXT,
       decided_by      TEXT,
@@ -1612,6 +1663,7 @@ async function initDb() {
       created_at      TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS email TEXT`).catch(() => {});
 }
 
 server.listen(PORT, async () => {

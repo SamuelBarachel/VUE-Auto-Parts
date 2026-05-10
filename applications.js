@@ -115,6 +115,7 @@
       <tr><td>Sex</td><td>${app.sex || "—"}</td></tr>
       <tr><td>Location</td><td>${app.location || "—"}</td></tr>
       <tr><td>Phone</td><td>${app.phone || "—"}</td></tr>
+      <tr><td>Email</td><td>${app.email || "—"}</td></tr>
       <tr><td>Computer</td><td>${app.computer_skills || "—"}</td></tr>
       ${app.medical ? `<tr><td>Health notes</td><td>${app.medical}</td></tr>` : ""}
       <tr><td>Signed</td><td>${app.signature || "—"}</td></tr>
