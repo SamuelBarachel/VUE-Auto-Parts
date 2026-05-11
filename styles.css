@@ -1118,6 +1118,77 @@ h2 {
   width: 32px;
 }
 
+.hours-section {
+  align-items: center;
+  background: var(--green-dark);
+  color: #fff;
+  display: grid;
+  gap: clamp(20px, 3.5vw, 48px);
+  grid-template-columns: minmax(0, 0.9fr) minmax(300px, 0.46fr);
+}
+
+.hours-section h2 { color: #fff; }
+
+.hours-section p {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.98rem;
+  line-height: 1.52;
+  margin-top: 14px;
+  max-width: 600px;
+}
+
+.hours-card {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  padding: 24px 22px;
+}
+
+.hours-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hours-list li {
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 0;
+}
+
+.hours-list li:first-child { padding-top: 0; }
+.hours-list li:last-child  { border-bottom: none; padding-bottom: 0; }
+
+.hours-day {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hours-time {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.hours-closed .hours-day,
+.hours-closed .hours-time {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.hours-note {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.5) !important;
+  font-size: 0.8rem !important;
+  margin-top: 0 !important;
+  padding-top: 14px;
+}
+
 .directions-section {
   align-items: center;
   background: #f7f7f5;
@@ -2676,6 +2747,7 @@ dd {
   .model-grid,
   .stock-layout,
   .contact,
+  .hours-section,
   .directions-section,
   .inventory-heading,
   .inventory-toolbar,
