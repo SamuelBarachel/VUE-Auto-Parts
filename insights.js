@@ -224,10 +224,6 @@ async function callGroq(messages) {
 }
 
 function buildDailyPrompt(m) {
-  const stockTable = m.stockAnalysis.map(s =>
-    `${s.name} (${s.id}): stock=${s.stock}, sold=${s.totalUnitsSold} units, velocity=${s.velocity}/day, days_left=${s.daysLeft ?? "∞"}, stock_value=$${s.stockValue.toFixed(2)}, status=${s.isCritical ? "CRITICAL" : s.isLow ? "LOW" : s.isDead ? "DEAD_STOCK" : s.isOverstocked ? "OVERSTOCKED" : "OK"}`
-  ).join("\n");
-
   const topTable = m.topSellers.map((s, i) =>
     `${i+1}. ${s.name} (${s.model}): $${s.revenue.toFixed(2)} revenue, ${s.units} units, ${s.txns} transactions, current_stock=${s.currentStock}`
   ).join("\n");
@@ -236,6 +232,21 @@ function buildDailyPrompt(m) {
     `${c}: $${d.revenue.toFixed(2)} revenue, ${d.units} units`
   ).join("\n");
 
+  // Include all urgent items + top movers; summarise the rest to keep prompt small
+  const urgentIds  = new Set([...m.critical, ...m.low].map(s => s.id));
+  const topMovers  = [...m.stockAnalysis]
+    .filter(s => !urgentIds.has(s.id))
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 15);
+  const featuredItems = [...m.critical, ...m.low, ...topMovers];
+  const stockSnippet = featuredItems.map(s =>
+    `${s.name} (${s.id}): stock=${s.stock}, sold=${s.totalUnitsSold}u, vel=${s.velocity}/d, days_left=${s.daysLeft ?? "∞"}, $${s.stockValue.toFixed(0)}, ${s.isCritical ? "CRITICAL" : s.isLow ? "LOW" : s.isDead ? "DEAD" : s.isOverstocked ? "OVERSTOCK" : "OK"}`
+  ).join("\n");
+  const remaining = m.stockAnalysis.length - featuredItems.length;
+  const stockSummary = remaining > 0
+    ? `\n(+${remaining} more items not shown — ${m.stockAnalysis.filter(s=>!s.isCritical&&!s.isLow&&!s.isDead&&!s.isOverstocked).length} OK, ${m.dead.length} dead, ${m.overstocked.length} overstocked)`
+    : "";
+
   return `You are the CFO of VUE Auto Parts, Chipinge, Zimbabwe. Be brutal, specific, and brief. No waffle.
 
 DATA (${m.todayKey}):
@@ -243,10 +254,11 @@ Revenue today: $${m.todayData.revenue.toFixed(2)} (${m.todayData.txns} txns) | D
 Inventory value: $${m.totalInventoryValue.toFixed(2)} | Dead stock: $${m.deadStockValue.toFixed(2)} | Overstock: $${m.overstockedValue.toFixed(2)}
 Critical (<3 days): ${m.critical.length ? m.critical.map(s => `${s.name} (${s.daysLeft}d)`).join(", ") : "None"}
 Low (3–7 days): ${m.low.length ? m.low.map(s => `${s.name} (${s.daysLeft}d)`).join(", ") : "None"}
-Dead stock: ${m.dead.length ? m.dead.map(s => `${s.name} $${s.stockValue.toFixed(2)}`).join(", ") : "None"}
+Dead stock: ${m.dead.length ? m.dead.slice(0, 10).map(s => `${s.name} $${s.stockValue.toFixed(2)}`).join(", ") + (m.dead.length > 10 ? ` (+${m.dead.length-10} more)` : "") : "None"}
 Top sellers: ${topTable || "No data"}
 By category: ${catTable || "No data"}
-Full stock: ${stockTable}
+Key stock (urgent + top movers):
+${stockSnippet}${stockSummary}
 
 Return a JSON object ONLY — no markdown, no backticks:
 {
@@ -282,9 +294,12 @@ function buildMonthlyPrompt(m, monthLabel) {
     `• ${s.name} (${s.model}): ${s.stock} units, $${s.stockValue.toFixed(2)} tied up`
   ).join("\n");
 
-  const dayRevs = Object.entries(m.byDate).sort(([a],[b]) => a.localeCompare(b)).map(([d, v]) =>
-    `${d}: $${v.revenue.toFixed(2)} (${v.txns} txns)`
-  ).join(", ");
+  // Limit to last 31 days to keep prompt size manageable
+  const dayRevs = Object.entries(m.byDate)
+    .sort(([a],[b]) => a.localeCompare(b))
+    .slice(-31)
+    .map(([d, v]) => `${d}: $${v.revenue.toFixed(2)} (${v.txns} txns)`)
+    .join(", ");
 
   return `You are the CFO and strategic business advisor for VUE Auto Parts in Chipinge, Zimbabwe. You are delivering the monthly board-level business review. You think with world-class financial rigour, understand Zimbabwe's economic realities (USD cash economy, import dependency, rural market dynamics), and give advice that is specific, bold, and actionable.
 
