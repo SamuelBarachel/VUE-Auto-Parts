@@ -765,7 +765,7 @@ h2 {
 .model-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: 1.2fr repeat(3, 1fr);
+  grid-template-columns: 1.2fr repeat(4, 1fr);
 }
 
 .model-card,
