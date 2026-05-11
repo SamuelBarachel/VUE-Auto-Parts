@@ -69,7 +69,7 @@ if (window.location.hash) {
     return false;
   }
 
-  const HOURS = [
+  const HOURS_LABEL = [
     "12:00 – 17:00", // Sun
     "7:30 – 18:00",  // Mon
     "7:30 – 18:00",  // Tue
@@ -78,6 +78,44 @@ if (window.location.hash) {
     "7:30 – 18:00",  // Fri
     "8:00 – 13:00",  // Sat
   ];
+
+  // open/close minutes-of-day per day index
+  const OPEN_MINS  = [720, 450, 450, 450, 450, 450, 480];
+  const CLOSE_MINS = [1020,1080,1080,1080,1080,1080,780];
+
+  function fmtDuration(mins) {
+    if (mins <= 0) return "now";
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h === 0) return m + " min";
+    if (m === 0) return h + " hr";
+    return h + " hr " + m + " min";
+  }
+
+  function countdown(zwe) {
+    const day  = zwe.getDay();
+    const mins = zwe.getHours() * 60 + zwe.getMinutes();
+    const open = isOpen();
+
+    if (open) {
+      return "Closes in " + fmtDuration(CLOSE_MINS[day] - mins);
+    }
+
+    // before today's opening?
+    if (mins < OPEN_MINS[day]) {
+      return "Opens in " + fmtDuration(OPEN_MINS[day] - mins);
+    }
+
+    // after today's close — find next day's opening
+    let daysAhead = 1;
+    while (daysAhead <= 7) {
+      const nextDay = (day + daysAhead) % 7;
+      const minsUntilMidnight = 1440 - mins;
+      const minsUntilOpen = minsUntilMidnight + (daysAhead - 1) * 1440 + OPEN_MINS[nextDay];
+      return "Opens in " + fmtDuration(minsUntilOpen);
+    }
+    return "";
+  }
 
   function update() {
     const now  = new Date();
@@ -89,7 +127,10 @@ if (window.location.hash) {
     const hoursEl = document.getElementById("todayHours");
     if (hoursEl) {
       const day = zwe.getDay();
-      hoursEl.textContent = "Today's hours: " + HOURS[day];
+      const cd  = countdown(zwe);
+      hoursEl.innerHTML =
+        "Today: " + HOURS_LABEL[day] +
+        (cd ? ' <span class="hero-countdown">' + cd + "</span>" : "");
     }
   }
 
