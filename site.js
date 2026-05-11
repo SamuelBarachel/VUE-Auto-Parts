@@ -77,4 +77,19 @@ if (window.location.hash) {
 
   update();
   setInterval(update, 60000);
+
+  // Highlight today's row in the hours section
+  const zwe = new Date(new Date().toLocaleString("en-US", { timeZone: "Africa/Harare" }));
+  const todayDay = zwe.getDay();
+  const todayRow = document.querySelector(`.hours-list li[data-day="${todayDay}"]`);
+  if (todayRow) {
+    todayRow.classList.add("today");
+    const daySpan = todayRow.querySelector(".hours-day");
+    if (daySpan) {
+      const badge = document.createElement("span");
+      badge.className = "today-badge";
+      badge.textContent = "Today";
+      daySpan.appendChild(badge);
+    }
+  }
 })();

@@ -1231,6 +1231,35 @@ h2 {
   color: rgba(255, 255, 255, 0.35);
 }
 
+.hours-list li.today {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  margin: 0 -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.hours-list li.today .hours-day {
+  color: #fff;
+  font-weight: 800;
+}
+
+.hours-list li.today .hours-time {
+  color: #86efac;
+}
+
+.hours-list li.today .today-badge {
+  background: rgba(74, 222, 128, 0.2);
+  border-radius: 999px;
+  color: #4ade80;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  margin-left: 6px;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
 .hours-note {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.5) !important;
