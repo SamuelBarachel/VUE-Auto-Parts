@@ -48,3 +48,33 @@ navLinks.forEach((link) => {
 if (window.location.hash) {
   setActiveNav(window.location.hash.slice(1));
 }
+
+(function () {
+  const statusEl = document.getElementById("shopStatus");
+  if (!statusEl) return;
+
+  function isOpen() {
+    const now = new Date();
+    // Zimbabwe is CAT = UTC+2, no DST
+    const zwe = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Harare" }));
+    const day  = zwe.getDay(); // 0=Sun, 1=Mon … 6=Sat
+    const mins = zwe.getHours() * 60 + zwe.getMinutes();
+
+    // Mon–Fri: 7:30–18:00
+    if (day >= 1 && day <= 5) return mins >= 450 && mins < 1080;
+    // Saturday: 8:00–13:00
+    if (day === 6) return mins >= 480 && mins < 780;
+    // Sunday: 12:00–17:00
+    if (day === 0) return mins >= 720 && mins < 1020;
+    return false;
+  }
+
+  function update() {
+    const open = isOpen();
+    statusEl.textContent = open ? "We are Open" : "Currently Closed";
+    statusEl.className = "shop-status " + (open ? "open" : "closed");
+  }
+
+  update();
+  setInterval(update, 60000);
+})();
