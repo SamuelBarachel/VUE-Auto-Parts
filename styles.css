@@ -3778,6 +3778,8 @@ dd {
 .app-btn-publish { background: #0f4f36; border-color: #0f4f36; color: #fff; }
 .app-btn-publish:hover { background: #062f22; }
 .app-btn-published { background: #f0fdf4; border-color: #86efac; color: #166534; cursor: default; }
+.app-btn-delete    { background: #fff; border-color: #fca5a5; color: #991b1b; margin-left: auto; }
+.app-btn-delete:hover { background: #fee2e2; border-color: #f87171; }
 
 .app-item-notes {
   background: #fffbeb;

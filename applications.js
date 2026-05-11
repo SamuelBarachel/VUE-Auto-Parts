@@ -240,6 +240,10 @@
              <button class="app-btn app-btn-publish" data-op="publish" data-id="${app.id}">Publish Letter</button>`
       ) : "";
 
+      const deleteBtn = isDecided
+        ? `<button class="app-btn app-btn-delete" data-op="delete" data-id="${app.id}" data-name="${app.first_name} ${app.last_name}" title="Delete this application to free up space">Delete</button>`
+        : "";
+
       const decisionButtons = isPending ? `
         <button class="app-btn app-btn-approve" data-op="approve" data-id="${app.id}">Approve</button>
         <button class="app-btn app-btn-deny"    data-op="deny"    data-id="${app.id}">Deny</button>
@@ -273,7 +277,7 @@
     <div class="app-draft-text" id="app-draft-${app.id}">${app.draft}</div>` : ""}
   </div>
   ${notesRow}
-  <div class="app-item-actions">${decisionButtons}${publishBtn}</div>
+  <div class="app-item-actions">${decisionButtons}${publishBtn}${deleteBtn}</div>
 </div>`;
     }).join("");
 
@@ -329,6 +333,25 @@
         const blobUrl = URL.createObjectURL(await res.blob());
         window.open(blobUrl, "_blank");
       } catch { if (appsErr) appsErr.textContent = "Could not generate preview."; }
+
+    } else if (op === "delete") {
+      const name = btn.dataset.name || "this applicant";
+      if (!confirm(`Permanently delete the application for ${name}? This cannot be undone.`)) {
+        btn.disabled = false; btn.textContent = orig; return;
+      }
+      try {
+        const res  = await fetch("/api/staff/applications/delete", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ ..._creds, applicationId: id }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (data.ok) { reload(); }
+        else { if (appsErr) appsErr.textContent = data.error || "Could not delete."; btn.disabled = false; btn.textContent = orig; }
+      } catch {
+        if (appsErr) appsErr.textContent = "Network error.";
+        btn.disabled = false; btn.textContent = orig;
+      }
 
     } else if (op === "publish") {
       if (!confirm("Publish this letter? The applicant will be able to download it immediately.")) {

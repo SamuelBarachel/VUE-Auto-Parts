@@ -687,105 +687,98 @@ async function handleJobsApply(request, response) {
     }];
   }
 
-  // Also log to Google Sheets Applicants tab via append (best-effort)
+  // ── 1. Save to DB first — this is the primary record ───────────────
+  let savedId = null;
   try {
-    const SHEET_ID = "1KHfFq8V4sVpVASosrYyACfxMcSMDS1ji6pvXwRBvdho";
-    const appendUrl = `https://docs.google.com/forms/d/e/dummy/formResponse`; // placeholder
-    void appendUrl; // Google Sheets public write not available without OAuth — email is primary record
-  } catch (_) {}
+    const dbRes = await pool.query(
+      `INSERT INTO job_applications
+       (first_name, last_name, id_number, dob, dob_month, dob_day, dob_year, age,
+        phone, email, sex, location, role, computer_skills, medical, signature, draft, id_photo_name)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+       RETURNING id`,
+      [
+        String(firstName).trim(),
+        String(lastName).trim(),
+        String(idNumber  || "").trim(),
+        dobStr,
+        String(dobMonth  || ""),
+        String(dobDay    || ""),
+        String(dobYear   || ""),
+        age ? parseInt(age) : null,
+        String(phone     || "").trim(),
+        String(body.email || "").trim().toLowerCase(),
+        String(sex       || "").trim(),
+        String(location  || "").trim(),
+        String(role).trim(),
+        String(computer  || "").trim(),
+        String(medical   || "").trim(),
+        String(signature || "").trim(),
+        String(draft     || "").trim().slice(0, 3000),
+        String(idPhotoName || "").trim(),
+      ]
+    );
+    savedId = dbRes.rows[0].id;
+    console.log(`[jobs-apply] saved to DB id=${savedId}: ${firstName} ${lastName} | ${role}`);
+  } catch (dbErr) {
+    console.error("[jobs-apply] DB save error:", dbErr.message);
+    return sendJson(response, 500, { ok: false, error: "Could not save your application. Please try again or contact us on WhatsApp." });
+  }
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
+  // ── 2. Fire-and-forget admin notification email ──────────────────────
+  fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(emailBody),
+  }).then(r => {
+    if (r.ok) console.log(`[jobs-apply] admin email sent for id=${savedId}`);
+    else r.text().then(t => console.error("[jobs-apply] admin email error:", r.status, t));
+  }).catch(e => console.error("[jobs-apply] admin email fetch error:", e.message));
+
+  // ── 3. Fire-and-forget applicant confirmation email ──────────────────
+  const applicantEmail = String(body.email || "").trim().toLowerCase();
+  if (applicantEmail) {
+    const statusUrl = "https://vueautoparts.com";
+    const confirmHtml = `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+        <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
+          <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+          <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">We received your application</h2>
+        </div>
+        <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
+          <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${firstName},</p>
+          <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
+            Thank you for applying for the <strong>${role}</strong> position at VUE Auto Parts. We have received your application and it is now under review. Our director will make a decision and we will be in touch.
+          </p>
+          <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 22px">
+            You can check the status of your application at any time by visiting our website and clicking <strong>"Check application status"</strong>.
+          </p>
+          <a href="${statusUrl}" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 22px;border-radius:8px;text-decoration:none">Check My Application Status →</a>
+        </div>
+        <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+          <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
+            VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
+            Questions? WhatsApp us at <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a> &nbsp;·&nbsp; info@vueautoparts.com
+          </p>
+        </div>
+      </div>`;
+    const confirmText = `Hi ${firstName},\n\nThank you for applying for the ${role} position at VUE Auto Parts. We have received your application and it is now under review.\n\nTo check your application status, visit:\n${statusUrl}\n\nScroll down to the careers section and click "Check application status".\n\n— VUE Auto Parts, Chipinge, Zimbabwe`;
+    fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify(emailBody),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      console.error("[jobs-apply] Resend error:", res.status, errText);
-      return sendJson(response, 500, { ok: false, error: "Could not send application. Please try WhatsApp." });
-    }
-
-    console.log("[jobs-apply] sent:", firstName, lastName, "|", role, "|", phone);
-
-    const dobStr = `${dobMonth}/${dobDay}/${dobYear}`;
-    try {
-      await pool.query(
-        `INSERT INTO job_applications
-         (first_name, last_name, id_number, dob, dob_month, dob_day, dob_year, age,
-          phone, email, sex, location, role, computer_skills, medical, signature, draft, id_photo_name)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
-        [
-          firstName, lastName,
-          String(idNumber || "").trim(),
-          dobStr, String(dobMonth||""), String(dobDay||""), String(dobYear||""),
-          age ? parseInt(age) : null,
-          String(phone || "").trim(),
-          String(body.email || "").trim().toLowerCase(),
-          String(sex || "").trim(),
-          String(location || "").trim(),
-          String(role).trim(),
-          String(computer || "").trim(),
-          String(medical || "").trim(),
-          String(signature || "").trim(),
-          String(draft || "").trim().slice(0, 3000),
-          String(idPhotoName || "").trim(),
-        ]
-      );
-    } catch (dbErr) {
-      console.error("[jobs-apply] DB save error:", dbErr.message);
-    }
-
-    // Fire-and-forget confirmation email to the applicant
-    const applicantEmail = String(body.email || "").trim().toLowerCase();
-    if (applicantEmail && apiKey) {
-      const statusUrl = "https://vueautoparts.com";
-      const confirmHtml = `
-        <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
-          <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
-            <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
-            <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">We received your application</h2>
-          </div>
-          <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
-            <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${firstName},</p>
-            <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
-              Thank you for applying for the <strong>${role}</strong> position at VUE Auto Parts. We have received your application and it is now under review. Our director will make a decision and we will be in touch.
-            </p>
-            <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 22px">
-              You can check the status of your application at any time by visiting our website and clicking <strong>"Check application status"</strong>.
-            </p>
-            <a href="${statusUrl}" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 22px;border-radius:8px;text-decoration:none">Check My Application Status →</a>
-          </div>
-          <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
-            <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
-              VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
-              Questions? WhatsApp us at <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a> &nbsp;·&nbsp; info@vueautoparts.com
-            </p>
-          </div>
-        </div>`;
-      const confirmText = `Hi ${firstName},\n\nThank you for applying for the ${role} position at VUE Auto Parts. We have received your application and it is now under review.\n\nTo check your application status, visit:\n${statusUrl}\n\nScroll down to the careers section and click "Check application status".\n\n— VUE Auto Parts, Chipinge, Zimbabwe`;
-      fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "VUE Auto Parts <onboarding@resend.dev>",
-          to: [applicantEmail],
-          subject: `Application received — ${role} at VUE Auto Parts`,
-          html: confirmHtml,
-          text: confirmText,
-        }),
-      }).then(r => {
-        if (r.ok) console.log(`[jobs-apply] confirmation sent to ${applicantEmail}`);
-        else r.text().then(t => console.error("[jobs-apply] confirm email error:", r.status, t));
-      }).catch(e => console.error("[jobs-apply] confirm email fetch error:", e.message));
-    }
-
-    return sendJson(response, 200, { ok: true });
-  } catch (err) {
-    console.error("[jobs-apply] fetch error:", err.message);
-    return sendJson(response, 500, { ok: false, error: "Network error. Please try WhatsApp." });
+      body: JSON.stringify({
+        from: "VUE Auto Parts <onboarding@resend.dev>",
+        to: [applicantEmail],
+        subject: `Application received — ${role} at VUE Auto Parts`,
+        html: confirmHtml,
+        text: confirmText,
+      }),
+    }).then(r => {
+      if (r.ok) console.log(`[jobs-apply] confirmation sent to ${applicantEmail}`);
+      else r.text().then(t => console.error("[jobs-apply] confirm email error:", r.status, t));
+    }).catch(e => console.error("[jobs-apply] confirm email fetch error:", e.message));
   }
+
+  return sendJson(response, 200, { ok: true });
 }
 
 async function handleStaffVerify(request, response) {
@@ -1426,7 +1419,7 @@ async function handleStaffApplicationsList(request, response) {
   if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
 
   const res = await pool.query(
-    `SELECT id, first_name, last_name, id_number, dob, age, phone, sex, location,
+    `SELECT id, first_name, last_name, id_number, dob, age, phone, email, sex, location,
             role, computer_skills, medical, signature, draft, id_photo_name,
             status, decision_notes, decided_by, decided_at, letter_published, published_at, created_at
      FROM job_applications
@@ -1434,6 +1427,33 @@ async function handleStaffApplicationsList(request, response) {
   );
 
   return sendJson(response, 200, { ok: true, applications: res.rows });
+}
+
+async function handleStaffApplicationsDelete(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const { applicationId } = body;
+  if (!applicationId) return sendJson(response, 400, { ok: false, error: "Application ID required." });
+
+  const check = await pool.query(
+    "SELECT id, first_name, last_name, status FROM job_applications WHERE id = $1",
+    [parseInt(applicationId)]
+  );
+  if (check.rowCount === 0) return sendJson(response, 404, { ok: false, error: "Application not found." });
+
+  const app = check.rows[0];
+  if (app.status === "pending") {
+    return sendJson(response, 400, { ok: false, error: "Only decided applications (approved or denied) can be deleted." });
+  }
+
+  await pool.query("DELETE FROM job_applications WHERE id = $1", [parseInt(applicationId)]);
+  console.log(`[apps-delete] id=${applicationId} (${app.first_name} ${app.last_name}) deleted by ${director.firstName} ${director.lastName}`);
+  return sendJson(response, 200, { ok: true });
 }
 
 async function handleStaffApplicationsDecide(request, response) {
@@ -1717,6 +1737,9 @@ const server = http.createServer(async (request, response) => {
     }
     if (request.method === "POST" && request.url === "/api/staff/applications/preview-pdf") {
       return await handleStaffApplicationsPreviewPdf(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff/applications/delete") {
+      return await handleStaffApplicationsDelete(request, response);
     }
     return await serveStatic(request, response);
   } catch (error) {
