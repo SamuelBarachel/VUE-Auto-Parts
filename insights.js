@@ -952,10 +952,31 @@ function saveState(state) {
   fsSync.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), "utf8");
 }
 
+// ── Keep-alive ping (prevents Render free tier from sleeping) ─────────────────
+
+function startKeepAlive() {
+  const appUrl = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL;
+  if (!appUrl) {
+    console.log("[keep-alive] No RENDER_EXTERNAL_URL set — skipping (local dev).");
+    return;
+  }
+  const pingUrl = appUrl.replace(/\/$/, "") + "/health";
+  console.log(`[keep-alive] Pinging ${pingUrl} every 10 min to prevent sleep.`);
+  setInterval(async () => {
+    try {
+      const res = await fetch(pingUrl, { signal: AbortSignal.timeout(10000) });
+      console.log(`[keep-alive] ping ${res.status}`);
+    } catch (err) {
+      console.warn("[keep-alive] ping failed:", err.message);
+    }
+  }, 10 * 60 * 1000);
+}
+
 // ── Scheduler ─────────────────────────────────────────────────────────────────
 
 function startScheduler() {
   console.log("[insights] Scheduler started — daily 8 PM ZWE, weekly Mon 8 AM ZWE, monthly 1st.");
+  startKeepAlive();
 
   setInterval(async () => {
     const nowUtc = new Date();

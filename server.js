@@ -1741,6 +1741,11 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && request.url === "/api/staff/applications/delete") {
       return await handleStaffApplicationsDelete(request, response);
     }
+    if (request.method === "GET" && request.url === "/health") {
+      response.writeHead(200, { "Content-Type": "text/plain" });
+      response.end("ok");
+      return;
+    }
     return await serveStatic(request, response);
   } catch (error) {
     return sendJson(response, 500, WHATSAPP_FALLBACK);
