@@ -1118,6 +1118,52 @@ h2 {
   width: 32px;
 }
 
+.directions-section {
+  align-items: center;
+  background: #f7f7f5;
+  display: grid;
+  gap: clamp(20px, 3.5vw, 48px);
+  grid-template-columns: minmax(0, 0.9fr) minmax(300px, 0.46fr);
+}
+
+.directions-section h2 {
+  color: var(--ink);
+}
+
+.directions-section p {
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.52;
+  margin-top: 14px;
+  max-width: 600px;
+}
+
+.directions-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(16, 20, 19, 0.06);
+  color: var(--ink);
+  padding: 24px 22px;
+}
+
+.directions-map-placeholder {
+  align-items: center;
+  background: #e8f5ee;
+  border-radius: 8px;
+  color: var(--green);
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+  padding: 22px 0;
+}
+
+.directions-card dl {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
 .contact {
   align-items: center;
   background: var(--green-dark);
@@ -1303,6 +1349,7 @@ h2 {
   background: #f7f7f5;
   border: 1.5px solid var(--line);
   border-radius: 8px;
+  box-sizing: border-box;
   color: var(--ink);
   font-family: inherit;
   font-size: 1rem;
@@ -2629,6 +2676,7 @@ dd {
   .model-grid,
   .stock-layout,
   .contact,
+  .directions-section,
   .inventory-heading,
   .inventory-toolbar,
   .section-heading {
