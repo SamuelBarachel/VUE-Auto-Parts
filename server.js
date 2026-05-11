@@ -111,7 +111,7 @@ PERSONALITY:
 SHOP FACTS:
 - Name: VUE Auto Parts
 - Location: Chipinge, Manicaland, Zimbabwe
-- Specialty vehicles: Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, Nissan Caravan
+- Specialty vehicles: Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, Nissan Caravan (engine parts, suspension, body &amp; van-specific service items)
 - Core stock always available: Castrol engine oils (10W40, 20W50), wiper blades, coolants, brake pads, brake fluid, oil/air/fuel filters, fan belts, tyres, bulbs, batteries
 - Contact: WhatsApp +16038662272 | Email: info@vueautoparts.com
 - Quote turnaround: 24 hours. Pricing is transparent.
