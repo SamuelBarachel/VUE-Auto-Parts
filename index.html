@@ -102,7 +102,7 @@
           </p>
 
           <div class="hero-actions" aria-label="Primary actions">
-            <a class="button primary" href="https://wa.me/16038662272">WhatsApp a quote</a>
+            <button class="button primary" id="heroOrderBtn" type="button">Order online</button>
             <a class="button secondary" href="#inventory">Search parts</a>
             <span class="shop-status" id="shopStatus" aria-live="polite" style="display:none"></span>
           </div>
@@ -217,7 +217,7 @@
             <p class="eyebrow">Parts finder</p>
             <h2>Search live stock. See what's available now.</h2>
           </div>
-          <p>Type a part or pick a model to check live availability. WhatsApp us to hold or order.</p>
+          <p>Type a part or pick a model to check live availability. Order online and collect in store.</p>
         </div>
 
         <div class="inventory-toolbar" aria-label="Inventory search controls">
@@ -334,10 +334,10 @@
       <section class="section contact" id="contact">
         <div>
           <p class="eyebrow">Contact</p>
-          <h2>Tell us the part, model &amp; quantity.</h2>
-          <p>We'll draft a message for you — just review and send. No email account needed.</p>
+          <h2>Order online. Collect &amp; pay in store.</h2>
+          <p>Place your order here, then come in to pick it up and pay. No upfront payment needed.</p>
+          <button class="enq-trigger req-trigger" id="reqOpen" type="button">Place an order</button>
           <button class="enq-trigger" id="enqOpen" type="button">Send an enquiry</button>
-          <button class="enq-trigger req-trigger" id="reqOpen" type="button">Request a part</button>
           <button class="enq-trigger job-trigger" id="jobOpen" type="button">Jobs</button>
           <button class="job-status-trigger" id="jobStatusOpen" type="button">Check application status</button>
         </div>
@@ -362,12 +362,12 @@
 
       <!-- Staff portal modal -->
       <!-- Parts request modal -->
-      <div id="reqOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Request a part" hidden>
+      <div id="reqOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Place an order" hidden>
         <div class="enq-modal req-modal">
           <div class="enq-modal-header">
             <div>
-              <h2 class="enq-modal-title">Request a part</h2>
-              <p class="enq-subtitle">Can't find what you need? Leave a request and we'll source it for you.</p>
+              <h2 class="enq-modal-title">Place an order</h2>
+              <p class="enq-subtitle">Order online — collect and pay in person at the shop. No upfront payment.</p>
             </div>
             <button class="enq-close" id="reqClose" aria-label="Close">&times;</button>
           </div>
@@ -398,7 +398,7 @@
             </div>
             <div id="reqError" class="enq-error" hidden></div>
             <div class="enq-foot">
-              <button class="enq-submit" id="reqSubmit" type="button">Submit request</button>
+              <button class="enq-submit" id="reqSubmit" type="button">Place order</button>
             </div>
           </div>
 
@@ -406,9 +406,9 @@
           <div class="enq-panel" id="reqPanelDone" hidden>
             <div class="req-success">
               <div class="req-success-icon" aria-hidden="true">✓</div>
-              <h3>Request received!</h3>
-              <p>We'll check our suppliers and follow up with you on WhatsApp or call. You can also reach us directly anytime.</p>
-              <a class="button primary" href="https://wa.me/16038662272" target="_blank" rel="noopener">WhatsApp us now</a>
+              <h3>Order placed!</h3>
+              <p>We'll get your part ready. Come in to the shop to collect it and pay — no upfront payment needed. We'll contact you on WhatsApp or call if we have any questions.</p>
+              <a class="button primary" href="https://wa.me/16038662272" target="_blank" rel="noopener">WhatsApp us</a>
               <button class="enq-trigger" id="reqDone" type="button" style="margin-top:10px">Close</button>
             </div>
           </div>

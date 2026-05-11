@@ -84,6 +84,8 @@
   }
 
   openBtn.addEventListener("click", openModal);
+  const heroBtn = document.getElementById("heroOrderBtn");
+  if (heroBtn) heroBtn.addEventListener("click", openModal);
   closeBtn.addEventListener("click", closeModal);
   doneBtn && doneBtn.addEventListener("click", closeModal);
   submitBtn.addEventListener("click", submit);
