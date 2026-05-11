@@ -13,6 +13,7 @@ window.VUEInventoryTools = {
 const FALLBACK_INVENTORY = [
   { "Vehicle Model": "Honda Fit",      "Part Name": "Oil Filter", "Count": "20" },
   { "Vehicle Model": "Toyota Corolla", "Part Name": "Oil Filter", "Count": "6"  },
+  { "Vehicle Model": "Nissan Caravan", "Part Name": "Oil Filter", "Count": "8"  },
   { "Vehicle Model": "Universal",      "Part Name": "Engine Oil", "Count": "13" },
 ];
 

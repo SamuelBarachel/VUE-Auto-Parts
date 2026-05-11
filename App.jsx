@@ -1,6 +1,6 @@
 import React from "react";
 
-const focusModels = ["Honda Fit", "Toyota Corolla", "Toyota Wish", "Toyota Probox"];
+const focusModels = ["Honda Fit", "Toyota Corolla", "Toyota Wish", "Toyota Probox", "Nissan Caravan"];
 const categories = [
   "Oil, air, fuel, and cabin filters",
   "Brake pads, shoes, and discs",
@@ -18,7 +18,7 @@ export default function App() {
         <p style={styles.copy}>
           Retail and distribution for dependable ex-Japanese vehicle parts, tyres,
           engine oils, and everyday repair essentials, with emphasis on Honda Fit,
-          Toyota Corolla, Toyota Wish, and Toyota Probox.
+          Toyota Corolla, Toyota Wish, Toyota Probox, and Nissan Caravan.
         </p>
         <a href="https://wa.me/16038662272" style={styles.button}>
           Request a quote
