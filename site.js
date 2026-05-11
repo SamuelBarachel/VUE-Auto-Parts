@@ -69,10 +69,28 @@ if (window.location.hash) {
     return false;
   }
 
+  const HOURS = [
+    "12:00 – 17:00", // Sun
+    "7:30 – 18:00",  // Mon
+    "7:30 – 18:00",  // Tue
+    "7:30 – 18:00",  // Wed
+    "7:30 – 18:00",  // Thu
+    "7:30 – 18:00",  // Fri
+    "8:00 – 13:00",  // Sat
+  ];
+
   function update() {
+    const now  = new Date();
+    const zwe  = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Harare" }));
     const open = isOpen();
     statusEl.textContent = open ? "We are Open" : "Currently Closed";
-    statusEl.className = "shop-status " + (open ? "open" : "closed");
+    statusEl.className   = "shop-status " + (open ? "open" : "closed");
+
+    const hoursEl = document.getElementById("todayHours");
+    if (hoursEl) {
+      const day = zwe.getDay();
+      hoursEl.textContent = "Today's hours: " + HOURS[day];
+    }
   }
 
   update();
