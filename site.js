@@ -121,16 +121,24 @@ if (window.location.hash) {
     const now  = new Date();
     const zwe  = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Harare" }));
     const open = isOpen();
-    statusEl.textContent = open ? "We are Open" : "Currently Closed";
-    statusEl.className   = "shop-status " + (open ? "open" : "closed");
 
-    const hoursEl = document.getElementById("todayHours");
-    if (hoursEl) {
+    // Hero badge — only visible when open
+    statusEl.textContent   = "We are Open";
+    statusEl.className     = "shop-status open";
+    statusEl.style.display = open ? "" : "none";
+
+    // Hours section live block
+    const liveEl = document.getElementById("hoursLive");
+    if (liveEl) {
       const day = zwe.getDay();
       const cd  = countdown(zwe);
-      hoursEl.innerHTML =
-        "Today: " + HOURS_LABEL[day] +
-        (cd ? ' <span class="hero-countdown">' + cd + "</span>" : "");
+      const statusLabel = open
+        ? '<span class="hl-badge open">We are Open</span>'
+        : '<span class="hl-badge closed">Currently Closed</span>';
+      liveEl.innerHTML =
+        statusLabel +
+        '<span class="hl-hours">Today: ' + HOURS_LABEL[day] + "</span>" +
+        (cd ? '<span class="hl-countdown">' + cd + "</span>" : "");
     }
   }
 

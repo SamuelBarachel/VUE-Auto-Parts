@@ -1251,6 +1251,80 @@ h2 {
   max-width: 600px;
 }
 
+.hours-live {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.hl-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 7px;
+  padding: 5px 14px 5px 10px;
+  position: relative;
+  z-index: 0;
+}
+
+.hl-badge::before {
+  background: #fff;
+  border-radius: 50%;
+  content: "";
+  display: inline-block;
+  flex-shrink: 0;
+  height: 8px;
+  width: 8px;
+}
+
+.hl-badge::after {
+  border-radius: 999px;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.hl-badge.open {
+  background: #16a34a;
+  border: 1.5px solid #15803d;
+  color: #fff;
+}
+
+.hl-badge.open::after {
+  animation: openRadialPing 2.2s ease-out infinite, openRadialPing2 2.2s ease-out 1.1s infinite;
+}
+
+.hl-badge.closed {
+  background: #dc2626;
+  border: 1.5px solid #b91c1c;
+  color: #fff;
+}
+
+.hl-badge.closed::after {
+  animation: closedRadialPing 2.2s ease-out infinite, closedRadialPing2 2.2s ease-out 1.1s infinite;
+}
+
+.hl-hours {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.87rem;
+}
+
+.hl-countdown {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 10px;
+}
+
 .hours-card {
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.13);
