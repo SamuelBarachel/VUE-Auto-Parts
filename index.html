@@ -34,6 +34,7 @@
         <a href="#stock">Parts</a>
         <a href="#hours">Hours</a>
         <a href="#directions">Directions</a>
+        <a href="#garages">Garages</a>
         <a href="#contact">Contact</a>
       </nav>
 
@@ -330,12 +331,80 @@
         </div>
       </section>
 
+      <section class="section garages-section" id="garages">
+        <div class="garages-intro">
+          <p class="eyebrow">Community directory</p>
+          <h2>Trusted garages in Chipinge.</h2>
+          <p>Local mechanics known to Chipinge drivers. Walk in or call ahead — and don't forget to pick up your parts from VUE first.</p>
+        </div>
+        <div class="garage-grid">
+          <article class="garage-card">
+            <div class="garage-card-head">
+              <span class="garage-icon" aria-hidden="true">🔧</span>
+              <div>
+                <h3>Chipinge Motor Works</h3>
+                <span class="garage-area">Town centre</span>
+              </div>
+            </div>
+            <ul class="garage-tags">
+              <li>General service</li>
+              <li>Brake &amp; clutch</li>
+              <li>Engine overhaul</li>
+            </ul>
+          </article>
+          <article class="garage-card">
+            <div class="garage-card-head">
+              <span class="garage-icon" aria-hidden="true">⚡</span>
+              <div>
+                <h3>Sunrise Auto Electrical</h3>
+                <span class="garage-area">Near main road</span>
+              </div>
+            </div>
+            <ul class="garage-tags">
+              <li>Auto electrical</li>
+              <li>Alarm &amp; wiring</li>
+              <li>Battery fitting</li>
+            </ul>
+          </article>
+          <article class="garage-card">
+            <div class="garage-card-head">
+              <span class="garage-icon" aria-hidden="true">🚗</span>
+              <div>
+                <h3>Reliable Auto Repairs</h3>
+                <span class="garage-area">Near market area</span>
+              </div>
+            </div>
+            <ul class="garage-tags">
+              <li>Suspension &amp; steering</li>
+              <li>Toyota &amp; Honda</li>
+              <li>Oil service</li>
+            </ul>
+          </article>
+          <article class="garage-card">
+            <div class="garage-card-head">
+              <span class="garage-icon" aria-hidden="true">🛞</span>
+              <div>
+                <h3>Kwesine Tyre &amp; Rim</h3>
+                <span class="garage-area">Chipinge</span>
+              </div>
+            </div>
+            <ul class="garage-tags">
+              <li>Tyre fitting</li>
+              <li>Wheel alignment</li>
+              <li>Balancing</li>
+            </ul>
+          </article>
+        </div>
+        <p class="garages-note">Know a garage we should list? <a href="https://wa.me/16038662272">WhatsApp us</a> to suggest one.</p>
+      </section>
+
       <section class="section contact" id="contact">
         <div>
           <p class="eyebrow">Contact</p>
           <h2>Tell us the part, model &amp; quantity.</h2>
           <p>We'll draft a message for you — just review and send. No email account needed.</p>
           <button class="enq-trigger" id="enqOpen" type="button">Send an enquiry</button>
+          <button class="enq-trigger req-trigger" id="reqOpen" type="button">Request a part</button>
           <button class="enq-trigger job-trigger" id="jobOpen" type="button">Jobs</button>
           <button class="job-status-trigger" id="jobStatusOpen" type="button">Check application status</button>
         </div>
@@ -359,6 +428,60 @@
       </section>
 
       <!-- Staff portal modal -->
+      <!-- Parts request modal -->
+      <div id="reqOverlay" class="enq-overlay" role="dialog" aria-modal="true" aria-label="Request a part" hidden>
+        <div class="enq-modal req-modal">
+          <div class="enq-modal-header">
+            <div>
+              <h2 class="enq-modal-title">Request a part</h2>
+              <p class="enq-subtitle">Can't find what you need? Leave a request and we'll source it for you.</p>
+            </div>
+            <button class="enq-close" id="reqClose" aria-label="Close">&times;</button>
+          </div>
+
+          <!-- Panel 1: Form -->
+          <div class="enq-panel" id="reqPanelForm">
+            <div class="enq-fields">
+              <div class="enq-field">
+                <label for="reqName">Your name <span class="enq-required">*</span></label>
+                <input id="reqName" type="text" placeholder="e.g. Tendai Moyo" maxlength="100" autocomplete="name">
+              </div>
+              <div class="enq-field">
+                <label for="reqPhone">Phone / WhatsApp</label>
+                <input id="reqPhone" type="tel" placeholder="e.g. 077 123 4567" maxlength="30" autocomplete="tel">
+              </div>
+              <div class="enq-field">
+                <label for="reqVehicle">Vehicle model <span class="enq-required">*</span></label>
+                <input id="reqVehicle" type="text" placeholder="e.g. Honda Fit 2008" maxlength="100">
+              </div>
+              <div class="enq-field">
+                <label for="reqPart">Part needed <span class="enq-required">*</span></label>
+                <input id="reqPart" type="text" placeholder="e.g. Front left CV joint" maxlength="200">
+              </div>
+              <div class="enq-field">
+                <label for="reqNote">Extra details <span class="enq-optional">(optional)</span></label>
+                <textarea id="reqNote" rows="3" placeholder="Colour, size, condition preference…" maxlength="500"></textarea>
+              </div>
+            </div>
+            <div id="reqError" class="enq-error" hidden></div>
+            <div class="enq-foot">
+              <button class="enq-submit" id="reqSubmit" type="button">Submit request</button>
+            </div>
+          </div>
+
+          <!-- Panel 2: Success -->
+          <div class="enq-panel" id="reqPanelDone" hidden>
+            <div class="req-success">
+              <div class="req-success-icon" aria-hidden="true">✓</div>
+              <h3>Request received!</h3>
+              <p>We'll check our suppliers and follow up with you on WhatsApp or call. You can also reach us directly anytime.</p>
+              <a class="button primary" href="https://wa.me/16038662272" target="_blank" rel="noopener">WhatsApp us now</a>
+              <button class="enq-trigger" id="reqDone" type="button" style="margin-top:10px">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="stfOverlay" class="enq-overlay stf-overlay" role="dialog" aria-modal="true" aria-label="Staff portal" hidden>
         <div class="enq-modal stf-modal">
 
@@ -1278,6 +1401,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="site.js?v=1"></script>
+    <script src="request.js?v=1"></script>
     <script src="enquiry.js?v=1"></script>
     <script src="inventory.js?v=6"></script>
     <script src="ai.js?v=2"></script>

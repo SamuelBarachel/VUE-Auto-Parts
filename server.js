@@ -353,6 +353,54 @@ Return ONLY the message text, no subject line, no "Dear", no sign-off label. Jus
   }
 }
 
+async function handlePartRequest(request, response) {
+  let body;
+  try {
+    body = JSON.parse(await readRequestBody(request) || "{}");
+  } catch {
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
+
+  const name    = String(body.name    || "").trim().slice(0, 100);
+  const phone   = String(body.phone   || "").trim().slice(0, 30);
+  const vehicle = String(body.vehicle || "").trim().slice(0, 100);
+  const part    = String(body.part    || "").trim().slice(0, 200);
+  const note    = String(body.note    || "").trim().slice(0, 500);
+
+  if (!name || !vehicle || !part) {
+    return sendJson(response, 400, { ok: false, error: "Name, vehicle and part are required." });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO part_requests (name, phone, vehicle, part, note) VALUES ($1, $2, $3, $4, $5)`,
+      [name, phone, vehicle, part, note]
+    );
+  } catch (err) {
+    console.error("[part-request] DB error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not save request. Please WhatsApp us directly." });
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (apiKey) {
+    const html = `<h2 style="color:#062f22">New Part Request</h2><p><strong>Name:</strong> ${name}<br><strong>Phone:</strong> ${phone || "—"}<br><strong>Vehicle:</strong> ${vehicle}<br><strong>Part needed:</strong> ${part}${note ? `<br><strong>Note:</strong> ${note}` : ""}</p>`;
+    const text = `New Part Request\n\nName: ${name}\nPhone: ${phone || "—"}\nVehicle: ${vehicle}\nPart needed: ${part}${note ? "\nNote: " + note : ""}`;
+    fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "VUE Auto Parts <onboarding@resend.dev>",
+        to: ["info@vueautoparts.com"],
+        subject: `Part Request: ${part} — ${vehicle} (${name})`,
+        html,
+        text,
+      }),
+    }).catch(e => console.error("[part-request] email error:", e.message));
+  }
+
+  return sendJson(response, 200, { ok: true });
+}
+
 async function handleEnquiry(request, response) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -1678,6 +1726,9 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && request.url === "/api/ask") {
       return await handleAsk(request, response);
     }
+    if (request.method === "POST" && request.url === "/api/part-request") {
+      return await handlePartRequest(request, response);
+    }
     if (request.method === "POST" && request.url === "/api/draft") {
       return await handleDraft(request, response);
     }
@@ -1759,6 +1810,17 @@ const server = http.createServer(async (request, response) => {
 });
 
 async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS part_requests (
+      id         SERIAL PRIMARY KEY,
+      name       TEXT NOT NULL,
+      phone      TEXT,
+      vehicle    TEXT NOT NULL,
+      part       TEXT NOT NULL,
+      note       TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS job_applications (
       id              SERIAL PRIMARY KEY,
