@@ -1510,62 +1510,22 @@ async function handleStaffSendStatus(request, response) {
     }
   }
 
-  // ── Generate PDF letter ───────────────────────────────────────────
-  let pdfBuffer;
-  try {
-    pdfBuffer = await generateLetterPdf({ firstName, lastName, location, role }, status, aiBody);
-  } catch (e) {
-    console.error("[send-status] PDF error:", e.message);
-    return sendJson(response, 500, { ok: false, error: "Could not generate the letter. Please try again." });
-  }
-
-  // ── Build email ───────────────────────────────────────────────────
+  // ── Build plain-text email ────────────────────────────────────────
   const statusLabel = { "under-review": "Under Review", "accepted": "Accepted", "rejected": "Rejected" }[status];
   const subjectMap  = {
     "under-review": `Your application is under review — ${role} at Vue Auto Parts`,
     "accepted":     `Congratulations — You have been selected for ${role} at Vue Auto Parts`,
     "rejected":     `Your application outcome — ${role} at Vue Auto Parts`,
   };
-  const headerMap = {
-    "under-review": "Your Application Is Under Review",
-    "accepted":     "Congratulations — You Have Been Selected",
-    "rejected":     "Your Application Outcome",
-  };
-  const accentColor = { "under-review": "#b8902a", "accepted": "#0f4f36", "rejected": "#6b7280" }[status];
-
-  const bodyParas = aiBody.split(/\n\n+/).map(p => p.trim()).filter(Boolean)
-    .map(p => `<p style="color:#333;font-size:13px;line-height:1.85;margin:0 0 15px;font-family:Georgia,serif">${p}</p>`)
-    .join("");
-
-  const emailHtml = `
-    <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
-      <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:28px 32px 22px">
-        <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;font-family:sans-serif">Vue Auto Parts &nbsp;·&nbsp; Careers</div>
-        <h2 style="color:#fff;margin:0;font-size:20px;font-weight:700;font-family:Georgia,serif">${headerMap[status]}</h2>
-      </div>
-      <div style="background:#fafafa;padding:28px 32px;border-bottom:3px solid ${accentColor}">
-        <p style="color:#111;font-size:13px;margin:0 0 16px;font-family:Georgia,serif">Dear ${firstName} ${lastName},</p>
-        ${bodyParas}
-        <p style="color:#444;font-size:13px;line-height:1.85;margin:16px 0 0;font-family:Georgia,serif">Yours ${status === "accepted" ? "sincerely" : "respectfully"},</p>
-        <p style="color:#0f4f36;font-size:13px;font-weight:700;margin:12px 0 2px;font-family:Georgia,serif">Samuel Takwirira</p>
-        <p style="color:#6b7280;font-size:12px;margin:0;font-family:sans-serif">Director, Vue Auto Parts</p>
-      </div>
-      <div style="background:#fff;padding:16px 32px 20px">
-        <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.7;font-family:sans-serif">
-          Vue Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
-          <a href="mailto:info@vueautoparts.com" style="color:#0f4f36">info@vueautoparts.com</a> &nbsp;·&nbsp;
-          <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a>
-        </p>
-      </div>
-    </div>`;
 
   const emailText =
-    `Dear ${firstName} ${lastName},\n\n${aiBody}\n\n` +
-    `Yours ${status === "accepted" ? "sincerely" : "respectfully"},\n` +
-    `Samuel Takwirira\nDirector, Vue Auto Parts\nChipinge, Manicaland, Zimbabwe\ninfo@vueautoparts.com`;
-
-  const safeName = `${firstName}_${lastName}`.replace(/[^a-zA-Z_]/g, "_");
-  const pdfName  = `Vue_Auto_Parts_${statusLabel.replace(/ /g, "_")}_Letter_${safeName}.pdf`;
+    `Dear ${firstName} ${lastName},\n\n` +
+    `${aiBody}\n\n` +
+    `Yours ${status === "accepted" ? "sincerely" : "respectfully"},\n\n` +
+    `Samuel Takwirira\n` +
+    `Director, Vue Auto Parts\n` +
+    `Chipinge, Manicaland, Zimbabwe\n` +
+    `info@vueautoparts.com | WhatsApp: +16038662272`;
 
   // ── Send email (awaited) ──────────────────────────────────────────
   try {
@@ -1577,9 +1537,7 @@ async function handleStaffSendStatus(request, response) {
         to:      [email],
         cc:      ["info@vueautoparts.com"],
         subject: subjectMap[status],
-        html:    emailHtml,
         text:    emailText,
-        attachments: [{ filename: pdfName, content: pdfBuffer.toString("base64") }],
       }),
     });
     if (!r.ok) {

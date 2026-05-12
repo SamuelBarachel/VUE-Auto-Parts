@@ -29,7 +29,7 @@
     if (!container) return;
     container.innerHTML = `
       <div class="apps-form-wrap">
-        <p class="enq-subtitle" style="margin-bottom:20px">Enter the applicant's details and select their new status. An AI-written formal letter will be generated, electronically signed by Samuel Takwirira (Director), and emailed to the applicant as a PDF attachment.</p>
+        <p class="enq-subtitle" style="margin-bottom:20px">Enter the applicant's details and select their new status. An AI-written formal letter will be composed and emailed directly to the applicant, signed by Samuel Takwirira, Director.</p>
         <div class="enq-fields-grid">
           <div class="enq-field">
             <label for="appsFName">First Name <span class="req">*</span></label>
@@ -66,7 +66,7 @@
           <textarea id="appsNote" class="enq-input enq-textarea" rows="2" placeholder="e.g. Start date is 1 June. Bring original ID and references."></textarea>
         </div>
         <div id="appsFormErr" class="enq-err" aria-live="polite" style="margin-bottom:8px"></div>
-        <button class="enq-btn" id="appsSendBtn" type="button">Generate &amp; Send Letter →</button>
+        <button class="enq-btn" id="appsSendBtn" type="button">Send Status Email →</button>
       </div>`;
 
     document.getElementById("appsSendBtn").addEventListener("click", handleSend);
@@ -95,7 +95,7 @@
     }
 
     btn.disabled    = true;
-    btn.textContent = "Generating letter…";
+    btn.textContent = "Sending email…";
 
     try {
       const res  = await fetch("/api/staff/send-status", {
@@ -118,12 +118,12 @@
       } else {
         if (errEl) errEl.textContent = data.error || "Could not send. Please try again.";
         btn.disabled    = false;
-        btn.textContent = "Generate & Send Letter →";
+        btn.textContent = "Send Status Email →";
       }
     } catch {
       if (errEl) errEl.textContent = "Network error. Please try again.";
       btn.disabled    = false;
-      btn.textContent = "Generate & Send Letter →";
+      btn.textContent = "Send Status Email →";
     }
   }
 
@@ -141,11 +141,11 @@
             <polyline points="16 19 19 22 23 18"/>
           </svg>
         </div>
-        <h3 class="apps-success-title">Letter Sent Successfully</h3>
+        <h3 class="apps-success-title">Email Sent Successfully</h3>
         <p class="apps-success-msg">
-          A formal <strong style="color:${color}">${data.statusLabel}</strong> letter was written by AI,
-          signed by <strong>Samuel Takwirira, Director</strong>, and emailed to
-          <strong>${data.email}</strong> with the official PDF letter attached.
+          A formal <strong style="color:${color}">${data.statusLabel}</strong> email was written by AI,
+          signed by <strong>Samuel Takwirira, Director</strong>, and sent to
+          <strong>${data.email}</strong>.
           <br><br>
           A copy was also sent to <strong>info@vueautoparts.com</strong>.
         </p>
