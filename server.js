@@ -1854,6 +1854,26 @@ async function initDb() {
   `);
   await pool.query(`ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS email TEXT`).catch(() => {});
   await pool.query(`ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS id_photo_base64 TEXT`).catch(() => {});
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS rewards_cards (
+      id             SERIAL PRIMARY KEY,
+      serial         TEXT NOT NULL UNIQUE,
+      name           TEXT NOT NULL,
+      phone          TEXT NOT NULL,
+      issued_by      TEXT DEFAULT '',
+      issued_by_role TEXT DEFAULT '',
+      issued_date    TIMESTAMPTZ DEFAULT NOW(),
+      status         TEXT DEFAULT 'active',
+      referrals      INTEGER DEFAULT 0,
+      purchases      INTEGER DEFAULT 0,
+      revoked_by     TEXT,
+      revoke_reason  TEXT,
+      revoked_date   TIMESTAMPTZ,
+      renewed_date   TIMESTAMPTZ,
+      paid_date      TIMESTAMPTZ,
+      paid_amount    NUMERIC
+    )
+  `);
 }
 
 initDb()
