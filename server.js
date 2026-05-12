@@ -8,6 +8,10 @@ const insights    = require("./insights");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
+// ── In-memory applicant store (keyed by normalised National ID) ────────────
+// Persists for the lifetime of the server process (no DB needed).
+const applicantStore = new Map();
+
 const PORT = process.env.PORT || 5000;
 const ROOT = __dirname;
 const INVENTORY_URL =
@@ -1421,6 +1425,23 @@ async function handleJobsLetter(request, response) {
 }
 
 
+async function handleStaffLookupApplicant(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const nationalId = String(body.nationalId || "").trim().toUpperCase().replace(/\s+/g, " ");
+  if (!nationalId) return sendJson(response, 400, { ok: false, error: "National ID required." });
+
+  const record = applicantStore.get(nationalId);
+  if (!record) return sendJson(response, 404, { ok: false, error: "No applicant found with that ID." });
+
+  return sendJson(response, 200, { ok: true, applicant: record });
+}
+
 async function handleStaffSendStatus(request, response) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
@@ -1434,19 +1455,21 @@ async function handleStaffSendStatus(request, response) {
   const director = await verifyDirector(body);
   if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
 
-  const { applicantFirst, applicantLast, applicantEmail, applicantLocation, role, status, note } = body;
+  const { nationalId: rawNationalId, applicantFirst, applicantLast, applicantEmail, applicantPhone, applicantLocation, role, status, note } = body;
 
-  if (!applicantFirst || !applicantLast || !applicantEmail || !role || !status) {
+  if (!rawNationalId || !applicantFirst || !applicantLast || !applicantEmail || !role || !status) {
     return sendJson(response, 400, { ok: false, error: "All required fields must be filled in." });
   }
   if (!["under-review", "accepted", "rejected"].includes(status)) {
     return sendJson(response, 400, { ok: false, error: "Invalid status." });
   }
 
-  const firstName = String(applicantFirst).trim();
-  const lastName  = String(applicantLast).trim();
-  const email     = String(applicantEmail).trim().toLowerCase();
-  const location  = String(applicantLocation || "Zimbabwe").trim();
+  const nationalId = String(rawNationalId).trim().toUpperCase().replace(/\s+/g, " ");
+  const firstName  = String(applicantFirst).trim();
+  const lastName   = String(applicantLast).trim();
+  const email      = String(applicantEmail).trim().toLowerCase();
+  const phone      = String(applicantPhone  || "").trim();
+  const location   = String(applicantLocation || "Zimbabwe").trim();
 
   // ── Groq: generate formal letter body ─────────────────────────────
   const statusInstructions = {
@@ -1545,7 +1568,21 @@ async function handleStaffSendStatus(request, response) {
       console.error("[send-status] email error:", r.status, errText);
       return sendJson(response, 500, { ok: false, error: "Could not send the status email. Please try again." });
     }
-    console.log(`[send-status] ${status} → ${email} | ${role} | by ${director.firstName} ${director.lastName}`);
+    // ── Save / update applicant record in memory ──────────────────────
+    applicantStore.set(nationalId, {
+      nationalId,
+      firstName,
+      lastName,
+      email,
+      phone,
+      location,
+      role,
+      status,
+      note,
+      lastUpdated: new Date().toISOString(),
+      savedBy: `${director.firstName} ${director.lastName}`,
+    });
+    console.log(`[send-status] ${status} → ${email} | ${role} | ID=${nationalId} | by ${director.firstName} ${director.lastName}`);
   } catch (e) {
     console.error("[send-status] fetch error:", e.message);
     return sendJson(response, 500, { ok: false, error: "Could not send the status email. Please try again." });
@@ -1633,6 +1670,9 @@ const server = http.createServer(async (request, response) => {
     }
     if (request.method === "GET" && request.url.startsWith("/api/jobs/letter")) {
       return await handleJobsLetter(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/staff/lookup-applicant") {
+      return await handleStaffLookupApplicant(request, response);
     }
     if (request.method === "POST" && request.url === "/api/staff/send-status") {
       return await handleStaffSendStatus(request, response);
