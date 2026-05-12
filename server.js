@@ -676,6 +676,12 @@ The message should confirm they are available 7 AM–6 PM, are happy with transp
 }
 
 async function handleJobsApply(request, response) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    console.error("[jobs-apply] RESEND_API_KEY not set");
+    return sendJson(response, 500, { ok: false, error: "Email service not configured. Please WhatsApp us at +16038662272." });
+  }
+
   let body;
   try {
     body = JSON.parse(await readRequestBody(request) || "{}");
@@ -696,153 +702,116 @@ async function handleJobsApply(request, response) {
     return sendJson(response, 400, { ok: false, error: "Required fields missing." });
   }
 
-  if (sex && !["Male", "Female"].includes(sex)) {
-    return sendJson(response, 400, { ok: false, error: "Gender must be Male or Female." });
-  }
-
   const dobStr = `${dobMonth || ""}/${dobDay || ""}/${dobYear || ""}`;
   const computerLabel = computer === "Yes" ? "Yes" : computer === "Learning" ? "Willing to learn" : "Not yet";
   const cleanEmail = String(email || "").trim().toLowerCase();
 
-  // ── 1. Save to DB — this is the primary record, always runs ──────────
-  let savedId = null;
-  try {
-    const dbRes = await pool.query(
-      `INSERT INTO job_applications
-       (first_name, last_name, id_number, dob, dob_month, dob_day, dob_year, age,
-        phone, email, sex, location, role, computer_skills, medical,
-        signature, draft, id_photo_name, id_photo_base64)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
-       RETURNING id`,
-      [
-        String(firstName).trim(),
-        String(lastName).trim(),
-        String(idNumber  || "").trim(),
-        dobStr,
-        String(dobMonth  || ""),
-        String(dobDay    || ""),
-        String(dobYear   || ""),
-        age ? parseInt(age) : null,
-        String(phone     || "").trim(),
-        cleanEmail,
-        String(sex       || "").trim(),
-        String(location  || "").trim(),
-        String(role).trim(),
-        String(computer  || "").trim(),
-        String(medical   || "").trim(),
-        String(signature || "").trim(),
-        String(draft     || "").trim().slice(0, 3000),
-        String(idPhotoName   || "").trim(),
-        String(idPhotoBase64 || "").slice(0, 500000),
-      ]
-    );
-    savedId = dbRes.rows[0].id;
-    console.log(`[jobs-apply] saved id=${savedId}: ${firstName} ${lastName} | ${role}`);
-  } catch (dbErr) {
-    console.error("[jobs-apply] DB error:", dbErr.message);
-    return sendJson(response, 500, { ok: false, error: "Could not save your application. Please WhatsApp us directly." });
+  // ── Build admin email ────────────────────────────────────────────────
+  const adminHtml = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:8px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+        <h2 style="color:#fff;margin:0;font-size:20px;font-weight:900">New Job Application</h2>
+        <p style="color:rgba(255,255,255,0.55);margin:4px 0 0;font-size:13px">Received via the VUE Auto Parts website</p>
+      </div>
+      <div style="background:#f9f9f9;padding:20px 28px;border-left:1px solid #eee;border-right:1px solid #eee">
+        <div style="display:inline-block;background:#d1fae5;color:#065f46;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 12px;border-radius:999px;text-transform:uppercase;margin-bottom:16px">${role}</div>
+        <table style="border-collapse:collapse;width:100%;font-size:14px">
+          <tr><td style="padding:7px 0;color:#666;width:140px;font-weight:600;vertical-align:top">Full Name</td><td style="padding:7px 0;font-weight:700">${firstName} ${lastName}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Date of Birth</td><td style="padding:7px 0;font-weight:700">${dobStr} &nbsp;<span style="color:#888;font-weight:500">(Age ${age})</span></td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Sex</td><td style="padding:7px 0;font-weight:700">${sex || "—"}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Location</td><td style="padding:7px 0;font-weight:700">${location || "—"}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Phone</td><td style="padding:7px 0;font-weight:700">${phone || "—"}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Email</td><td style="padding:7px 0;font-weight:700">${cleanEmail || "—"}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">National ID</td><td style="padding:7px 0;font-family:'Courier New',monospace;font-weight:700">${idNumber || "—"}</td></tr>
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Computer Skills</td><td style="padding:7px 0;font-weight:700">${computerLabel}</td></tr>
+          ${medical ? `<tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Health Notes</td><td style="padding:7px 0;font-weight:700">${medical}</td></tr>` : ""}
+          <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Signed By</td><td style="padding:7px 0;font-weight:700;color:#0f4f36">${signature}</td></tr>
+        </table>
+      </div>
+      <div style="background:#fff;padding:20px 28px;border:1px solid #eee;border-top:none">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:10px">Application Message</div>
+        <p style="color:#333;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap">${draft || ""}</p>
+      </div>
+      ${idPhotoBase64 ? `<div style="background:#f9f9f9;padding:16px 28px 20px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:6px">National ID Photo</div>
+        <p style="color:#888;font-size:12px;margin:0">Attached to this email.</p>
+      </div>` : ""}
+    </div>`;
+
+  const adminPayload = {
+    from: "VUE Auto Parts <onboarding@resend.dev>",
+    to: ["info@vueautoparts.com"],
+    subject: `Job Application: ${role} — ${firstName} ${lastName}`,
+    html: adminHtml,
+    text: `New Job Application\n\nRole: ${role}\nName: ${firstName} ${lastName}\nDOB: ${dobStr} (Age ${age})\nSex: ${sex || "—"}\nLocation: ${location || "—"}\nPhone: ${phone || "—"}\nEmail: ${cleanEmail || "—"}\nID: ${idNumber || "—"}\nComputer: ${computerLabel}\n${medical ? "Health: " + medical + "\n" : ""}Signed: ${signature}\n\n${draft || ""}`,
+  };
+
+  if (idPhotoBase64 && idPhotoName) {
+    const ext = (idPhotoName.split(".").pop() || "jpg").toLowerCase();
+    adminPayload.attachments = [{
+      filename: `national-id-${String(firstName).toLowerCase()}-${String(lastName).toLowerCase()}.${ext}`,
+      content: idPhotoBase64,
+    }];
   }
 
-  // ── 2. Admin + applicant emails (fire-and-forget) ─────────────────────
-  const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
-    const adminHtml = `
-      <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
-          <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:8px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
-          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:900">New Job Application</h2>
-          <p style="color:rgba(255,255,255,0.55);margin:4px 0 0;font-size:13px">Received via the VUE Auto Parts website</p>
-        </div>
-        <div style="background:#f9f9f9;padding:20px 28px;border-left:1px solid #eee;border-right:1px solid #eee">
-          <div style="display:inline-block;background:#d1fae5;color:#065f46;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 12px;border-radius:999px;text-transform:uppercase;margin-bottom:16px">${role}</div>
-          <table style="border-collapse:collapse;width:100%;font-size:14px">
-            <tr><td style="padding:7px 0;color:#666;width:140px;font-weight:600;vertical-align:top">Full Name</td><td style="padding:7px 0;font-weight:700">${firstName} ${lastName}</td></tr>
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Date of Birth</td><td style="padding:7px 0;font-weight:700">${dobStr} &nbsp;<span style="color:#888;font-weight:500">(Age ${age})</span></td></tr>
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Sex</td><td style="padding:7px 0;font-weight:700">${sex || "—"}</td></tr>
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Location</td><td style="padding:7px 0;font-weight:700">${location || "—"}</td></tr>
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Phone</td><td style="padding:7px 0;font-weight:700">${phone || "—"}</td></tr>
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Email</td><td style="padding:7px 0;font-weight:700">${cleanEmail || "—"}</td></tr>
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">National ID</td><td style="padding:7px 0;font-weight:700;font-family:'Courier New',monospace">${idNumber || "—"}</td></tr>
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Computer Skills</td><td style="padding:7px 0;font-weight:700">${computerLabel}</td></tr>
-            ${medical ? `<tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Health Notes</td><td style="padding:7px 0;font-weight:700">${medical}</td></tr>` : ""}
-            <tr><td style="padding:7px 0;color:#666;font-weight:600;vertical-align:top">Signed By</td><td style="padding:7px 0;font-weight:700;color:#0f4f36">${signature}</td></tr>
-          </table>
-        </div>
-        <div style="background:#fff;padding:20px 28px;border:1px solid #eee;border-top:none">
-          <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:10px">Application Message</div>
-          <p style="color:#333;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap">${draft || ""}</p>
-        </div>
-        ${idPhotoBase64 ? `<div style="background:#f9f9f9;padding:16px 28px 20px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
-          <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:6px">National ID Photo</div>
-          <p style="color:#888;font-size:12px;margin:0">Attached to this email.</p>
-        </div>` : ""}
-      </div>`;
-
-    const adminBody = {
-      from: "VUE Auto Parts <onboarding@resend.dev>",
-      to: ["info@vueautoparts.com"],
-      subject: `Job Application: ${role} — ${firstName} ${lastName}`,
-      html: adminHtml,
-      text: `New Job Application\n\nRole: ${role}\nName: ${firstName} ${lastName}\nDOB: ${dobStr} (Age ${age})\nSex: ${sex || "—"}\nLocation: ${location || "—"}\nPhone: ${phone || "—"}\nEmail: ${cleanEmail || "—"}\nID: ${idNumber || "—"}\nComputer: ${computerLabel}\n${medical ? "Health: " + medical + "\n" : ""}Signed: ${signature}\n\n${draft || ""}`,
-    };
-
-    if (idPhotoBase64 && idPhotoName) {
-      const ext = (idPhotoName.split(".").pop() || "jpg").toLowerCase();
-      adminBody.attachments = [{
-        filename: `national-id-${String(firstName).toLowerCase()}-${String(lastName).toLowerCase()}.${ext}`,
-        content: idPhotoBase64,
-      }];
+  // ── Send admin notification — awaited so we can report success/failure ──
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(adminPayload),
+    });
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "");
+      console.error("[jobs-apply] admin email error:", r.status, errText);
+      return sendJson(response, 500, { ok: false, error: "Could not send your application. Please WhatsApp us at +16038662272." });
     }
+    console.log(`[jobs-apply] application emailed: ${firstName} ${lastName} | ${role}`);
+  } catch (e) {
+    console.error("[jobs-apply] admin email fetch error:", e.message);
+    return sendJson(response, 500, { ok: false, error: "Could not send your application. Please WhatsApp us at +16038662272." });
+  }
+
+  // ── Applicant confirmation — fire-and-forget ─────────────────────────
+  if (cleanEmail) {
+    const confirmHtml = `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+        <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
+          <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+          <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">We received your application</h2>
+        </div>
+        <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
+          <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${firstName},</p>
+          <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
+            Thank you for applying for the <strong>${role}</strong> position at VUE Auto Parts. We have received your application and our team will be in touch.
+          </p>
+          <p style="color:#444;font-size:14px;line-height:1.75;margin:0">
+            Questions? WhatsApp us at <strong>+16038662272</strong>.
+          </p>
+        </div>
+        <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+          <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
+            VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe &nbsp;·&nbsp;
+            <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a>
+          </p>
+        </div>
+      </div>`;
 
     fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify(adminBody),
+      body: JSON.stringify({
+        from: "VUE Auto Parts <onboarding@resend.dev>",
+        to: [cleanEmail],
+        subject: `Application received — ${role} at VUE Auto Parts`,
+        html: confirmHtml,
+        text: `Hi ${firstName},\n\nThank you for applying for the ${role} position at VUE Auto Parts. We have received your application and our team will be in touch.\n\nQuestions? WhatsApp us at +16038662272.\n\n— VUE Auto Parts, Chipinge, Zimbabwe`,
+      }),
     }).then(r => {
-      if (r.ok) console.log(`[jobs-apply] admin email sent for id=${savedId}`);
-      else r.text().then(t => console.error("[jobs-apply] admin email error:", r.status, t));
-    }).catch(e => console.error("[jobs-apply] admin email error:", e.message));
-
-    if (cleanEmail) {
-      const confirmHtml = `
-        <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
-          <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
-            <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
-            <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">We received your application</h2>
-          </div>
-          <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
-            <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${firstName},</p>
-            <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
-              Thank you for applying for the <strong>${role}</strong> position at VUE Auto Parts. We have received your application and it is now under review.
-            </p>
-            <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 22px">
-              You can check your application status at any time by visiting our website and clicking <strong>"Check application status"</strong>.
-            </p>
-            <a href="https://vueautoparts.com" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 22px;border-radius:8px;text-decoration:none">Check My Application Status →</a>
-          </div>
-          <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
-            <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
-              VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
-              Questions? WhatsApp us at <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a>
-            </p>
-          </div>
-        </div>`;
-
-      fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "VUE Auto Parts <onboarding@resend.dev>",
-          to: [cleanEmail],
-          subject: `Application received — ${role} at VUE Auto Parts`,
-          html: confirmHtml,
-          text: `Hi ${firstName},\n\nThank you for applying for the ${role} position at VUE Auto Parts. Your application is now under review.\n\nCheck your status at: https://vueautoparts.com\n\n— VUE Auto Parts, Chipinge, Zimbabwe`,
-        }),
-      }).then(r => {
-        if (r.ok) console.log(`[jobs-apply] confirmation sent to ${cleanEmail}`);
-        else r.text().then(t => console.error("[jobs-apply] confirmation error:", r.status, t));
-      }).catch(e => console.error("[jobs-apply] confirmation error:", e.message));
-    }
+      if (r.ok) console.log(`[jobs-apply] confirmation sent to ${cleanEmail}`);
+      else r.text().then(t => console.error("[jobs-apply] confirmation error:", r.status, t));
+    }).catch(e => console.error("[jobs-apply] confirmation error:", e.message));
   }
 
   return sendJson(response, 200, { ok: true });
