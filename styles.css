@@ -809,13 +809,13 @@ h1 {
 }
 
 .section-heading {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .section-heading.narrow {
   display: block;
   max-width: 720px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 h2 {
@@ -843,8 +843,7 @@ h2 {
 }
 
 .model-card {
-  min-height: 150px;
-  padding: 16px;
+  padding: 16px 16px 44px;
   position: relative;
 }
 
@@ -1081,7 +1080,7 @@ h2 {
   display: grid;
   gap: 14px;
   grid-template-columns: 0.62fr 1.38fr;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .stock-panel {
@@ -1135,6 +1134,7 @@ h2 {
 
 /* Photo cards for parts categories */
 .category-grid {
+  align-items: start;
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, 1fr);
@@ -1171,7 +1171,6 @@ h2 {
 
 .category-body {
   padding: 10px 14px 14px;
-  flex: 1;
 }
 
 .category-icon {
@@ -1233,7 +1232,7 @@ h2 {
 }
 
 .hours-section {
-  align-items: center;
+  align-items: start;
   background: var(--green-dark);
   color: #fff;
   display: grid;
@@ -1245,10 +1244,10 @@ h2 {
 
 .hours-section p {
   color: rgba(255, 255, 255, 0.74);
-  font-size: 0.98rem;
-  line-height: 1.52;
-  margin-top: 14px;
-  max-width: 600px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 10px;
+  max-width: 480px;
 }
 
 .hours-live {
@@ -1407,7 +1406,7 @@ h2 {
 }
 
 .directions-section {
-  align-items: center;
+  align-items: start;
   background: #f7f7f5;
   display: grid;
   gap: clamp(20px, 3.5vw, 48px);
@@ -1420,10 +1419,10 @@ h2 {
 
 .directions-section p {
   color: var(--muted);
-  font-size: 0.98rem;
-  line-height: 1.52;
-  margin-top: 14px;
-  max-width: 600px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 10px;
+  max-width: 480px;
 }
 
 .directions-card {
@@ -1442,8 +1441,8 @@ h2 {
   color: var(--green);
   display: flex;
   justify-content: center;
-  margin-bottom: 18px;
-  padding: 22px 0;
+  margin-bottom: 14px;
+  padding: 12px 0;
 }
 
 .directions-card dl {
@@ -1453,7 +1452,7 @@ h2 {
 }
 
 .contact {
-  align-items: center;
+  align-items: start;
   background: var(--green-dark);
   color: #fff;
   display: grid;
@@ -1467,12 +1466,103 @@ h2 {
 
 .contact p {
   color: rgba(255, 255, 255, 0.74);
-  font-size: 0.98rem;
-  line-height: 1.52;
-  margin-top: 14px;
-  max-width: 600px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 10px;
+  max-width: 480px;
 }
 
+
+/* ══════════════════════════════════════
+   GARAGES SECTION
+   ══════════════════════════════════════ */
+
+.garages-section {
+  background: var(--paper);
+}
+
+.garages-intro {
+  margin-bottom: 20px;
+  max-width: 560px;
+}
+
+.garages-intro h2 { margin-bottom: 8px; }
+
+.garage-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  margin-bottom: 20px;
+}
+
+.garage-card {
+  background: #fff;
+  border: 1px solid rgba(6, 47, 34, 0.1);
+  border-radius: 12px;
+  padding: 18px;
+  transition: box-shadow 180ms, transform 120ms;
+}
+
+.garage-card:hover {
+  box-shadow: 0 6px 20px rgba(6, 47, 34, 0.1);
+  transform: translateY(-2px);
+}
+
+.garage-card-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.garage-icon {
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.garage-card-head h3 {
+  font-size: 0.93rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 2px;
+}
+
+.garage-area {
+  color: #6b7280;
+  font-size: 0.76rem;
+}
+
+.garage-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.garage-tags li {
+  background: rgba(6, 47, 34, 0.07);
+  border-radius: 999px;
+  color: var(--green-dark);
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 2px 9px;
+}
+
+.garages-note {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.garages-note a {
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: underline;
+}
 
 /* ── Request a part trigger ── */
 .req-trigger {
