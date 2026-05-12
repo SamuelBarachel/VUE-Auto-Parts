@@ -267,6 +267,7 @@
 
   document.getElementById("jobIdNotReady").addEventListener("click", () => {
     document.getElementById("jobIdNotReadyHint").hidden = false;
+    setTimeout(() => closeModal(), 5000);
   });
 
   document.querySelectorAll(".job-role-card").forEach(card => {
