@@ -24,6 +24,11 @@
         AI
       </button>
 
+      <button class="vuepay-trigger" id="vuePayOpen" type="button" aria-label="Pay online with VuePay">
+        <span class="vuepay-trig-label">VuePay</span>
+        <span class="vuepay-trig-icon" aria-hidden="true">💳</span>
+      </button>
+
       <button class="earn-trigger" id="earnTrigger" type="button" aria-expanded="false" aria-controls="earnPanel" aria-label="Earn rewards">
         <span class="earn-label">Earn</span>
         <span class="earn-icon" aria-hidden="true">💰</span>
@@ -556,6 +561,13 @@
                 <strong>Manage Rewards</strong>
                 <span>Look up, update, revoke or renew a card</span>
               </button>
+              <button class="stf-action-card stf-card-full stf-action-vuepay" data-action="vuepay-config" id="stfVuePayCard" type="button" hidden>
+                <span class="stf-action-icon stf-icon-vuepay" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                </span>
+                <strong>VuePay Settings</strong>
+                <span>Update EcoCash receiving number &amp; view orders</span>
+              </button>
               <button class="stf-action-card stf-card-full stf-action-apps" data-action="manage-applications" id="stfAppsCard" type="button" hidden>
                 <span class="stf-action-icon stf-icon-apps" aria-hidden="true">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -758,6 +770,22 @@
             <div class="enq-err" id="stfAppsErr" aria-live="polite" style="margin-top:10px"></div>
             <div style="margin-top:18px">
               <button class="enq-btn-ghost" id="stfAppsBack" type="button">← Back</button>
+            </div>
+          </div>
+
+          <!-- Panel 8: VuePay Settings (Director only) -->
+          <div class="enq-panel" id="stfPanel8" hidden>
+            <div class="stfvp-header">
+              <span class="stfvp-badge">VuePay</span>
+              <h3 class="enq-title" style="margin:0">Settings &amp; Orders</h3>
+            </div>
+            <p class="enq-subtitle">Set the EcoCash number customers must send money to. Only you can change this.</p>
+            <div id="stfVpWrap"></div>
+            <h4 class="stfvp-orders-title">Recent Orders</h4>
+            <div id="stfVpOrders" class="stfvp-orders-list"></div>
+            <div class="enq-err" id="stfVpErr" aria-live="polite" style="margin-top:8px"></div>
+            <div style="margin-top:18px">
+              <button class="enq-btn-ghost" id="stfVpBack" type="button">← Back</button>
             </div>
           </div>
 
@@ -1346,6 +1374,137 @@
       </div>
     </main>
 
+    <!-- VuePay Checkout Modal -->
+    <div class="enq-overlay job-overlay" id="vuePayOverlay" hidden aria-modal="true" role="dialog" aria-label="VuePay checkout">
+      <div class="enq-modal vuepay-modal">
+        <div class="enq-modal-header vuepay-modal-header">
+          <div class="vuepay-modal-brand">
+            <span class="vuepay-header-badge">VuePay</span>
+            <span class="vuepay-header-tagline">by VUE Auto Parts</span>
+          </div>
+          <button class="enq-close" id="vuePayClose" type="button" aria-label="Close">&times;</button>
+        </div>
+
+        <!-- Step 0: Welcome -->
+        <div id="vpStep0">
+          <div class="vuepay-welcome">
+            <div class="vuepay-welcome-icon">💳</div>
+            <h2 class="vuepay-welcome-title">Pay Online</h2>
+            <p class="vuepay-welcome-body">Order and pay for your VUE Auto Parts using EcoCash, cash on collection, or another arrangement. Fast and simple.</p>
+            <button class="enq-btn-primary vuepay-start-btn" id="vpStart" type="button">Get started →</button>
+          </div>
+        </div>
+
+        <!-- Step 1: What are you paying for? -->
+        <div id="vpStep1" hidden>
+          <h3 class="vuepay-step-title">What are you paying for?</h3>
+          <p class="vuepay-step-sub">Describe the parts or service, and the amount if agreed.</p>
+          <div class="enq-field">
+            <label for="vpDescription">Items / description</label>
+            <textarea id="vpDescription" class="enq-ta" rows="3" placeholder="e.g. 2× brake pads for Toyota Corolla, 1× oil filter Honda Fit"></textarea>
+          </div>
+          <div class="enq-field">
+            <label for="vpAmount">Amount <span class="vuepay-opt">(USD — leave blank if not yet agreed)</span></label>
+            <input type="number" id="vpAmount" class="enq-input" min="0" step="0.01" placeholder="e.g. 25.00">
+          </div>
+          <div class="enq-field" style="display:none">
+            <label for="vpNote">Note (optional)</label>
+            <input type="text" id="vpNote" class="enq-input">
+          </div>
+          <div class="vuepay-foot">
+            <span class="vuepay-err" id="vpErr1" aria-live="polite"></span>
+            <button class="enq-btn-primary" id="vpNext1" type="button">Next →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Your details -->
+        <div id="vpStep2" hidden>
+          <h3 class="vuepay-step-title">Your details</h3>
+          <p class="vuepay-step-sub">So we can match your payment to your order.</p>
+          <div class="enq-field">
+            <label for="vpName">Full name</label>
+            <input type="text" id="vpName" class="enq-input" placeholder="e.g. Tatenda Moyo" autocomplete="name">
+          </div>
+          <div class="enq-field">
+            <label for="vpPhone">Phone number</label>
+            <input type="tel" id="vpPhone" class="enq-input" placeholder="e.g. 0771 234 567" autocomplete="tel">
+          </div>
+          <div class="vuepay-foot">
+            <button class="enq-btn-ghost" data-vp-back="1" type="button">← Back</button>
+            <span class="vuepay-err" id="vpErr2" aria-live="polite"></span>
+            <button class="enq-btn-primary" id="vpNext2" type="button">Next →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Payment method -->
+        <div id="vpStep3" hidden>
+          <h3 class="vuepay-step-title">How would you like to pay?</h3>
+          <p class="vuepay-step-sub">Choose your preferred method.</p>
+          <div class="vuepay-method-list">
+            <button class="vuepay-method-btn" data-method="ecocash" type="button">
+              <span class="vuepay-method-icon">📱</span>
+              <span class="vuepay-method-info">
+                <strong>EcoCash</strong>
+                <span>Econet mobile money via *151#</span>
+              </span>
+              <span class="vuepay-method-arrow">→</span>
+            </button>
+            <button class="vuepay-method-btn" data-method="cash" type="button">
+              <span class="vuepay-method-icon">💵</span>
+              <span class="vuepay-method-info">
+                <strong>Cash on Collection / Delivery</strong>
+                <span>Pay when you collect or we deliver</span>
+              </span>
+              <span class="vuepay-method-arrow">→</span>
+            </button>
+            <button class="vuepay-method-btn" data-method="other" type="button">
+              <span class="vuepay-method-icon">💬</span>
+              <span class="vuepay-method-info">
+                <strong>Other arrangement</strong>
+                <span>We'll sort payment with you directly</span>
+              </span>
+              <span class="vuepay-method-arrow">→</span>
+            </button>
+          </div>
+          <div class="vuepay-foot">
+            <button class="enq-btn-ghost" data-vp-back="2" type="button">← Back</button>
+            <span class="vuepay-err" id="vpErr3" aria-live="polite"></span>
+          </div>
+        </div>
+
+        <!-- Step 4: Payment instructions -->
+        <div id="vpStep4" hidden>
+          <h3 class="vuepay-step-title" id="vpStep4Title">Pay via EcoCash</h3>
+          <div id="vpInstructions"></div>
+          <div class="vuepay-foot">
+            <button class="enq-btn-ghost" data-vp-back="3" type="button">← Back</button>
+            <span class="vuepay-err" id="vpErr4" aria-live="polite"></span>
+            <button class="enq-btn-primary" id="vpConfirmBtn" type="button">Confirm →</button>
+          </div>
+        </div>
+
+        <!-- Step 5: Success -->
+        <div id="vpStep5" hidden>
+          <div class="vuepay-success">
+            <div class="vuepay-success-icon">✓</div>
+            <h3 class="vuepay-success-title">Order confirmed!</h3>
+            <p class="vuepay-success-body">Your VuePay order has been received. Note your reference number:</p>
+            <div class="vuepay-ref" id="vpRef">—</div>
+            <p class="vuepay-success-hint">Quote this when you contact us. We'll confirm receipt of payment shortly.</p>
+            <div class="vuepay-success-actions">
+              <button class="enq-btn-ghost" id="vpDone" type="button">Close</button>
+              <a class="enq-btn-primary" href="https://wa.me/16038662272" target="_blank" rel="noopener">WhatsApp us →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="vuepay-progress" id="vpProgress" hidden>
+          <div class="vuepay-progress-fill" id="vpProgressFill"></div>
+        </div>
+      </div>
+    </div>
+
     <footer class="site-footer">
       <span>VUE Auto Parts</span>
       <span>Precision Supply</span>
@@ -1363,9 +1522,10 @@
     <script src="ai.js?v=2"></script>
     <script src="earn.js?v=1"></script>
     <script src="rewards.js?v=1"></script>
-    <script src="staff.js?v=6"></script>
+    <script src="staff.js?v=7"></script>
     <script src="jobs.js?v=1"></script>
     <script src="applications.js?v=1"></script>
     <script src="job-status.js?v=1"></script>
+    <script src="vuepay.js?v=1"></script>
   </body>
 </html>

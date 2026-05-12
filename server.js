@@ -1482,6 +1482,117 @@ async function handleJobsLetter(request, response) {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   VuePay handlers
+══════════════════════════════════════════════════════════════ */
+async function handleVuePayConfig(request, response) {
+  try {
+    const r = await pool.query("SELECT receiving_number FROM vuepay_config ORDER BY id DESC LIMIT 1");
+    const receivingNumber = r.rowCount > 0 ? r.rows[0].receiving_number : "";
+    return sendJson(response, 200, { ok: true, receivingNumber });
+  } catch (err) {
+    console.error("[vuepay-config] error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not load config." });
+  }
+}
+
+async function handleVuePayUpdateConfig(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const receivingNumber = String(body.receivingNumber || "").trim();
+  if (!receivingNumber) return sendJson(response, 400, { ok: false, error: "Receiving number is required." });
+
+  const by = `${director.firstName} ${director.lastName}`;
+  await pool.query(
+    "INSERT INTO vuepay_config (receiving_number, updated_by, updated_at) VALUES ($1, $2, NOW())",
+    [receivingNumber, by]
+  );
+  console.log(`[vuepay-config] updated to ${receivingNumber} by ${by}`);
+  return sendJson(response, 200, { ok: true, receivingNumber });
+}
+
+async function handleVuePayCheckout(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const customerName  = String(body.customerName  || "").trim().slice(0, 120);
+  const customerPhone = String(body.customerPhone || "").trim().slice(0, 40);
+  const paymentMethod = String(body.paymentMethod || "").trim();
+  const description   = String(body.description   || "").trim().slice(0, 600);
+  const note          = String(body.note          || "").trim().slice(0, 300);
+  const amountUsd     = parseFloat(body.amountUsd || 0) || null;
+
+  if (!customerName || !customerPhone || !description) {
+    return sendJson(response, 400, { ok: false, error: "Name, phone and description are required." });
+  }
+  if (!["ecocash","cash","other"].includes(paymentMethod)) {
+    return sendJson(response, 400, { ok: false, error: "Invalid payment method." });
+  }
+
+  const ref = "VUE-" + Date.now().toString(36).toUpperCase().slice(-6);
+
+  try {
+    await pool.query(
+      `INSERT INTO vuepay_orders
+        (reference, customer_name, customer_phone, payment_method, amount_usd, items_description, note)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [ref, customerName, customerPhone, paymentMethod, amountUsd, description, note]
+    );
+  } catch (err) {
+    console.error("[vuepay-checkout] DB error:", err.message);
+    return sendJson(response, 500, { ok: false, error: "Could not save order. Please try WhatsApp." });
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (apiKey) {
+    const methodLabel = { ecocash: "EcoCash", cash: "Cash on Delivery", other: "Other" }[paymentMethod] || paymentMethod;
+    const amtStr = amountUsd ? `$${amountUsd.toFixed(2)} USD` : "TBD";
+    const html = `<h2 style="margin:0 0 8px">VuePay Order — ${ref}</h2>
+<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
+<tr><td style="padding:4px 12px 4px 0;color:#6b7280">Customer</td><td><strong>${customerName}</strong></td></tr>
+<tr><td style="padding:4px 12px 4px 0;color:#6b7280">Phone</td><td>${customerPhone}</td></tr>
+<tr><td style="padding:4px 12px 4px 0;color:#6b7280">Method</td><td>${methodLabel}</td></tr>
+<tr><td style="padding:4px 12px 4px 0;color:#6b7280">Amount</td><td><strong>${amtStr}</strong></td></tr>
+<tr><td style="padding:4px 12px 4px 0;color:#6b7280">Items</td><td>${description}</td></tr>
+${note ? `<tr><td style="padding:4px 12px 4px 0;color:#6b7280">Note</td><td>${note}</td></tr>` : ""}
+</table>`;
+    fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "VUE Auto Parts <onboarding@resend.dev>",
+        to: ["info@vueautoparts.com"],
+        subject: `VuePay: ${ref} — ${customerName} (${methodLabel})`,
+        html,
+        text: `VuePay Order\n\nRef: ${ref}\nCustomer: ${customerName}\nPhone: ${customerPhone}\nMethod: ${methodLabel}\nAmount: ${amtStr}\nItems: ${description}${note ? "\nNote: " + note : ""}`,
+      }),
+    }).then(r => {
+      if (r.ok) console.log(`[vuepay-checkout] email sent for ${ref}`);
+      else r.text().then(t => console.error("[vuepay-checkout] email error:", r.status, t));
+    }).catch(e => console.error("[vuepay-checkout] email error:", e.message));
+  }
+
+  return sendJson(response, 200, { ok: true, reference: ref });
+}
+
+async function handleVuePayOrders(request, response) {
+  let body;
+  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
+  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+
+  const director = await verifyDirector(body);
+  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
+
+  const r = await pool.query("SELECT * FROM vuepay_orders ORDER BY created_at DESC LIMIT 200");
+  return sendJson(response, 200, { ok: true, orders: r.rows });
+}
+
 async function handleStaffApplicationsList(request, response) {
   let body;
   try { body = JSON.parse(await readRequestBody(request) || "{}"); }
@@ -1801,6 +1912,18 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "GET" && request.url.startsWith("/api/jobs/letter")) {
       return await handleJobsLetter(request, response);
     }
+    if (request.method === "GET"  && request.url === "/api/vuepay/config") {
+      return await handleVuePayConfig(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/vuepay/update-config") {
+      return await handleVuePayUpdateConfig(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/vuepay/checkout") {
+      return await handleVuePayCheckout(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/vuepay/orders") {
+      return await handleVuePayOrders(request, response);
+    }
     if (request.method === "POST" && request.url === "/api/staff/applications") {
       return await handleStaffApplicationsList(request, response);
     }
@@ -1889,6 +2012,28 @@ async function initDb() {
       renewed_date   TIMESTAMPTZ,
       paid_date      TIMESTAMPTZ,
       paid_amount    NUMERIC
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vuepay_config (
+      id               SERIAL PRIMARY KEY,
+      receiving_number TEXT NOT NULL,
+      updated_by       TEXT DEFAULT '',
+      updated_at       TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vuepay_orders (
+      id               SERIAL PRIMARY KEY,
+      reference        TEXT NOT NULL UNIQUE,
+      customer_name    TEXT NOT NULL,
+      customer_phone   TEXT NOT NULL,
+      payment_method   TEXT NOT NULL,
+      amount_usd       NUMERIC,
+      items_description TEXT NOT NULL,
+      note             TEXT,
+      status           TEXT DEFAULT 'pending',
+      created_at       TIMESTAMPTZ DEFAULT NOW()
     )
   `);
 }
