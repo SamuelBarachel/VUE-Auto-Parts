@@ -36,9 +36,7 @@
   const rwdManageErr  = document.getElementById("stfRwdManageErr");
   const rwdManageBack = document.getElementById("stfRwdManageBack");
   const panel7        = document.getElementById("stfPanel7");
-  const panel8        = document.getElementById("stfPanel8");
   const appsCard      = document.getElementById("stfAppsCard");
-  const vuePayCard    = document.getElementById("stfVuePayCard");
 
   const steps = [
     document.getElementById("stfStep1"),
@@ -53,7 +51,7 @@
   let verifiedStaff     = null;
   let currentCardSerial = null;
 
-  const CARD_ACTIONS = ["biz-card", "rewards-card", "manage-rewards", "insights", "manage-applications", "vuepay-config"];
+  const CARD_ACTIONS = ["biz-card", "rewards-card", "manage-rewards", "insights", "manage-applications"];
 
   function setStep(n) {
     steps.forEach((s, i) => s.classList.toggle("active", i < n));
@@ -67,7 +65,6 @@
     if (panel5) panel5.hidden = n !== 5;
     if (panel6) panel6.hidden = n !== 6;
     if (panel7) panel7.hidden = n !== 7;
-    if (panel8) panel8.hidden = n !== 8;
     setStep(n <= 4 ? n : 3);
   }
   window._stfShowPanel = showPanel;
@@ -111,8 +108,7 @@
     currentCardSerial = null;
     actionCards.forEach(c => c.classList.remove("selected"));
     contextSections.forEach(s => s.hidden = true);
-    if (appsCard)   appsCard.hidden   = true;
-    if (vuePayCard) vuePayCard.hidden = true;
+    if (appsCard) appsCard.hidden = true;
     document.getElementById("stfNotesWrap").hidden = true;
     draftBtn.disabled = true;
     draftBtn.textContent = "Draft my message →";
@@ -135,8 +131,6 @@
   backBtn3.addEventListener("click", () => { err3.textContent = ""; showPanel(2); });
   if (cardBack)      cardBack.addEventListener("click",      () => { currentCardSerial = null; showPanel(2); });
   if (rwdManageBack) rwdManageBack.addEventListener("click", () => showPanel(2));
-  const stfVpBack = document.getElementById("stfVpBack");
-  if (stfVpBack)     stfVpBack.addEventListener("click",    () => showPanel(2));
 
   actionCards.forEach(card => {
     card.addEventListener("click", () => {
@@ -155,7 +149,6 @@
       else if (selectedAction === "rewards-card")      draftBtn.textContent = "Register & Preview →";
       else if (selectedAction === "insights")          draftBtn.textContent = "Send Report →";
       else if (selectedAction === "manage-applications") draftBtn.textContent = "View Applications →";
-      else if (selectedAction === "vuepay-config")     draftBtn.textContent = "Manage VuePay →";
       else { draftBtn.textContent = "Draft my message →"; document.getElementById("stfNotesWrap").hidden = false; }
 
       const ctx = document.getElementById("stfCtx_" + selectedAction);
@@ -188,10 +181,9 @@
         verifiedStaff = data.staff;
         confirmedName.textContent = data.staff.firstName + " " + data.staff.lastName;
         confirmedRole.textContent = data.staff.role;
-        if (appsCard || vuePayCard) {
+        if (appsCard) {
           const isDirector = ["director", "admin", "manager"].includes((data.staff.role || "").toLowerCase());
-          if (appsCard)   appsCard.hidden   = !isDirector;
-          if (vuePayCard) vuePayCard.hidden = !isDirector;
+          appsCard.hidden = !isDirector;
         }
         showPanel(2);
       } else {
@@ -208,13 +200,6 @@
 
   draftBtn.addEventListener("click", async () => {
     if (!selectedAction) { err2.textContent = "Please choose an action."; return; }
-
-    if (selectedAction === "vuepay-config") {
-      if (!verifiedStaff) { err2.textContent = "Not verified."; return; }
-      err2.textContent = "";
-      if (window.VUEPayAdmin) window.VUEPayAdmin.open(verifiedStaff, showPanel);
-      return;
-    }
 
     if (selectedAction === "manage-applications") {
       if (!verifiedStaff) { err2.textContent = "Not verified."; return; }
