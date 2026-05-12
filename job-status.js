@@ -124,7 +124,7 @@
     const statusMessages = {
       pending:  "Your application is being reviewed. Our director will make a decision soon — we appreciate your patience.",
       approved: "Congratulations! Your application has been approved. A member of our team will be in contact with you to discuss next steps and your start date.",
-      denied:   "Thank you sincerely for your interest in VUE Auto Parts. After careful review, we are unable to offer you this position at this time. We wish you every success in your future endeavours.",
+      denied:   "Thank you sincerely for your interest in Vue Auto Parts. After careful review, we are unable to offer you this position at this time. We wish you every success in your future endeavours.",
     };
 
     const statusIcons = { pending: "⏳", approved: "✓", denied: "✕" };
@@ -175,7 +175,7 @@
       resultContent.innerHTML = `
         <div class="js-result-card">
           <div class="js-result-head">
-            <div class="js-result-eyebrow">VUE Auto Parts &middot; Application Status</div>
+            <div class="js-result-eyebrow">Vue Auto Parts &middot; Application Status</div>
             <div class="js-result-name">${firstName} ${lastName}</div>
             <div class="js-result-role">Applied for: ${data.role || "Position"}</div>
           </div>

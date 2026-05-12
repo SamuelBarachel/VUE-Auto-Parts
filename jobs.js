@@ -198,7 +198,7 @@
   function fallbackDraft() {
     const dobStr = state.dobMonth + "/" + state.dobDay + "/" + state.dobYear;
     return (
-      "Dear VUE Auto Parts Management,\n\n" +
+      "Dear Vue Auto Parts Management,\n\n" +
       "I, " + state.firstName + " " + state.lastName + ", would like to apply for the position of " + state.role + ".\n\n" +
       "Personal Details:\n" +
       "- Date of Birth: " + dobStr + " (Age: " + state.dobAge + ")\n" +

@@ -247,7 +247,7 @@ function buildDailyPrompt(m) {
     ? `\n(+${remaining} more items not shown — ${m.stockAnalysis.filter(s=>!s.isCritical&&!s.isLow&&!s.isDead&&!s.isOverstocked).length} OK, ${m.dead.length} dead, ${m.overstocked.length} overstocked)`
     : "";
 
-  return `You are the CFO of VUE Auto Parts, Chipinge, Zimbabwe. Be brutal, specific, and brief. No waffle.
+  return `You are the CFO of Vue Auto Parts, Chipinge, Zimbabwe. Be brutal, specific, and brief. No waffle.
 
 DATA (${m.todayKey}):
 Revenue today: $${m.todayData.revenue.toFixed(2)} (${m.todayData.txns} txns) | Daily avg: $${m.avgDailyRevenue.toFixed(2)} | WoW: ${m.wow !== null ? (m.wow >= 0 ? "+" : "") + m.wow + "%" : "N/A"}
@@ -301,7 +301,7 @@ function buildMonthlyPrompt(m, monthLabel) {
     .map(([d, v]) => `${d}: $${v.revenue.toFixed(2)} (${v.txns} txns)`)
     .join(", ");
 
-  return `You are the CFO and strategic business advisor for VUE Auto Parts in Chipinge, Zimbabwe. You are delivering the monthly board-level business review. You think with world-class financial rigour, understand Zimbabwe's economic realities (USD cash economy, import dependency, rural market dynamics), and give advice that is specific, bold, and actionable.
+  return `You are the CFO and strategic business advisor for Vue Auto Parts in Chipinge, Zimbabwe. You are delivering the monthly board-level business review. You think with world-class financial rigour, understand Zimbabwe's economic realities (USD cash economy, import dependency, rural market dynamics), and give advice that is specific, bold, and actionable.
 
 MONTH IN REVIEW: ${monthLabel}
 
@@ -420,7 +420,7 @@ function buildDailyEmailHtml(m, ai) {
 
   <!-- Header -->
   <div style="background:linear-gradient(160deg,#0a3526 0%,#0f4f36 55%,#1a6b4a 100%);padding:24px 28px 20px">
-    <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:10px">VUE AUTO PARTS &nbsp;·&nbsp; CHIPINGE, ZIMBABWE</div>
+    <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:10px">Vue Auto Parts &nbsp;·&nbsp; CHIPINGE, ZIMBABWE</div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
       <div>
         <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.2">${dayName}'s Report</div>
@@ -510,7 +510,7 @@ function buildDailyEmailHtml(m, ai) {
 
   <!-- Footer -->
   <div style="background:#111;padding:14px 22px;text-align:center">
-    <div style="font-size:11px;color:#555">VUE Auto Parts &nbsp;·&nbsp; Chipinge, ZWE &nbsp;·&nbsp; <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
+    <div style="font-size:11px;color:#555">Vue Auto Parts &nbsp;·&nbsp; Chipinge, ZWE &nbsp;·&nbsp; <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
     <div style="font-size:10px;color:#3a3a3a;margin-top:3px">Auto-generated daily at 7:00 AM &nbsp;·&nbsp; Powered by AI</div>
   </div>
 
@@ -569,7 +569,7 @@ function buildMonthlyEmailHtml(m, ai, monthLabel) {
 
   <!-- Header -->
   <div style="background:linear-gradient(135deg,#0f2d1f 0%,#0f4f36 60%,#1a6b4a 100%);padding:32px">
-    <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:8px">VUE AUTO PARTS · MONTHLY INTELLIGENCE BRIEF</div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:8px">Vue Auto Parts · MONTHLY INTELLIGENCE BRIEF</div>
     <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:4px">${monthLabel} — Month in Review</div>
     <div style="font-size:14px;color:rgba(255,255,255,0.65);margin-bottom:16px">"${ai.headline || "Monthly performance summary"}"</div>
     <div style="display:inline-block;background:${gc};color:#fff;font-size:18px;font-weight:800;padding:8px 20px;border-radius:8px">${ai.grade || "—"}</div>
@@ -656,7 +656,7 @@ function buildMonthlyEmailHtml(m, ai, monthLabel) {
 
   <!-- Footer -->
   <div style="background:#1a1a1a;padding:18px 32px;text-align:center">
-    <div style="font-size:12px;color:#888">VUE Auto Parts · Chipinge, Zimbabwe · <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
+    <div style="font-size:12px;color:#888">Vue Auto Parts · Chipinge, Zimbabwe · <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
     <div style="font-size:11px;color:#555;margin-top:4px">Monthly intelligence brief — sent on the 1st of every month at 7:00 AM. Powered by AI.</div>
   </div>
 
@@ -673,7 +673,7 @@ async function sendEmail(subject, html, textFallback) {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: "VUE Auto Parts Intelligence <onboarding@resend.dev>",
+      from: "Vue Auto Parts Intelligence <onboarding@resend.dev>",
       to: [EMAIL_TO],
       subject,
       html,
@@ -707,7 +707,7 @@ async function runDailyInsights() {
   const now   = zweNow();
   const label = now.toLocaleDateString("en-ZW", { weekday: "long", month: "long", day: "numeric" });
   const html  = buildDailyEmailHtml(m, ai);
-  await sendEmail(`📊 Daily Report — ${label} | ${ai.status || "VUE Auto Parts"}`, html, `Daily business report for ${label}`);
+  await sendEmail(`📊 Daily Report — ${label} | ${ai.status || "Vue Auto Parts"}`, html, `Daily business report for ${label}`);
   console.log("[insights] Daily report sent ✓");
   return { ok: true, type: "daily", status: ai.status };
 }
@@ -738,7 +738,7 @@ async function runMonthlyInsights() {
   }
 
   const html = buildMonthlyEmailHtml(m, ai, monthLabel);
-  await sendEmail(`📅 Monthly Intelligence Brief — ${monthLabel} | VUE Auto Parts`, html, `Monthly report for ${monthLabel}`);
+  await sendEmail(`📅 Monthly Intelligence Brief — ${monthLabel} | Vue Auto Parts`, html, `Monthly report for ${monthLabel}`);
   console.log("[insights] Monthly report sent ✓");
   return { ok: true, type: "monthly", month: monthLabel };
 }
@@ -757,7 +757,7 @@ function buildWeeklyPrompt(weekDays, m) {
   const alerts     = [...m.critical, ...m.low].map(s =>
     `${s.name} (${s.daysLeft}d left)`).join(", ") || "None";
 
-  return `You are the CFO of VUE Auto Parts, Chipinge, Zimbabwe. Weekly review — Monday morning, 8 AM. Be direct. One sentence per point. No filler.
+  return `You are the CFO of Vue Auto Parts, Chipinge, Zimbabwe. Weekly review — Monday morning, 8 AM. Be direct. One sentence per point. No filler.
 
 LAST 7 DAYS:
 ${dayLines}
@@ -823,7 +823,7 @@ function buildWeeklyEmailHtml(weekDays, m, ai) {
 
   <!-- Header -->
   <div style="background:linear-gradient(160deg,#0a3526 0%,#0f4f36 55%,#1a6b4a 100%);padding:22px 26px 18px">
-    <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:10px">VUE AUTO PARTS &nbsp;·&nbsp; WEEKLY DIGEST</div>
+    <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:10px">Vue Auto Parts &nbsp;·&nbsp; WEEKLY DIGEST</div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
       <div>
         <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.2">Week in Review</div>
@@ -885,7 +885,7 @@ function buildWeeklyEmailHtml(weekDays, m, ai) {
 
   <!-- Footer -->
   <div style="background:#111;padding:13px 20px;text-align:center">
-    <div style="font-size:11px;color:#555">VUE Auto Parts &nbsp;·&nbsp; Chipinge, ZWE &nbsp;·&nbsp; <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
+    <div style="font-size:11px;color:#555">Vue Auto Parts &nbsp;·&nbsp; Chipinge, ZWE &nbsp;·&nbsp; <a href="https://vueautoparts.com" style="color:#c9a84c;text-decoration:none">vueautoparts.com</a></div>
     <div style="font-size:10px;color:#3a3a3a;margin-top:3px">Weekly digest — every Monday at 8:00 AM &nbsp;·&nbsp; Powered by AI</div>
   </div>
 
@@ -931,7 +931,7 @@ async function runWeeklyInsights() {
   const html = buildWeeklyEmailHtml(weekDays, m, ai);
   const weekTotal = weekDays.reduce((s, d) => s + d.revenue, 0);
   await sendEmail(
-    `📅 Weekly Digest — w/e ${weekDays[6].label} | $${weekTotal.toFixed(2)} | VUE Auto Parts`,
+    `📅 Weekly Digest — w/e ${weekDays[6].label} | $${weekTotal.toFixed(2)} | Vue Auto Parts`,
     html,
     `Weekly digest for the week ending ${weekDays[6].label}`
   );

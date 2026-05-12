@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="VUE Auto Parts — Honda Fit, Toyota Corolla, Wish, Probox, Nissan Caravan parts. Chipinge, Zimbabwe.">
-    <title>VUE Auto Parts | Precision Supply</title>
+    <meta name="description" content="Vue Auto Parts — Honda Fit, Toyota Corolla, Wish, Probox, Nissan Caravan parts. Chipinge, Zimbabwe.">
+    <title>Vue Auto Parts | Precision Supply</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -12,10 +12,10 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="#top" id="brandLogo" aria-label="VUE Auto Parts staff portal">
-        <img src="vueauto-logo.jpeg" alt="VUE Auto Parts logo">
+      <a class="brand" href="#top" id="brandLogo" aria-label="Vue Auto Parts staff portal">
+        <img src="vueauto-logo.jpeg" alt="Vue Auto Parts logo">
         <span>
-          <strong>VUE Auto Parts</strong>
+          <strong>Vue Auto Parts</strong>
           <small>Precision Supply</small>
         </span>
       </a>
@@ -45,7 +45,7 @@
       </a>
     </header>
 
-    <section class="earn-panel" id="earnPanel" hidden aria-label="VUE Auto Parts referral programme">
+    <section class="earn-panel" id="earnPanel" hidden aria-label="Vue Auto Parts referral programme">
       <div class="earn-header">
         <p class="eyebrow">Refer &amp; earn cash</p>
         <button class="earn-close" id="earnClose" type="button" aria-label="Close">&#x2715;</button>
@@ -70,14 +70,14 @@
       <p class="earn-tc">Terms &amp; conditions apply.</p>
     </section>
 
-    <section class="ai-panel" id="aiPanel" hidden aria-label="VUE Auto Parts AI assistant">
+    <section class="ai-panel" id="aiPanel" hidden aria-label="Vue Auto Parts AI assistant">
       <div class="ai-header">
         <button class="ai-back" id="aiBack" type="button" aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="ai-header-info">
           <span class="ai-online-dot"></span>
-          <strong>VUE Assistant</strong>
+          <strong>Vue Assistant</strong>
         </div>
         <button class="ai-close" id="aiClose" type="button" aria-label="Close">&#x2715;</button>
       </div>
@@ -309,7 +309,7 @@
           <div class="directions-map-placeholder">
             <iframe
               src="https://maps.google.com/maps?q=OK+Supermarket+Chipinge+Zimbabwe&output=embed&z=16"
-              title="VUE Auto Parts — near O.K. Supermarket, Chipinge"
+              title="Vue Auto Parts — near O.K. Supermarket, Chipinge"
               width="100%"
               height="220"
               style="border:0; border-radius:8px; display:block;"
@@ -329,7 +329,7 @@
 
       <section class="section dir-sign-section">
         <figure class="dir-sign-figure">
-          <img src="assets/directions/sign.png" alt="VUE Auto Parts illuminated shop sign — dark green with gold lettering" loading="lazy">
+          <img src="assets/directions/sign.png" alt="Vue Auto Parts illuminated shop sign — dark green with gold lettering" loading="lazy">
         </figure>
       </section>
 
@@ -350,7 +350,7 @@
               <span class="dir-step-num">03</span>
               <div>
                 <strong>Opposite side from Jet</strong>
-                <span>VUE Auto Parts is on the opposite side of the complex from Jet</span>
+                <span>Vue Auto Parts is on the opposite side of the complex from Jet</span>
               </div>
             </figcaption>
           </figure>
@@ -369,7 +369,7 @@
           <button class="job-status-trigger" id="jobStatusOpen" type="button">Check application status</button>
         </div>
         <div class="contact-card">
-          <img src="vueauto-logo.jpeg" alt="VUE Auto Parts">
+          <img src="vueauto-logo.jpeg" alt="Vue Auto Parts">
           <dl>
             <div>
               <dt>WhatsApp</dt>
@@ -561,7 +561,7 @@
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 </span>
                 <strong>Manage Applications</strong>
-                <span>Review, approve or deny job applications</span>
+                <span>Send formal status updates to applicants</span>
               </button>
               <button class="stf-action-card stf-card-full stf-action-insights" data-action="insights" type="button">
                 <span class="stf-action-icon stf-icon-insights" aria-hidden="true">
@@ -750,12 +750,10 @@
             </div>
           </div>
 
-          <!-- Panel 7: Manage Applications (Director only) -->
+          <!-- Panel 7: Application Status Dashboard (Director only) -->
           <div class="enq-panel" id="stfPanel7" hidden>
-            <h3 class="enq-title">Job Applications</h3>
-            <div class="apps-stats-wrap" id="stfAppsStats"><p class="enq-subtitle">Loading…</p></div>
-            <div id="stfAppsResults" class="apps-results"></div>
-            <div class="enq-err" id="stfAppsErr" aria-live="polite" style="margin-top:10px"></div>
+            <h3 class="enq-title">Application Status Dashboard</h3>
+            <div id="stfAppsContainer"></div>
             <div style="margin-top:18px">
               <button class="enq-btn-ghost" id="stfAppsBack" type="button">← Back</button>
             </div>
@@ -871,7 +869,7 @@
       </div>
 
       <!-- Jobs modal -->
-      <div id="jobOverlay" class="enq-overlay job-overlay" role="dialog" aria-modal="true" aria-label="Apply for a job at VUE Auto Parts" hidden>
+      <div id="jobOverlay" class="enq-overlay job-overlay" role="dialog" aria-modal="true" aria-label="Apply for a job at Vue Auto Parts" hidden>
         <div class="enq-modal job-modal">
 
           <!-- Header -->
@@ -880,7 +878,7 @@
               <span class="job-head-icon" aria-hidden="true">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
               </span>
-              <span class="job-head-title">Careers at VUE Auto Parts</span>
+              <span class="job-head-title">Careers at Vue Auto Parts</span>
             </div>
             <button class="stf-close" id="jobClose" aria-label="Close">&times;</button>
           </div>
@@ -1130,7 +1128,7 @@
               <label class="job-affirm-item">
                 <input type="checkbox" id="jobChkBenefits">
                 <span class="job-affirm-box"></span>
-                <span class="job-affirm-text">I am happy for VUE Auto Parts to <strong>subsidise my daily transport and food</strong>. I understand that as the company grows, so will my salary and benefits.</span>
+                <span class="job-affirm-text">I am happy for Vue Auto Parts to <strong>subsidise my daily transport and food</strong>. I understand that as the company grows, so will my salary and benefits.</span>
               </label>
             </div>
             <div class="job-foot" style="margin-top:20px">
@@ -1190,7 +1188,7 @@
             </div>
             <div class="stf-esign-notice" style="margin-top:16px">
               <span class="stf-esign-icon">🔏</span>
-              <span>This electronic signature is legally equivalent to your handwritten signature. Your details and ID will be submitted to VUE Auto Parts management.</span>
+              <span>This electronic signature is legally equivalent to your handwritten signature. Your details and ID will be submitted to Vue Auto Parts management.</span>
             </div>
             <div class="job-foot" style="margin-top:16px">
               <button class="enq-btn-ghost" data-back="13" type="button">← Back</button>
@@ -1347,11 +1345,11 @@
     </main>
 
     <footer class="site-footer">
-      <span>VUE Auto Parts</span>
+      <span>Vue Auto Parts</span>
       <span>Precision Supply</span>
       <span>&copy; 2026</span>
     </footer>
-    <a class="whatsapp-footnote" href="https://wa.me/16038662272" aria-label="WhatsApp VUE Auto Parts">
+    <a class="whatsapp-footnote" href="https://wa.me/16038662272" aria-label="WhatsApp Vue Auto Parts">
       WhatsApp: +16038662272
     </a>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

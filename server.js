@@ -100,7 +100,7 @@ async function getInventory() {
 }
 
 function buildSystemPrompt(inventorySummary) {
-  return `You are the VUE Auto Parts assistant — a friendly, sharp customer support agent based in Chipinge, Zimbabwe. You help drivers find the right parts, get prices, and connect with the shop.
+  return `You are the Vue Auto Parts assistant — a friendly, sharp customer support agent based in Chipinge, Zimbabwe. You help drivers find the right parts, get prices, and connect with the shop.
 
 PERSONALITY:
 - Warm, confident and direct. Like a knowledgeable friend at a parts counter.
@@ -109,7 +109,7 @@ PERSONALITY:
 - Respond naturally to the flow of the conversation — don't reset the topic after every message.
 
 SHOP FACTS:
-- Name: VUE Auto Parts
+- Name: Vue Auto Parts
 - Location: Chipinge, Manicaland, Zimbabwe
 - Specialty vehicles: Honda Fit, Toyota Corolla, Toyota Wish, Toyota Probox, Nissan Caravan (engine parts, suspension, body &amp; van-specific service items)
 - Core stock always available: Castrol engine oils (10W40, 20W50), wiper blades, coolants, brake pads, brake fluid, oil/air/fuel filters, fan belts, tyres, bulbs, batteries
@@ -128,10 +128,10 @@ HOW TO HELP:
 5. Only suggest the referral rewards when it fits — e.g. after a positive exchange or when they ask about discounts/deals.
 
 STRICT RULES — NEVER BREAK THESE:
-- NEVER mention, suggest, or reference any other shop, competitor, or alternative supplier — not even vaguely. You represent VUE Auto Parts exclusively.
+- NEVER mention, suggest, or reference any other shop, competitor, or alternative supplier — not even vaguely. You represent Vue Auto Parts exclusively.
 - NEVER say things like "you could check other shops", "try elsewhere", "compare prices", or anything that directs a customer away from us.
 - If something is not in stock or you are unsure, ALWAYS direct the customer to WhatsApp (+16038662272) — not to look elsewhere.
-- You are a loyal representative of VUE Auto Parts. Your job is to keep customers with us and help them through us.
+- You are a loyal representative of Vue Auto Parts. Your job is to keep customers with us and help them through us.
 
 CHOICES (optional):
 Only include choices when it genuinely helps the conversation move forward — not on every reply. When you do use choices, provide 3 to 4 short, specific options.
@@ -321,11 +321,11 @@ async function handleDraft(request, response) {
   }
 
   if (!apiKey) {
-    const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name}${phone ? ` and my contact number is ${phone}` : ""}. I'm looking for ${part} for my ${vehicle}.\n\nPlease let me know if you have it in stock and the price. Thank you.`;
+    const fallback = `Hi Vue Auto Parts,\n\nMy name is ${name}${phone ? ` and my contact number is ${phone}` : ""}. I'm looking for ${part} for my ${vehicle}.\n\nPlease let me know if you have it in stock and the price. Thank you.`;
     return sendJson(response, 200, { ok: true, draft: fallback });
   }
 
-  const prompt = `Write a short, natural, friendly enquiry message from a customer to an auto parts shop called VUE Auto Parts in Chipinge, Zimbabwe. Keep it conversational and genuine — like a real person texting a shop, not a formal letter. 2-4 sentences max.
+  const prompt = `Write a short, natural, friendly enquiry message from a customer to an auto parts shop called Vue Auto Parts in Chipinge, Zimbabwe. Keep it conversational and genuine — like a real person texting a shop, not a formal letter. 2-4 sentences max.
 
 Customer details:
 - Name: ${name}
@@ -348,7 +348,7 @@ Return ONLY the message text, no subject line, no "Dear", no sign-off label. Jus
     });
 
     if (!groqRes.ok) {
-      const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name}${phone ? ` and my contact number is ${phone}` : ""}. I'm looking for ${part} for my ${vehicle}.\n\nPlease let me know if you have it in stock and the price. Thank you.`;
+      const fallback = `Hi Vue Auto Parts,\n\nMy name is ${name}${phone ? ` and my contact number is ${phone}` : ""}. I'm looking for ${part} for my ${vehicle}.\n\nPlease let me know if you have it in stock and the price. Thank you.`;
       return sendJson(response, 200, { ok: true, draft: fallback });
     }
 
@@ -357,7 +357,7 @@ Return ONLY the message text, no subject line, no "Dear", no sign-off label. Jus
     return sendJson(response, 200, { ok: true, draft: draft || `Hi, I'm ${name} and I'm looking for ${part} for my ${vehicle}. Please contact me on ${phone}.` });
   } catch (err) {
     console.error("[draft] error:", err.message);
-    const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name}${phone ? ` and my number is ${phone}` : ""}. I need ${part} for my ${vehicle}. Please let me know price and availability.`;
+    const fallback = `Hi Vue Auto Parts,\n\nMy name is ${name}${phone ? ` and my number is ${phone}` : ""}. I need ${part} for my ${vehicle}. Please let me know price and availability.`;
     return sendJson(response, 200, { ok: true, draft: fallback });
   }
 }
@@ -398,7 +398,7 @@ async function handlePartRequest(request, response) {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "VUE Auto Parts <onboarding@resend.dev>",
+        from: "Vue Auto Parts <onboarding@resend.dev>",
         to: ["info@vueautoparts.com"],
         subject: `Part Request: ${part} — ${vehicle} (${name})`,
         html,
@@ -438,7 +438,7 @@ async function handleEnquiry(request, response) {
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
       <div style="background:#1a3a2a;padding:20px 24px;border-radius:8px 8px 0 0">
         <h2 style="color:#fff;margin:0;font-size:18px">New Part Enquiry</h2>
-        <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:13px">VUE Auto Parts website</p>
+        <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:13px">Vue Auto Parts website</p>
       </div>
       <div style="background:#f9f9f9;padding:20px 24px;border-left:1px solid #eee;border-right:1px solid #eee">
         <table style="border-collapse:collapse;width:100%;font-size:14px">
@@ -461,7 +461,7 @@ async function handleEnquiry(request, response) {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "VUE Auto Parts <onboarding@resend.dev>",
+        from: "Vue Auto Parts <onboarding@resend.dev>",
         to: ["info@vueautoparts.com"],
         subject: `Enquiry: ${part} — ${vehicle} (${name})`,
         html,
@@ -503,11 +503,11 @@ async function handleRewardDraft(request, response) {
     return sendJson(response, 400, { ok: false, error: "All fields are required." });
   }
 
-  const fallback = `Hi VUE Auto Parts,\n\nMy name is ${name} and I live in ${location}. My phone number is ${phone} and my ID number is ${idNumber}.\n\nI would like to register for the referral rewards programme. Please let me know the next steps. Thank you.`;
+  const fallback = `Hi Vue Auto Parts,\n\nMy name is ${name} and I live in ${location}. My phone number is ${phone} and my ID number is ${idNumber}.\n\nI would like to register for the referral rewards programme. Please let me know the next steps. Thank you.`;
 
   if (!apiKey) return sendJson(response, 200, { ok: true, draft: fallback });
 
-  const prompt = `Write a short, natural, friendly message from a customer who wants to join the VUE Auto Parts referral rewards programme in Chipinge, Zimbabwe. The programme pays $5 for 5 referrals and $10 for 15+ referrals. Keep it conversational and genuine — like a real person texting, not a formal letter. 2–4 sentences max. Include all the details naturally.
+  const prompt = `Write a short, natural, friendly message from a customer who wants to join the Vue Auto Parts referral rewards programme in Chipinge, Zimbabwe. The programme pays $5 for 5 referrals and $10 for 15+ referrals. Keep it conversational and genuine — like a real person texting, not a formal letter. 2–4 sentences max. Include all the details naturally.
 
 Customer details:
 - Name: ${name}
@@ -568,7 +568,7 @@ async function handleRewardEnquiry(request, response) {
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
       <div style="background:#1a3a2a;padding:20px 24px;border-radius:8px 8px 0 0">
         <h2 style="color:#fff;margin:0;font-size:18px">New Rewards Registration</h2>
-        <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:13px">VUE Auto Parts referral programme</p>
+        <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:13px">Vue Auto Parts referral programme</p>
       </div>
       <div style="background:#f9f9f9;padding:20px 24px;border-left:1px solid #eee;border-right:1px solid #eee">
         <table style="border-collapse:collapse;width:100%;font-size:14px">
@@ -591,7 +591,7 @@ async function handleRewardEnquiry(request, response) {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "VUE Auto Parts <onboarding@resend.dev>",
+        from: "Vue Auto Parts <onboarding@resend.dev>",
         to: ["info@vueautoparts.com"],
         subject: `Rewards Registration: ${name} — ${location}`,
         html,
@@ -626,8 +626,8 @@ async function handleJobsDraft(request, response) {
 
   const dobStr = `${dobMonth}/${dobDay}/${dobYear}`;
   const fallback =
-    `Dear VUE Auto Parts Management,\n\n` +
-    `I, ${firstName} ${lastName}, would like to apply for the position of ${role} at VUE Auto Parts, Chipinge.\n\n` +
+    `Dear Vue Auto Parts Management,\n\n` +
+    `I, ${firstName} ${lastName}, would like to apply for the position of ${role} at Vue Auto Parts, Chipinge.\n\n` +
     `Personal Details:\n` +
     `• Date of Birth: ${dobStr} (Age: ${age})\n` +
     `• Sex: ${sex}\n` +
@@ -637,12 +637,12 @@ async function handleJobsDraft(request, response) {
     `• Computer Skills: ${computer}\n` +
     (medical ? `• Health notes: ${medical}\n` : "") +
     `\nI confirm I am willing to work from 7 AM to 6 PM and I am happy with the transport and food subsidy. ` +
-    `I am excited about the opportunity to grow with VUE Auto Parts.\n\n` +
+    `I am excited about the opportunity to grow with Vue Auto Parts.\n\n` +
     `Regards,\n${firstName} ${lastName}`;
 
   if (!apiKey) return sendJson(response, 200, { ok: true, draft: fallback });
 
-  const prompt = `You are helping a job applicant write a short, professional application message for VUE Auto Parts, an auto parts shop in Chipinge, Zimbabwe. The message should be warm, genuine, and brief — 3 to 5 sentences. Do not include subject lines or greetings like "Dear Sir/Madam". Just the message body. Use the applicant's real details naturally.
+  const prompt = `You are helping a job applicant write a short, professional application message for Vue Auto Parts, an auto parts shop in Chipinge, Zimbabwe. The message should be warm, genuine, and brief — 3 to 5 sentences. Do not include subject lines or greetings like "Dear Sir/Madam". Just the message body. Use the applicant's real details naturally.
 
 Applicant details:
 - Role applied for: ${role}
@@ -710,9 +710,9 @@ async function handleJobsApply(request, response) {
   const adminHtml = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
       <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
-        <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:8px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:8px">Vue Auto Parts &nbsp;·&nbsp; Careers</div>
         <h2 style="color:#fff;margin:0;font-size:20px;font-weight:900">New Job Application</h2>
-        <p style="color:rgba(255,255,255,0.55);margin:4px 0 0;font-size:13px">Received via the VUE Auto Parts website</p>
+        <p style="color:rgba(255,255,255,0.55);margin:4px 0 0;font-size:13px">Received via the Vue Auto Parts website</p>
       </div>
       <div style="background:#f9f9f9;padding:20px 28px;border-left:1px solid #eee;border-right:1px solid #eee">
         <div style="display:inline-block;background:#d1fae5;color:#065f46;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 12px;border-radius:999px;text-transform:uppercase;margin-bottom:16px">${role}</div>
@@ -740,7 +740,7 @@ async function handleJobsApply(request, response) {
     </div>`;
 
   const adminPayload = {
-    from: "VUE Auto Parts <onboarding@resend.dev>",
+    from: "Vue Auto Parts <onboarding@resend.dev>",
     to: ["info@vueautoparts.com"],
     subject: `Job Application: ${role} — ${firstName} ${lastName}`,
     html: adminHtml,
@@ -778,13 +778,13 @@ async function handleJobsApply(request, response) {
     const confirmHtml = `
       <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
         <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
-          <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
+          <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">Vue Auto Parts &nbsp;·&nbsp; Careers</div>
           <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">We received your application</h2>
         </div>
         <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
           <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${firstName},</p>
           <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
-            Thank you for applying for the <strong>${role}</strong> position at VUE Auto Parts. We have received your application and our team will be in touch.
+            Thank you for applying for the <strong>${role}</strong> position at Vue Auto Parts. We have received your application and our team will be in touch.
           </p>
           <p style="color:#444;font-size:14px;line-height:1.75;margin:0">
             Questions? WhatsApp us at <strong>+16038662272</strong>.
@@ -792,7 +792,7 @@ async function handleJobsApply(request, response) {
         </div>
         <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
           <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
-            VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe &nbsp;·&nbsp;
+            Vue Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe &nbsp;·&nbsp;
             <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a>
           </p>
         </div>
@@ -802,11 +802,11 @@ async function handleJobsApply(request, response) {
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "VUE Auto Parts <onboarding@resend.dev>",
+        from: "Vue Auto Parts <onboarding@resend.dev>",
         to: [cleanEmail],
-        subject: `Application received — ${role} at VUE Auto Parts`,
+        subject: `Application received — ${role} at Vue Auto Parts`,
         html: confirmHtml,
-        text: `Hi ${firstName},\n\nThank you for applying for the ${role} position at VUE Auto Parts. We have received your application and our team will be in touch.\n\nQuestions? WhatsApp us at +16038662272.\n\n— VUE Auto Parts, Chipinge, Zimbabwe`,
+        text: `Hi ${firstName},\n\nThank you for applying for the ${role} position at Vue Auto Parts. We have received your application and our team will be in touch.\n\nQuestions? WhatsApp us at +16038662272.\n\n— Vue Auto Parts, Chipinge, Zimbabwe`,
       }),
     }).then(r => {
       if (r.ok) console.log(`[jobs-apply] confirmation sent to ${cleanEmail}`);
@@ -915,7 +915,7 @@ async function handleStaffDraft(request, response) {
     ? "Polite, professional, and direct — this is a formal pay request."
     : "Warm, brief and professional — a quick check-in message.";
 
-  const prompt = `Write a short, professional staff message for VUE Auto Parts in Chipinge, Zimbabwe. The staff member is ${actionLabels[action] || action}.
+  const prompt = `Write a short, professional staff message for Vue Auto Parts in Chipinge, Zimbabwe. The staff member is ${actionLabels[action] || action}.
 
 Staff details:
 - Name: ${firstName} ${lastName}
@@ -1016,7 +1016,7 @@ async function handleStaffReport(request, response) {
       <div style="background:${accentColor};padding:20px 24px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between">
         <div>
           <h2 style="color:#fff;margin:0;font-size:18px">Staff ${actionLabel}</h2>
-          <p style="color:rgba(255,255,255,0.65);margin:4px 0 0;font-size:13px">VUE Auto Parts · ${now}</p>
+          <p style="color:rgba(255,255,255,0.65);margin:4px 0 0;font-size:13px">Vue Auto Parts · ${now}</p>
         </div>
         <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:800;letter-spacing:0.08em;padding:4px 10px;border-radius:999px;text-transform:uppercase">${actionLabel}</span>
       </div>
@@ -1052,7 +1052,7 @@ async function handleStaffReport(request, response) {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "VUE Auto Parts Staff <onboarding@resend.dev>",
+        from: "Vue Auto Parts Staff <onboarding@resend.dev>",
         to: ["info@vueautoparts.com"],
         subject,
         html,
@@ -1256,7 +1256,7 @@ async function verifyDirector(body) {
   } catch { return null; }
 }
 
-function generateLetterPdf(app, type) {
+function generateLetterPdf({ firstName, lastName, location, role }, status, aiBody) {
   return new Promise((resolve, reject) => {
     const doc    = new PDFDocument({ size: "A4", margins: { top: 72, bottom: 72, left: 72, right: 72 } });
     const chunks = [];
@@ -1269,83 +1269,57 @@ function generateLetterPdf(app, type) {
     const GREY  = "#555555";
     const W     = 595 - 144;
 
+    // ── Letterhead ────────────────────────────────────────────────────
     doc.rect(72, 72, W, 4).fill(GREEN);
     doc.moveDown(0.6);
-    doc.fontSize(18).font("Helvetica-Bold").fillColor(GREEN).text("VUE AUTO PARTS", { align: "center" });
+    doc.fontSize(20).font("Helvetica-Bold").fillColor(GREEN).text("Vue Auto Parts", { align: "center" });
     doc.fontSize(9).font("Helvetica").fillColor(GREY)
        .text("Chipinge, Manicaland, Zimbabwe  ·  info@vueautoparts.com  ·  vueautoparts.com", { align: "center" });
     doc.moveDown(0.4);
     doc.rect(72, doc.y, W, 1).fill(GOLD);
     doc.moveDown(1.2);
 
+    // ── Date ──────────────────────────────────────────────────────────
     const dateStr = new Date().toLocaleDateString("en-ZW", { day: "numeric", month: "long", year: "numeric" });
     doc.fontSize(10).font("Helvetica").fillColor("#000").text(dateStr, { align: "right" });
     doc.moveDown(0.8);
 
-    doc.fontSize(10).font("Helvetica-Bold").fillColor("#000")
-       .text(`${app.first_name} ${app.last_name}`);
-    doc.font("Helvetica").fillColor(GREY)
-       .text(app.location || "Zimbabwe");
+    // ── Addressee ─────────────────────────────────────────────────────
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#000").text(`${firstName} ${lastName}`);
+    doc.font("Helvetica").fillColor(GREY).text(location || "Zimbabwe");
     doc.moveDown(1);
 
-    const isApproved = type === "approved";
-    const refLine    = `RE: Job Application — ${app.role}`;
-
-    doc.fontSize(10).font("Helvetica-Bold").fillColor(GREEN).text(refLine);
+    // ── Reference line + salutation ───────────────────────────────────
+    const refSuffix = status === "accepted" ? "Offer of Employment"
+                    : status === "rejected"  ? "Application Outcome"
+                    : "Application Acknowledgement";
+    doc.fontSize(10).font("Helvetica-Bold").fillColor(GREEN)
+       .text(`RE: Job Application — ${role} — ${refSuffix}`);
     doc.moveDown(0.6);
-    doc.fontSize(10).font("Helvetica").fillColor("#000").text(`Dear ${app.first_name},`);
+    doc.fontSize(10).font("Helvetica").fillColor("#000").text(`Dear ${firstName},`);
     doc.moveDown(0.6);
 
-    if (isApproved) {
-      doc.text(
-        `We are pleased to inform you that your application for the position of ${app.role} at VUE Auto Parts ` +
-        `has been reviewed and, after careful consideration, we are delighted to offer you this role.`,
-        { lineGap: 3 }
-      );
-      doc.moveDown(0.6);
-      doc.text(
-        `We were impressed by your commitment to joining our team and by the information provided in your application. ` +
-        `A member of our team will be in contact with you shortly to confirm your start date and any further arrangements. ` +
-        `Please bring your original National ID and any relevant documents on your first day of work.`,
-        { lineGap: 3 }
-      );
-      doc.moveDown(0.6);
-      doc.text(
-        `Salaries at VUE Auto Parts grow with the company's performance, and we look forward to building something great together. ` +
-        `Congratulations, and welcome to the VUE Auto Parts family.`,
-        { lineGap: 3 }
-      );
-    } else {
-      doc.text(
-        `Thank you sincerely for taking the time to apply for the position of ${app.role} at VUE Auto Parts. ` +
-        `We genuinely appreciate your interest in joining our team and the effort you put into your application.`,
-        { lineGap: 3 }
-      );
-      doc.moveDown(0.6);
-      doc.text(
-        `After careful consideration of all applications received, we regret to inform you that we are unable to offer ` +
-        `you this particular position at this time. Please know that this decision was not made lightly, and it does not ` +
-        `reflect negatively on your character or potential.`,
-        { lineGap: 3 }
-      );
-      doc.moveDown(0.6);
-      doc.text(
-        `We encourage you to continue pursuing your aspirations with confidence. Should further opportunities arise at ` +
-        `VUE Auto Parts, we sincerely hope you will consider applying again. We wish you every success in your future endeavours.`,
-        { lineGap: 3 }
-      );
-    }
+    // ── Body paragraphs (AI-generated) ───────────────────────────────
+    const paras = String(aiBody || "").split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+    paras.forEach((para, i) => {
+      doc.font("Helvetica").fontSize(10).fillColor("#000").text(para, { lineGap: 4 });
+      if (i < paras.length - 1) doc.moveDown(0.7);
+    });
 
-    doc.moveDown(1);
-    doc.text("Yours " + (isApproved ? "sincerely" : "respectfully") + ",");
-    doc.moveDown(0.4);
-    doc.rect(72, doc.y, 120, 1).fill(GREY); doc.moveDown(0.4);
-    doc.font("Helvetica-Bold").fillColor("#000").text("Samuel Takwirira");
+    // ── Closing ───────────────────────────────────────────────────────
+    doc.moveDown(1.2);
+    doc.text(status === "accepted" ? "Yours sincerely," : "Yours respectfully,");
+    doc.moveDown(2);
+    doc.rect(72, doc.y, 150, 1).fill(GREY);
+    doc.moveDown(0.5);
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#000").text("Samuel Takwirira");
     doc.font("Helvetica").fillColor(GREY).fontSize(9).text("Director");
-    doc.text("VUE Auto Parts, Chipinge, Zimbabwe");
+    doc.text("Vue Auto Parts");
+    doc.text("Chipinge, Manicaland, Zimbabwe");
+    doc.text("info@vueautoparts.com");
 
-    const footerY = 595 + 72 + 4;
-    doc.rect(72, footerY, W, 1).fill(GREEN);
+    // ── Footer rule ───────────────────────────────────────────────────
+    doc.rect(72, 841 - 72 - 8, W, 1).fill(GREEN);
 
     doc.end();
   });
@@ -1447,53 +1421,12 @@ async function handleJobsLetter(request, response) {
 }
 
 
-async function handleStaffApplicationsList(request, response) {
-  let body;
-  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
-  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
-
-  const director = await verifyDirector(body);
-  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
-
-  const res = await pool.query(
-    `SELECT id, first_name, last_name, id_number, dob, age, phone, email, sex, location,
-            role, computer_skills, medical, signature, draft, id_photo_name,
-            status, decision_notes, decided_by, decided_at, letter_published, published_at, created_at
-     FROM job_applications
-     ORDER BY created_at DESC`
-  );
-
-  return sendJson(response, 200, { ok: true, applications: res.rows });
-}
-
-async function handleStaffApplicationsDelete(request, response) {
-  let body;
-  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
-  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
-
-  const director = await verifyDirector(body);
-  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
-
-  const { applicationId } = body;
-  if (!applicationId) return sendJson(response, 400, { ok: false, error: "Application ID required." });
-
-  const check = await pool.query(
-    "SELECT id, first_name, last_name, status FROM job_applications WHERE id = $1",
-    [parseInt(applicationId)]
-  );
-  if (check.rowCount === 0) return sendJson(response, 404, { ok: false, error: "Application not found." });
-
-  const app = check.rows[0];
-  if (app.status === "pending") {
-    return sendJson(response, 400, { ok: false, error: "Only decided applications (approved or denied) can be deleted." });
+async function handleStaffSendStatus(request, response) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    return sendJson(response, 500, { ok: false, error: "Email service not configured." });
   }
 
-  await pool.query("DELETE FROM job_applications WHERE id = $1", [parseInt(applicationId)]);
-  console.log(`[apps-delete] id=${applicationId} (${app.first_name} ${app.last_name}) deleted by ${director.firstName} ${director.lastName}`);
-  return sendJson(response, 200, { ok: true });
-}
-
-async function handleStaffApplicationsDecide(request, response) {
   let body;
   try { body = JSON.parse(await readRequestBody(request) || "{}"); }
   catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
@@ -1501,189 +1434,166 @@ async function handleStaffApplicationsDecide(request, response) {
   const director = await verifyDirector(body);
   if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
 
-  const { applicationId, decision, notes } = body;
-  if (!applicationId || !decision) return sendJson(response, 400, { ok: false, error: "Application ID and decision required." });
-  if (!["approved", "denied"].includes(decision)) return sendJson(response, 400, { ok: false, error: "Decision must be 'approved' or 'denied'." });
+  const { applicantFirst, applicantLast, applicantEmail, applicantLocation, role, status, note } = body;
 
-  const directorName = `${director.firstName} ${director.lastName}`;
-  const res = await pool.query(
-    `UPDATE job_applications
-     SET status = $1, decision_notes = $2, decided_by = $3, decided_at = NOW(), letter_published = false
-     WHERE id = $4
-     RETURNING id, status, first_name, last_name, email, role`,
-    [decision, String(notes || "").trim(), directorName, parseInt(applicationId)]
-  );
+  if (!applicantFirst || !applicantLast || !applicantEmail || !role || !status) {
+    return sendJson(response, 400, { ok: false, error: "All required fields must be filled in." });
+  }
+  if (!["under-review", "accepted", "rejected"].includes(status)) {
+    return sendJson(response, 400, { ok: false, error: "Invalid status." });
+  }
 
-  if (res.rowCount === 0) return sendJson(response, 404, { ok: false, error: "Application not found." });
+  const firstName = String(applicantFirst).trim();
+  const lastName  = String(applicantLast).trim();
+  const email     = String(applicantEmail).trim().toLowerCase();
+  const location  = String(applicantLocation || "Zimbabwe").trim();
 
-  const app = res.rows[0];
-  console.log(`[apps-decide] ${decision}: ${app.first_name} ${app.last_name} by ${directorName}`);
+  // ── Groq: generate formal letter body ─────────────────────────────
+  const statusInstructions = {
+    "under-review":
+      "Acknowledge receipt of the application with warmth. Inform the applicant that it is currently under careful and thorough review by the director. Express sincere appreciation for their interest in joining Vue Auto Parts. Assure them they will be notified of the outcome in due course.",
+    "accepted":
+      "Warmly congratulate the applicant on being selected for the position. Welcome them formally to the Vue Auto Parts team. Request that they present their original National ID card and any relevant supporting documents upon reporting for duty. State that a team member will be in contact shortly to confirm the start date and further arrangements.",
+    "rejected":
+      "Thank the applicant sincerely for the time and effort invested in their application. Regretfully inform them that on this occasion their application was unsuccessful after careful consideration of all candidates. Acknowledge their evident potential and effort. Warmly encourage them to consider applying for future positions at Vue Auto Parts.",
+  }[status];
 
-  // Fire-and-forget decision notification to the applicant
-  const resendKey = process.env.RESEND_API_KEY;
-  if (app.email && resendKey) {
-    const statusUrl = "https://vueautoparts.com";
-    const decisionHtml = `
-      <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
-        <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:24px 28px 20px;border-radius:8px 8px 0 0">
-          <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS &nbsp;·&nbsp; CAREERS</div>
-          <h2 style="color:#fff;margin:0;font-size:19px;font-weight:900">Your application has been reviewed</h2>
-        </div>
-        <div style="background:#fff;padding:24px 28px;border:1px solid #eee;border-top:none">
-          <p style="color:#222;font-size:15px;font-weight:700;margin:0 0 6px">Hi ${app.first_name},</p>
-          <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 18px">
-            A decision has been made on your application for the <strong>${app.role}</strong> position at VUE Auto Parts.
-            Visit our website to see your full status and, once it is ready, download your official letter.
-          </p>
-          <p style="color:#444;font-size:14px;line-height:1.75;margin:0 0 22px">
-            On the website, click <strong>"Check application status"</strong> and enter the details you applied with.
-          </p>
-          <a href="${statusUrl}" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 22px;border-radius:8px;text-decoration:none">Check My Status →</a>
-        </div>
-        <div style="background:#f9f9f9;padding:14px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
-          <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.6">
-            VUE Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
-            Questions? WhatsApp us at <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a> &nbsp;·&nbsp; info@vueautoparts.com
-          </p>
-        </div>
-      </div>`;
-    const decisionText = `Hi ${app.first_name},\n\nA decision has been made on your application for the ${app.role} position at VUE Auto Parts.\n\nTo see your full status and download your letter when it is ready, visit:\n${statusUrl}\n\nClick "Check application status" and enter your name, ID number and date of birth.\n\n— VUE Auto Parts, Chipinge, Zimbabwe`;
-    fetch("https://api.resend.com/emails", {
+  const noteContext = note ? ` Director's note for context: ${note}` : "";
+  const groqPrompt  =
+    `Write exactly 3 formal paragraphs for an official job application status letter from Vue Auto Parts, Chipinge, Zimbabwe, signed by Samuel Takwirira, Director.\n` +
+    `Applicant: ${firstName} ${lastName}. Position: ${role}. Status: ${status}.${noteContext}\n\n` +
+    `Rules:\n` +
+    `- Very formal, professional British English — dignified and corporate in tone\n` +
+    `- Do NOT include a salutation (no "Dear..."), closing (no "Yours sincerely..."), date, subject line, or any labels\n` +
+    `- Return ONLY the 3 body paragraphs, each separated by a single blank line\n` +
+    `- ${statusInstructions}`;
+
+  let aiBody = "";
+  try {
+    const gr = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
+      headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model:       process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+        messages:    [{ role: "user", content: groqPrompt }],
+        max_tokens:  520,
+        temperature: 0.45,
+      }),
+    });
+    if (gr.ok) {
+      const gd = await gr.json();
+      aiBody = (gd.choices?.[0]?.message?.content || "").trim();
+    } else {
+      console.error("[send-status] Groq error:", gr.status);
+    }
+  } catch (e) {
+    console.error("[send-status] Groq fetch error:", e.message);
+  }
+
+  // Fallback body if AI fails
+  if (!aiBody) {
+    if (status === "under-review") {
+      aiBody =
+        `We write to acknowledge receipt of your application for the position of ${role} at Vue Auto Parts. We are grateful for your interest in joining our organisation and for the time and effort you have invested in your application.\n\n` +
+        `Your application is currently under careful and thorough review by our director. We are committed to giving every application the consideration it deserves, and we assure you that the process is being conducted with the utmost diligence.\n\n` +
+        `We will be in contact with you in due course to advise you of the outcome. Should you have any queries in the meantime, please do not hesitate to reach us via WhatsApp at +16038662272.`;
+    } else if (status === "accepted") {
+      aiBody =
+        `We are delighted to inform you that, following a thorough review of all applications received for the position of ${role} at Vue Auto Parts, you have been selected to join our team. On behalf of the entire organisation, we extend our warmest congratulations.\n\n` +
+        `We ask that you present your original National Identity Card and any relevant supporting documents upon reporting for your first day of duty. A member of our team will be in contact with you shortly to confirm your commencement date and any further arrangements that may be required.\n\n` +
+        `We look forward to welcoming you to the Vue Auto Parts family and are confident that your contribution will be a valued one. Congratulations once again, and we wish you every success in this new chapter of your career.`;
+    } else {
+      aiBody =
+        `We wish to thank you sincerely for your interest in joining Vue Auto Parts and for the time and effort you devoted to your application for the position of ${role}. It is genuinely appreciated.\n\n` +
+        `After careful and thorough consideration of all applications received, we regret to inform you that we are unable to offer you this particular position at this time. We wish to assure you that this decision was not made lightly and is in no way a reflection of your character or ability.\n\n` +
+        `We genuinely encourage you to continue pursuing your career aspirations with confidence. Should suitable opportunities arise at Vue Auto Parts in the future, we sincerely hope you will consider applying again. We wish you every success in all your future endeavours.`;
+    }
+  }
+
+  // ── Generate PDF letter ───────────────────────────────────────────
+  let pdfBuffer;
+  try {
+    pdfBuffer = await generateLetterPdf({ firstName, lastName, location, role }, status, aiBody);
+  } catch (e) {
+    console.error("[send-status] PDF error:", e.message);
+    return sendJson(response, 500, { ok: false, error: "Could not generate the letter. Please try again." });
+  }
+
+  // ── Build email ───────────────────────────────────────────────────
+  const statusLabel = { "under-review": "Under Review", "accepted": "Accepted", "rejected": "Rejected" }[status];
+  const subjectMap  = {
+    "under-review": `Your application is under review — ${role} at Vue Auto Parts`,
+    "accepted":     `Congratulations — You have been selected for ${role} at Vue Auto Parts`,
+    "rejected":     `Your application outcome — ${role} at Vue Auto Parts`,
+  };
+  const headerMap = {
+    "under-review": "Your Application Is Under Review",
+    "accepted":     "Congratulations — You Have Been Selected",
+    "rejected":     "Your Application Outcome",
+  };
+  const accentColor = { "under-review": "#b8902a", "accepted": "#0f4f36", "rejected": "#6b7280" }[status];
+
+  const bodyParas = aiBody.split(/\n\n+/).map(p => p.trim()).filter(Boolean)
+    .map(p => `<p style="color:#333;font-size:13px;line-height:1.85;margin:0 0 15px;font-family:Georgia,serif">${p}</p>`)
+    .join("");
+
+  const emailHtml = `
+    <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 60%,#1a6b4a 100%);padding:28px 32px 22px">
+        <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;font-family:sans-serif">Vue Auto Parts &nbsp;·&nbsp; Careers</div>
+        <h2 style="color:#fff;margin:0;font-size:20px;font-weight:700;font-family:Georgia,serif">${headerMap[status]}</h2>
+      </div>
+      <div style="background:#fafafa;padding:28px 32px;border-bottom:3px solid ${accentColor}">
+        <p style="color:#111;font-size:13px;margin:0 0 16px;font-family:Georgia,serif">Dear ${firstName} ${lastName},</p>
+        ${bodyParas}
+        <p style="color:#444;font-size:13px;line-height:1.85;margin:16px 0 0;font-family:Georgia,serif">Yours ${status === "accepted" ? "sincerely" : "respectfully"},</p>
+        <p style="color:#0f4f36;font-size:13px;font-weight:700;margin:12px 0 2px;font-family:Georgia,serif">Samuel Takwirira</p>
+        <p style="color:#6b7280;font-size:12px;margin:0;font-family:sans-serif">Director, Vue Auto Parts</p>
+      </div>
+      <div style="background:#fff;padding:16px 32px 20px">
+        <p style="color:#9ca3af;font-size:11px;margin:0;line-height:1.7;font-family:sans-serif">
+          Vue Auto Parts &nbsp;·&nbsp; Chipinge, Manicaland, Zimbabwe<br>
+          <a href="mailto:info@vueautoparts.com" style="color:#0f4f36">info@vueautoparts.com</a> &nbsp;·&nbsp;
+          <a href="https://wa.me/16038662272" style="color:#0f4f36">+16038662272</a>
+        </p>
+      </div>
+    </div>`;
+
+  const emailText =
+    `Dear ${firstName} ${lastName},\n\n${aiBody}\n\n` +
+    `Yours ${status === "accepted" ? "sincerely" : "respectfully"},\n` +
+    `Samuel Takwirira\nDirector, Vue Auto Parts\nChipinge, Manicaland, Zimbabwe\ninfo@vueautoparts.com`;
+
+  const safeName = `${firstName}_${lastName}`.replace(/[^a-zA-Z_]/g, "_");
+  const pdfName  = `Vue_Auto_Parts_${statusLabel.replace(/ /g, "_")}_Letter_${safeName}.pdf`;
+
+  // ── Send email (awaited) ──────────────────────────────────────────
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method:  "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "VUE Auto Parts <onboarding@resend.dev>",
-        to: [app.email],
-        subject: `Your ${app.role} application has been reviewed — VUE Auto Parts`,
-        html: decisionHtml,
-        text: decisionText,
+        from:    "Vue Auto Parts <onboarding@resend.dev>",
+        to:      [email],
+        cc:      ["info@vueautoparts.com"],
+        subject: subjectMap[status],
+        html:    emailHtml,
+        text:    emailText,
+        attachments: [{ filename: pdfName, content: pdfBuffer.toString("base64") }],
       }),
-    }).then(r => {
-      if (r.ok) console.log(`[apps-decide] notification sent to ${app.email}`);
-      else r.text().then(t => console.error("[apps-decide] notify error:", r.status, t));
-    }).catch(e => console.error("[apps-decide] notify fetch error:", e.message));
-  }
-
-  return sendJson(response, 200, { ok: true, application: app });
-}
-
-async function handleStaffApplicationsPublish(request, response) {
-  let body;
-  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
-  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
-
-  const director = await verifyDirector(body);
-  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
-
-  const { applicationId } = body;
-  if (!applicationId) return sendJson(response, 400, { ok: false, error: "Application ID required." });
-
-  const check = await pool.query("SELECT * FROM job_applications WHERE id = $1", [parseInt(applicationId)]);
-  if (check.rowCount === 0) return sendJson(response, 404, { ok: false, error: "Application not found." });
-
-  const app = check.rows[0];
-  if (app.status !== "approved" && app.status !== "denied") {
-    return sendJson(response, 400, { ok: false, error: "Application must be decided before publishing the letter." });
-  }
-
-  try {
-    const pdf = await generateLetterPdf(app, app.status);
-    const preview = {
-      size:     pdf.length,
-      filename: `VUE_${app.status === "approved" ? "Offer" : "Outcome"}_Letter_${app.first_name}_${app.last_name}.pdf`,
-    };
-    await pool.query(
-      `UPDATE job_applications SET letter_published = true, published_at = NOW() WHERE id = $1`,
-      [parseInt(applicationId)]
-    );
-    console.log(`[apps-publish] letter published for app ${applicationId} by ${director.firstName} ${director.lastName}`);
-
-    if (app.email) {
-      const resendKey = process.env.RESEND_API_KEY;
-      if (resendKey) {
-        const isApproved  = app.status === "approved";
-        const letterType  = isApproved ? "Offer Letter" : "Application Outcome";
-        const notifSubject = isApproved
-          ? `Your VUE Auto Parts Job Application — Great News!`
-          : `Your VUE Auto Parts Application — Update Available`;
-        const notifHtml = `
-          <div style="font-family:sans-serif;max-width:540px;margin:0 auto">
-            <div style="background:linear-gradient(135deg,#062f22 0%,#0f4f36 100%);padding:22px 28px 18px;border-radius:8px 8px 0 0">
-              <div style="font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">VUE AUTO PARTS · CAREERS</div>
-              <h2 style="color:#fff;margin:0;font-size:18px;font-weight:900">Your Application Letter is Ready</h2>
-            </div>
-            <div style="background:#fff;padding:22px 28px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
-              <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 16px">Dear <strong>${app.first_name}</strong>,</p>
-              <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 16px">
-                ${isApproved
-                  ? `We are delighted to let you know that your <strong>${app.role}</strong> application at VUE Auto Parts has been reviewed and your <strong>Offer Letter</strong> is now available for download.`
-                  : `Your application for the <strong>${app.role}</strong> position at VUE Auto Parts has been reviewed. Your <strong>${letterType}</strong> is now available for download.`}
-              </p>
-              <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 20px">
-                To view your letter, visit the VUE Auto Parts website, click <em>"Check application status"</em>, and enter your details.
-              </p>
-              <a href="https://vueautoparts.com" style="display:inline-block;background:#0f4f36;color:#fff;font-size:13px;font-weight:700;padding:11px 20px;border-radius:8px;text-decoration:none">Check My Status →</a>
-              <p style="color:#9ca3af;font-size:11px;margin-top:20px;line-height:1.6">
-                VUE Auto Parts · Chipinge, Manicaland, Zimbabwe<br>
-                info@vueautoparts.com · vueautoparts.com
-              </p>
-            </div>
-          </div>`;
-        fetch("https://api.resend.com/emails", {
-          method:  "POST",
-          headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            from:    "VUE Auto Parts <onboarding@resend.dev>",
-            to:      [app.email],
-            subject: notifSubject,
-            html:    notifHtml,
-            text:    `Dear ${app.first_name},\n\nYour ${letterType} for the ${app.role} position at VUE Auto Parts is now available.\n\nVisit the website and click "Check application status" to download your letter.\n\nvueautoparts.com\n\n— VUE Auto Parts, Chipinge, Zimbabwe`,
-          }),
-        }).then(r => {
-          if (r.ok) console.log(`[apps-publish] notification sent to ${app.email}`);
-          else r.text().then(t => console.error("[apps-publish] notify error:", r.status, t));
-        }).catch(e => console.error("[apps-publish] notify fetch error:", e.message));
-      }
-    }
-
-    return sendJson(response, 200, { ok: true, preview, notified: !!app.email });
-  } catch (err) {
-    console.error("[apps-publish] PDF error:", err.message);
-    return sendJson(response, 500, { ok: false, error: "Could not generate letter preview." });
-  }
-}
-
-async function handleStaffApplicationsPreviewPdf(request, response) {
-  let body;
-  try { body = JSON.parse(await readRequestBody(request) || "{}"); }
-  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
-
-  const director = await verifyDirector(body);
-  if (!director) return sendJson(response, 403, { ok: false, error: "Director credentials required." });
-
-  const { applicationId } = body;
-  if (!applicationId) return sendJson(response, 400, { ok: false, error: "Application ID required." });
-
-  const res = await pool.query("SELECT * FROM job_applications WHERE id = $1", [parseInt(applicationId)]);
-  if (res.rowCount === 0) {
-    response.writeHead(404, { "Content-Type": "text/plain" }); return response.end("Not found.");
-  }
-  const app = res.rows[0];
-  if (app.status !== "approved" && app.status !== "denied") {
-    response.writeHead(400, { "Content-Type": "text/plain" }); return response.end("Not decided yet.");
-  }
-  try {
-    const pdf = await generateLetterPdf(app, app.status);
-    response.writeHead(200, {
-      "Content-Type":        "application/pdf",
-      "Content-Disposition": "inline",
-      "Content-Length":      pdf.length,
-      "Cache-Control":       "no-store",
     });
-    return response.end(pdf);
-  } catch (err) {
-    response.writeHead(500, { "Content-Type": "text/plain" }); return response.end("PDF error.");
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "");
+      console.error("[send-status] email error:", r.status, errText);
+      return sendJson(response, 500, { ok: false, error: "Could not send the status email. Please try again." });
+    }
+    console.log(`[send-status] ${status} → ${email} | ${role} | by ${director.firstName} ${director.lastName}`);
+  } catch (e) {
+    console.error("[send-status] fetch error:", e.message);
+    return sendJson(response, 500, { ok: false, error: "Could not send the status email. Please try again." });
   }
+
+  return sendJson(response, 200, { ok: true, statusLabel, applicantName: `${firstName} ${lastName}`, email });
 }
 
 async function handleInsightsRun(request, response) {
@@ -1766,20 +1676,8 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "GET" && request.url.startsWith("/api/jobs/letter")) {
       return await handleJobsLetter(request, response);
     }
-    if (request.method === "POST" && request.url === "/api/staff/applications") {
-      return await handleStaffApplicationsList(request, response);
-    }
-    if (request.method === "POST" && request.url === "/api/staff/applications/decide") {
-      return await handleStaffApplicationsDecide(request, response);
-    }
-    if (request.method === "POST" && request.url === "/api/staff/applications/publish") {
-      return await handleStaffApplicationsPublish(request, response);
-    }
-    if (request.method === "POST" && request.url === "/api/staff/applications/preview-pdf") {
-      return await handleStaffApplicationsPreviewPdf(request, response);
-    }
-    if (request.method === "POST" && request.url === "/api/staff/applications/delete") {
-      return await handleStaffApplicationsDelete(request, response);
+    if (request.method === "POST" && request.url === "/api/staff/send-status") {
+      return await handleStaffSendStatus(request, response);
     }
     if (request.method === "GET" && request.url === "/health") {
       response.writeHead(200, { "Content-Type": "text/plain" });
@@ -1862,7 +1760,7 @@ initDb()
   .catch(err => console.error("[initDb] error:", err.message))
   .finally(() => {
     server.listen(PORT, () => {
-      console.log(`VUE Auto Parts listening on ${PORT}`);
+      console.log(`Vue Auto Parts listening on ${PORT}`);
       insights.startScheduler();
     });
   });

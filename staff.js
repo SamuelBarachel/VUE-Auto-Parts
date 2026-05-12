@@ -204,7 +204,7 @@
     if (selectedAction === "manage-applications") {
       if (!verifiedStaff) { err2.textContent = "Not verified."; return; }
       err2.textContent = "";
-      if (window.VUEApps) window.VUEApps.open(verifiedStaff, showPanel);
+      if (window.VueApps) window.VueApps.open(verifiedStaff, showPanel);
       return;
     }
 
@@ -455,8 +455,8 @@
             try {
               await navigator.share({
                 files: [file],
-                title: "VUE Auto Parts Card",
-                text: `Here is the VUE Auto Parts card for ${cardName}. Please forward to the customer.`,
+                title: "Vue Auto Parts Card",
+                text: `Here is the Vue Auto Parts card for ${cardName}. Please forward to the customer.`,
               });
             } catch (err) {
               if (err.name !== "AbortError") {
@@ -685,7 +685,7 @@
   }
 
   function buildWatermarkRows() {
-    const row = Array(22).fill("VUE AUTO PARTS · ").join("");
+    const row = Array(22).fill("Vue Auto Parts · ").join("");
     return Array(14).fill(`<div class="vue-card-wm-row">${row}</div>`).join("");
   }
 
@@ -698,7 +698,7 @@
       <div class="vue-biz-logomark">
         <div class="vue-biz-v">V</div>
         <div class="vue-biz-brandtext">
-          <span class="vue-biz-brand">VUE AUTO PARTS</span>
+          <span class="vue-biz-brand">Vue Auto Parts</span>
           <span class="vue-biz-sub">Staff Card</span>
         </div>
       </div>
@@ -728,7 +728,7 @@
   <div class="vue-card-wm vue-card-wm-light" aria-hidden="true">${buildWatermarkRows()}</div>
   <div class="vue-rwd-header">
     <div class="vue-rwd-header-row">
-      <span class="vue-rwd-brand">VUE AUTO PARTS</span>
+      <span class="vue-rwd-brand">Vue Auto Parts</span>
       <span class="vue-rwd-badge">REWARDS</span>
     </div>
     <div class="vue-rwd-stars">★ ★ ★</div>
@@ -751,7 +751,7 @@
   <div class="vue-card-wm vue-card-wm-light" aria-hidden="true">${buildWatermarkRows()}</div>
   <div class="vue-rwd-back-inner">
     <div class="vue-rwd-back-head">
-      <span class="vue-rwd-back-brand">VUE AUTO PARTS</span>
+      <span class="vue-rwd-back-brand">Vue Auto Parts</span>
       <span class="vue-rwd-back-sub">REWARDS PROGRAMME</span>
     </div>
     <div class="vue-rwd-back-rule"></div>
@@ -768,7 +768,7 @@
       </div>
     </div>
     <div class="vue-rwd-back-rule"></div>
-    <p class="vue-rwd-back-terms">Not transferable. Valid at VUE Auto Parts, Chipinge, Zimbabwe only. This card may be revoked without prior notice for rude behaviour or any violation of store policy.</p>
+    <p class="vue-rwd-back-terms">Not transferable. Valid at Vue Auto Parts, Chipinge, Zimbabwe only. This card may be revoked without prior notice for rude behaviour or any violation of store policy.</p>
     <div class="vue-rwd-back-serial">${serial}</div>
   </div>
 </div>`;
