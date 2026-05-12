@@ -1500,30 +1500,12 @@ h2 {
   overflow: hidden;
 }
 
-.dir-step-img {
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  width: 100%;
-}
-
-.dir-step-img img {
-  display: block;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 320ms ease;
-  width: 100%;
-}
-
-.dir-step-card:hover .dir-step-img img {
-  transform: scale(1.04);
-}
-
 .dir-step-card figcaption {
   align-items: flex-start;
   background: #fff;
   display: flex;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 22px 20px;
 }
 
 .dir-step-num {
