@@ -273,6 +273,11 @@
       <tr><td>Signed</td><td>${app.signature || "—"}</td></tr>
       ${decidedRow}
     </table>
+    ${app.id_photo_base64 ? `
+    <div class="app-id-photo-wrap">
+      <div class="app-id-photo-label">National ID Photo</div>
+      <img class="app-id-photo" src="data:image/jpeg;base64,${app.id_photo_base64}" alt="National ID photo for ${app.first_name} ${app.last_name}" loading="lazy">
+    </div>` : ""}
     ${app.draft ? `<button class="app-draft-toggle" data-id="${app.id}">Show application message ↓</button>
     <div class="app-draft-text" id="app-draft-${app.id}">${app.draft}</div>` : ""}
   </div>
@@ -295,6 +300,47 @@
     });
   }
 
+  /* ── Decision notes dialog ────────────────────────────────────────── */
+  function showDecisionDialog(decision, onConfirm, onCancel) {
+    const existing = document.getElementById("appDecisionDialog");
+    if (existing) existing.remove();
+
+    const label   = decision === "approved" ? "Approve" : "Deny";
+    const colorCls = decision === "approved" ? "app-dialog-confirm-approve" : "app-dialog-confirm-deny";
+
+    const dialog = document.createElement("div");
+    dialog.id        = "appDecisionDialog";
+    dialog.className = "app-decision-dialog";
+    dialog.innerHTML = `
+      <div class="app-decision-dialog-inner">
+        <p class="app-decision-dialog-title">${label} this application?</p>
+        <label class="app-decision-dialog-label" for="appDecisionNotes">Optional note <span class="app-decision-dialog-opt">(visible on the record)</span></label>
+        <textarea id="appDecisionNotes" class="app-decision-dialog-notes" rows="2" placeholder="e.g. Start date agreed, background check pending…"></textarea>
+        <div class="app-decision-dialog-btns">
+          <button class="app-decision-dialog-cancel" id="appDecisionCancel" type="button">Cancel</button>
+          <button class="app-decision-dialog-confirm ${colorCls}" id="appDecisionConfirm" type="button">${label}</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(dialog);
+    requestAnimationFrame(() => dialog.classList.add("visible"));
+    const notesEl = dialog.querySelector("#appDecisionNotes");
+    setTimeout(() => notesEl && notesEl.focus(), 80);
+
+    function close() { dialog.classList.remove("visible"); setTimeout(() => dialog.remove(), 200); }
+
+    dialog.querySelector("#appDecisionCancel").addEventListener("click", () => { close(); onCancel(); });
+    dialog.querySelector("#appDecisionConfirm").addEventListener("click", () => {
+      const notes = (notesEl ? notesEl.value : "").trim();
+      close();
+      onConfirm(notes);
+    });
+    dialog.addEventListener("click", e => { if (e.target === dialog) { close(); onCancel(); } });
+    document.addEventListener("keydown", function esc(e) {
+      if (e.key === "Escape") { close(); onCancel(); document.removeEventListener("keydown", esc); }
+    });
+  }
+
   /* ── Action handlers ──────────────────────────────────────────────── */
   async function handleOp(btn) {
     const op   = btn.dataset.op;
@@ -305,21 +351,26 @@
 
     if (op === "approve" || op === "deny") {
       const decision = op === "approve" ? "approved" : "denied";
-      const notes    = prompt(`Optional note for this ${decision} decision (will appear on the record):`);
-      if (notes === null) { btn.disabled = false; btn.textContent = orig; return; }
-      try {
-        const res  = await fetch("/api/staff/applications/decide", {
-          method:  "POST",
-          headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ ..._creds, applicationId: id, decision, notes }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (data.ok) { reload(); }
-        else { if (appsErr) appsErr.textContent = data.error || "Could not update."; btn.disabled = false; btn.textContent = orig; }
-      } catch {
-        if (appsErr) appsErr.textContent = "Network error.";
-        btn.disabled = false; btn.textContent = orig;
-      }
+      showDecisionDialog(
+        decision,
+        async (notes) => {
+          try {
+            const res  = await fetch("/api/staff/applications/decide", {
+              method:  "POST",
+              headers: { "Content-Type": "application/json" },
+              body:    JSON.stringify({ ..._creds, applicationId: id, decision, notes }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (data.ok) { reload(); }
+            else { if (appsErr) appsErr.textContent = data.error || "Could not update."; btn.disabled = false; btn.textContent = orig; }
+          } catch {
+            if (appsErr) appsErr.textContent = "Network error.";
+            btn.disabled = false; btn.textContent = orig;
+          }
+        },
+        () => { btn.disabled = false; btn.textContent = orig; }
+      );
+      return;
 
     } else if (op === "preview") {
       btn.textContent = orig; btn.disabled = false;

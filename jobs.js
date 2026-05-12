@@ -267,7 +267,14 @@
 
   document.getElementById("jobIdNotReady").addEventListener("click", () => {
     document.getElementById("jobIdNotReadyHint").hidden = false;
-    setTimeout(() => closeModal(), 5000);
+    const countdownEl = document.getElementById("jobIdCountdown");
+    let secs = 5;
+    if (countdownEl) countdownEl.textContent = secs;
+    const iv = setInterval(() => {
+      secs--;
+      if (countdownEl) countdownEl.textContent = secs;
+      if (secs <= 0) { clearInterval(iv); closeModal(); }
+    }, 1000);
   });
 
   document.querySelectorAll(".job-role-card").forEach(card => {

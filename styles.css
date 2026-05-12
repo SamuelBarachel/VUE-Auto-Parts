@@ -3599,6 +3599,18 @@ dd {
   padding: 14px 16px;
 }
 .job-id-hint-icon { flex-shrink: 0; font-size: 1.2rem; }
+.job-id-countdown {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #b45309;
+  letter-spacing: 0.02em;
+}
+.job-id-countdown strong {
+  font-size: 1rem;
+  color: #92400e;
+}
 
 /* Role cards */
 .job-role-cards {
@@ -4283,6 +4295,115 @@ dd {
   font-size: 11px;
   padding: 7px 14px;
 }
+
+/* ID photo inside director card */
+.app-id-photo-wrap {
+  margin-top: 10px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+}
+.app-id-photo-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+.app-id-photo {
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  display: block;
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+/* Decision notes dialog overlay */
+.app-decision-dialog {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.app-decision-dialog.visible { opacity: 1; }
+.app-decision-dialog-inner {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  padding: 22px 24px 20px;
+  width: min(380px, calc(100vw - 40px));
+}
+.app-decision-dialog-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 14px;
+}
+.app-decision-dialog-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 6px;
+}
+.app-decision-dialog-opt {
+  font-weight: 500;
+  color: #9ca3af;
+}
+.app-decision-dialog-notes {
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 9px 11px;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 150ms;
+}
+.app-decision-dialog-notes:focus {
+  border-color: #0f4f36;
+  outline: none;
+}
+.app-decision-dialog-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+.app-decision-dialog-cancel {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 18px;
+  transition: background 130ms;
+}
+.app-decision-dialog-cancel:hover { background: #e5e7eb; }
+.app-decision-dialog-confirm {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 8px 20px;
+  transition: opacity 130ms;
+}
+.app-decision-dialog-confirm:hover { opacity: 0.88; }
+.app-dialog-confirm-approve { background: #0f4f36; color: #fff; }
+.app-dialog-confirm-deny    { background: #991b1b; color: #fff; }
 
 .stf-icon-apps { color: #0f4f36; }
 .stf-action-apps { background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important; border-color: #86efac !important; }
