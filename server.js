@@ -1856,8 +1856,11 @@ async function initDb() {
   await pool.query(`ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS id_photo_base64 TEXT`).catch(() => {});
 }
 
-server.listen(PORT, async () => {
-  console.log(`VUE Auto Parts listening on ${PORT}`);
-  await initDb().catch(err => console.error("[initDb] error:", err.message));
-  insights.startScheduler();
-});
+initDb()
+  .catch(err => console.error("[initDb] error:", err.message))
+  .finally(() => {
+    server.listen(PORT, () => {
+      console.log(`VUE Auto Parts listening on ${PORT}`);
+      insights.startScheduler();
+    });
+  });
