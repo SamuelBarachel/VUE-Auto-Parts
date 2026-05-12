@@ -747,8 +747,8 @@ async function handleJobsApply(request, response) {
     const dbRes = await pool.query(
       `INSERT INTO job_applications
        (first_name, last_name, id_number, dob, dob_month, dob_day, dob_year, age,
-        phone, email, sex, location, role, computer_skills, medical, signature, draft, id_photo_name, id_photo_base64)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+        phone, email, sex, location, role, computer_skills, medical, signature, draft, id_photo_name)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
        RETURNING id`,
       [
         String(firstName).trim(),
@@ -769,7 +769,6 @@ async function handleJobsApply(request, response) {
         String(signature || "").trim(),
         String(draft     || "").trim().slice(0, 3000),
         String(idPhotoName || "").trim(),
-        String(idPhotoBase64 || "").slice(0, 8 * 1024 * 1024),
       ]
     );
     savedId = dbRes.rows[0].id;
@@ -1475,7 +1474,7 @@ async function handleStaffApplicationsList(request, response) {
 
   const res = await pool.query(
     `SELECT id, first_name, last_name, id_number, dob, age, phone, email, sex, location,
-            role, computer_skills, medical, signature, draft, id_photo_name, id_photo_base64,
+            role, computer_skills, medical, signature, draft, id_photo_name,
             status, decision_notes, decided_by, decided_at, letter_published, published_at, created_at
      FROM job_applications
      ORDER BY created_at DESC`

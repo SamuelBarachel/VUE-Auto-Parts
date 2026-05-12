@@ -273,11 +273,6 @@
       <tr><td>Signed</td><td>${app.signature || "—"}</td></tr>
       ${decidedRow}
     </table>
-    ${app.id_photo_base64 ? `
-    <div class="app-id-photo-wrap">
-      <div class="app-id-photo-label">National ID Photo</div>
-      <img class="app-id-photo" src="data:image/jpeg;base64,${app.id_photo_base64}" alt="National ID photo for ${app.first_name} ${app.last_name}" loading="lazy">
-    </div>` : ""}
     ${app.draft ? `<button class="app-draft-toggle" data-id="${app.id}">Show application message ↓</button>
     <div class="app-draft-text" id="app-draft-${app.id}">${app.draft}</div>` : ""}
   </div>
