@@ -1435,14 +1435,9 @@ h2 {
 }
 
 .directions-map-placeholder {
-  align-items: center;
-  background: #e8f5ee;
   border-radius: 8px;
-  color: var(--green);
-  display: flex;
-  justify-content: center;
   margin-bottom: 14px;
-  padding: 12px 0;
+  overflow: hidden;
 }
 
 .directions-card dl {
