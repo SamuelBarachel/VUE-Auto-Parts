@@ -173,9 +173,18 @@ function calcReward(referrals, purchases) {
   return 0;
 }
 
-async function readRequestBody(request) {
+async function readRequestBody(request, maxBytes = 12 * 1024 * 1024) {
   const chunks = [];
-  for await (const chunk of request) chunks.push(chunk);
+  let total = 0;
+  for await (const chunk of request) {
+    total += chunk.length;
+    if (total > maxBytes) {
+      const err = new Error("Request body too large");
+      err.code = "BODY_TOO_LARGE";
+      throw err;
+    }
+    chunks.push(chunk);
+  }
   return Buffer.concat(chunks).toString("utf8");
 }
 
@@ -675,7 +684,12 @@ async function handleJobsApply(request, response) {
 
   let body;
   try { body = JSON.parse(await readRequestBody(request) || "{}"); }
-  catch { return sendJson(response, 400, { ok: false, error: "Invalid request." }); }
+  catch (e) {
+    if (e.code === "BODY_TOO_LARGE") {
+      return sendJson(response, 413, { ok: false, error: "Your ID photo is too large. Please use a smaller image and try again." });
+    }
+    return sendJson(response, 400, { ok: false, error: "Invalid request." });
+  }
 
   const {
     role, firstName, lastName, dobMonth, dobDay, dobYear, age,
@@ -685,6 +699,10 @@ async function handleJobsApply(request, response) {
 
   if (!firstName || !lastName || !role || !signature) {
     return sendJson(response, 400, { ok: false, error: "Required fields missing." });
+  }
+
+  if (sex && !["Male", "Female"].includes(sex)) {
+    return sendJson(response, 400, { ok: false, error: "Gender must be Male or Female." });
   }
 
   const dobStr = `${dobMonth}/${dobDay}/${dobYear}`;

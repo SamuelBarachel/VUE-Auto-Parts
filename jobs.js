@@ -391,20 +391,33 @@
   fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      err(12, "File is too large. Please use an image under 5 MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      err(12, "File is too large. Please use an image under 10 MB.");
       fileInput.value = "";
       return;
     }
     const reader = new FileReader();
     reader.onload = e => {
-      const dataUrl = e.target.result;
-      state.idPhotoBase64 = dataUrl.split(",")[1];
-      state.idPhotoName = file.name;
-      document.getElementById("jobIdPreviewImg").src = dataUrl;
-      document.getElementById("jobUploadPreview").hidden = false;
-      document.getElementById("jobUploadLabel").hidden = true;
-      clearErr(12);
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1200;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+        state.idPhotoBase64 = dataUrl.split(",")[1];
+        state.idPhotoName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+        document.getElementById("jobIdPreviewImg").src = dataUrl;
+        document.getElementById("jobUploadPreview").hidden = false;
+        document.getElementById("jobUploadLabel").hidden = true;
+        clearErr(12);
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   });
