@@ -1451,6 +1451,93 @@ h2 {
   margin: 0;
 }
 
+/* ── Turn-by-turn step photos ── */
+.dir-steps-section {
+  background: #f7f7f5;
+  padding-top: 0;
+}
+
+.dir-step-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 10px;
+}
+
+.dir-step-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(16, 20, 19, 0.06);
+  margin: 0;
+  overflow: hidden;
+}
+
+.dir-step-img {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  width: 100%;
+}
+
+.dir-step-img img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 320ms ease;
+  width: 100%;
+}
+
+.dir-step-card:hover .dir-step-img img {
+  transform: scale(1.04);
+}
+
+.dir-step-card figcaption {
+  align-items: flex-start;
+  background: #fff;
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.dir-step-num {
+  align-items: center;
+  background: var(--gold);
+  border-radius: 50%;
+  color: #1a1a1a;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 900;
+  height: 28px;
+  justify-content: center;
+  margin-top: 1px;
+  width: 28px;
+}
+
+.dir-step-card figcaption div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dir-step-card figcaption strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.dir-step-card figcaption span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .dir-step-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .contact {
   align-items: start;
   background: var(--green-dark);
