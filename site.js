@@ -46,6 +46,22 @@ if (window.location.hash) {
   setActiveNav(window.location.hash.slice(1));
 }
 
+// ── Gentle fade-in for the store sign image ──────────────────────────────
+(function () {
+  const signImg = document.querySelector(".dir-sign-figure img");
+  if (!signImg) return;
+  const obs = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting) {
+        signImg.classList.add("sign-revealed");
+        obs.disconnect();
+      }
+    },
+    { threshold: 0.1 }
+  );
+  obs.observe(signImg);
+})();
+
 (function () {
   const statusEl = document.getElementById("shopStatus");
   if (!statusEl) return;
