@@ -1,3 +1,10 @@
+// Always open at the top — prevent browser from restoring a scroll position or hash
+if (history.scrollRestoration) history.scrollRestoration = "manual";
+window.scrollTo(0, 0);
+if (window.location.hash) {
+  history.replaceState(null, "", window.location.pathname);
+}
+
 const header = document.querySelector(".site-header");
 const mainEl = document.querySelector("main");
 
