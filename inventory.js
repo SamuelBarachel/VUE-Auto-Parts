@@ -207,7 +207,7 @@ async function getPopularFromSales(rawRows) {
 function renderPopular(parts) {
   if (!popularEl) return;
   if (!parts.length) {
-    popularEl.innerHTML = '<p class="popular-empty">Ask us on WhatsApp for this week\'s popular parts.</p>';
+    popularEl.innerHTML = "";
     return;
   }
   const items = parts.map(p => {
