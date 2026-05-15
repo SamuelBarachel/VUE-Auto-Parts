@@ -229,6 +229,42 @@ nav a:hover::after {
   justify-content: center;
 }
 
+@media (min-width: 900px) {
+  .site-header {
+    display: grid;
+    grid-template-columns: auto minmax(260px, 1fr) auto auto auto;
+    gap: 12px;
+  }
+
+  .brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  nav {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    order: initial;
+    width: auto;
+  }
+
+  .ai-trigger {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .earn-trigger {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .header-action {
+    grid-column: 5;
+    grid-row: 1;
+  }
+}
+
 /* ── Earn panel ── */
 .earn-panel {
   background: var(--green-dark);
@@ -802,10 +838,25 @@ h1 {
   margin-right: 5px;
 }
 
+.trust-strip {
+  background: var(--green-dark);
+  color: #fff;
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.trust-strip span {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 6px 14px;
+}
 
 .section {
-  padding: clamp(16px, 2vw, 28px) clamp(16px, 3.2vw, 48px);
-  scroll-margin-top: 90px;
+  padding: clamp(12px, 1.45vw, 20px) clamp(16px, 3vw, 44px);
+  scroll-margin-top: 82px;
 }
 
 .section-heading {
@@ -818,6 +869,16 @@ h1 {
   margin-bottom: 8px;
 }
 
+.section-kicker {
+  align-items: center;
+  background: rgba(214, 173, 63, 0.12);
+  border: 1px solid rgba(214, 173, 63, 0.28);
+  border-radius: 999px;
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+}
+
 h2 {
   color: var(--green-dark);
   font-size: clamp(1.55rem, 2.5vw, 2.7rem);
@@ -828,7 +889,7 @@ h2 {
 
 .model-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: 1.2fr repeat(4, 1fr);
 }
 
@@ -843,18 +904,19 @@ h2 {
 }
 
 .model-card {
-  padding: 16px 16px 44px;
+  min-height: 132px;
+  padding: 14px 14px 34px;
   position: relative;
 }
 
 .model-card::after {
   background: linear-gradient(135deg, var(--green), var(--gold));
-  bottom: 16px;
+  bottom: 14px;
   content: "";
   height: 4px;
-  left: 18px;
+  left: 14px;
   position: absolute;
-  width: 48px;
+  width: 42px;
 }
 
 .model-card.feature {
@@ -878,10 +940,10 @@ h2 {
 }
 
 .model-card h3 {
-  font-size: clamp(1.6rem, 2.2vw, 2.5rem);
+  font-size: clamp(1.45rem, 2vw, 2.25rem);
   letter-spacing: 0;
   line-height: 0.96;
-  margin: 4px 0 12px;
+  margin: 3px 0 10px;
 }
 
 .inventory {
@@ -891,9 +953,9 @@ h2 {
 .inventory-heading {
   align-items: end;
   display: grid;
-  gap: 18px;
+  gap: 14px;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.46fr);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .inventory-heading p:last-child {
@@ -907,7 +969,7 @@ h2 {
   display: grid;
   gap: 12px;
   grid-template-columns: minmax(240px, 1fr) minmax(190px, 0.27fr);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .search-box,
@@ -1078,9 +1140,9 @@ h2 {
 
 .stock-layout {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   grid-template-columns: 0.62fr 1.38fr;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .stock-panel {
@@ -1089,7 +1151,7 @@ h2 {
   border-radius: 8px;
   box-shadow: 0 8px 28px rgba(16, 20, 19, 0.06);
   color: #fff;
-  padding: clamp(18px, 2.4vw, 26px);
+  padding: clamp(14px, 2vw, 22px);
 }
 
 .stock-panel h3 {
@@ -1110,7 +1172,7 @@ h2 {
 }
 
 .stock-cars {
-  margin-top: 14px;
+  margin-top: 10px;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -1136,7 +1198,7 @@ h2 {
 .category-grid {
   align-items: start;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(2, 1fr);
 }
 
@@ -1170,7 +1232,8 @@ h2 {
 }
 
 .category-body {
-  padding: 10px 14px 14px;
+  padding: 8px 12px 12px;
+  flex: 1;
 }
 
 .category-icon {
@@ -1197,8 +1260,8 @@ h2 {
 
 /* Sourcing / process section */
 .sourcing {
-  padding-top: 16px;
-  padding-bottom: 16px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .sourcing > .eyebrow {
@@ -1207,7 +1270,7 @@ h2 {
 
 .process-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(3, 1fr);
 }
 
@@ -1215,8 +1278,8 @@ h2 {
   align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px;
+  gap: 6px;
+  padding: 12px 14px;
 }
 
 .process-list span {
@@ -3139,7 +3202,7 @@ dd {
   }
 
   .model-card {
-    min-height: 180px;
+    min-height: 150px;
   }
 
   .process-list {
@@ -3413,11 +3476,11 @@ dd {
   }
 
   .section {
-    padding-block: 22px;
+    padding-block: 16px;
   }
 
   .intro {
-    padding-top: 14px;
+    padding-top: 10px;
   }
 
   .process-list {
